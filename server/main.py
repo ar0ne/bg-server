@@ -14,7 +14,7 @@ from tornado.options import define, options, parse_command_line, parse_config_fi
 
 from server.app import models
 from server.app.models import Room, init_fake_data, Player
-from server.app.utils import JsonDecoderMixin, JsonEncoder
+from server.app.utils import JsonDecoderMixin
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
