@@ -2,7 +2,9 @@
 Main
 """
 import asyncio
+import json
 import os
+from typing import Union
 
 import tornado.web
 from pony.orm import db_session, select, Database
@@ -10,7 +12,8 @@ from pony.orm import db_session, select, Database
 from tornado.options import define, options, parse_command_line, parse_config_file
 
 from server.app import models
-from server.app.models import Room
+from server.app.models import Room, init_fake_data
+from server.app.utils import JsonDecoderMixin, JsonEncoder
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
@@ -24,7 +27,7 @@ define("db_password", default="", help="database password")
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
 
 
-class BaseRequestHandler(tornado.web.RequestHandler):
+class BaseRequestHandler(JsonDecoderMixin, tornado.web.RequestHandler):
     """Base request handler"""
 
 
@@ -38,6 +41,19 @@ class MainHandler(BaseRequestHandler):
             self.write("Room %s (%s)" % (r.id, r.status))
 
 
+class RoomHandler(BaseRequestHandler):
+    """Room request handler"""
+
+    @db_session
+    def get(self, room_id: str):
+        room = select(r for r in Room if r.id == room_id).first()
+        if not room:
+            self.write("Not found")
+            return
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        self.write(JsonEncoder.encode(room.to_dict()))
+
+
 class Application(tornado.web.Application):
     """Application"""
 
@@ -45,6 +61,7 @@ class Application(tornado.web.Application):
         """Init application"""
         self.db = db
         handlers = [
+            (r"/rooms/([^/]+)", RoomHandler),
             (r"/", MainHandler),
         ]
         settings = dict(
@@ -80,6 +97,8 @@ async def main() -> None:
     parse_config_file(CONFIG_FILE_PATH)
 
     db = init_database()
+    init_fake_data()  # FIXME: remove it later
+
     app = Application(db)
     app.listen(options.port)
     await asyncio.Event().wait()
