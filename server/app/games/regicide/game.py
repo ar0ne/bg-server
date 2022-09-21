@@ -3,7 +3,7 @@ import enum
 import random
 from dataclasses import dataclass
 from itertools import product
-from typing import List, Optional
+from typing import List, Optional, Iterable
 
 HEARTS = "hearts"
 SPADES = "spades"
@@ -83,6 +83,12 @@ class Deck:
         return len(self.cards)
 
 
+def cycle(iters: Iterable):
+    while True:
+        for it in iters:
+            yield it
+
+
 class GameState(enum.Enum):
     created = "created"
     running = "running"
@@ -101,7 +107,8 @@ class Game:
         self._create_enemy_deck()
         self.discard_deck = Deck()
         # self.defeated_enemies = Deck()
-        self.first_player = self.players[0].id
+        self.next_player_loop = cycle(self.players)
+        self.first_player = self._next_player_turn()
         self.state = GameState.created
         self.players_hand = {}
 
@@ -111,6 +118,12 @@ class Game:
         for player in self.players:
             self.players_hand[player.id] = self.tavern_deck.draw_cards(HAND_SIZE)
         self.state = GameState.running
+
+    def _next_player_turn(self) -> Player:
+        """Change first player to next"""
+        next_player = next(self.next_player_loop)
+        self.first_player = next_player
+        return next_player
 
     def assert_can_start_game(self) -> None:
         if self.state != GameState.created:
@@ -129,7 +142,7 @@ class Game:
                 raise Exception  # FIXME
 
     def play_cards(self, player: Player, cards: List[Card]):
-        """Play card"""
+        """Play cards"""
         self.assert_can_play_cards(player, cards)
 
     def get_game_state(self) -> dict:
@@ -168,8 +181,10 @@ class Game:
 
 if __name__ == "__main__":
     pl = Player("123")
-    game = Game([pl])
+    pl2 = Player("jee")
+    game = Game([pl, pl2])
 
     print(game.get_game_state())
     game.start_game()
     print(game.get_game_state())
+
