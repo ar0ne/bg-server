@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h4>{{ title }}</h4>
+
+{% if current_user %}
+<h4>You're authorized.</h4>
+{% end %}
+
+<ul>
+   {% for room in rooms %}
+     <li>Room ID: {{ room.id }}
+      <a href="/rooms/{{ room.id }}">Open</a>
+     </li>
+   {% end %}
+ </ul>
+
+{% end %}

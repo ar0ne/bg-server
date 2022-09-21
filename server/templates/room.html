@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+   {% if not room %}
+      <p>Room not found</p>
+   {% else %}
+      <p>Room # {{ room.id }}</p>
+      <p>Status: {{ room.status }}</p>
+      <button>Join</button>
+   {% end %}
+{% end %}

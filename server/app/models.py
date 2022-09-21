@@ -13,7 +13,7 @@ class Player(db.Entity):
     email = Required(str, unique=True)
     id = PrimaryKey(int, auto=True)  # FIXME: uuid4
     joined_rooms = Set("Room", reverse="participants")
-    name = Required(str)
+    name = Optional(str)
     nickname = Required(str, unique=True)
     password = Required(str)
 
