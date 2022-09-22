@@ -98,9 +98,11 @@ class Card:
 
     def get_reduced_attack_power(self, combo: Combo) -> int:
         """Calculate reduced enemy attack value if combo contains spades and enemy doesn't immune"""
-        return self.suit != Suits.SPADES and sum(card.suit == Suits.SPADES for card in combo)
+        return self.suit != Suits.SPADES and sum(
+            card.attack for card in combo if card.suit == Suits.SPADES
+        )
 
-    def get_reduced_attack(self, cards: PlayedCards) -> int:
+    def get_reduced_attack_damage(self, cards: PlayedCards) -> int:
         """Calculate reduced enemy attack by played cards"""
         return sum(map(lambda c: self.get_reduced_attack_power(c), cards))
 
@@ -239,34 +241,45 @@ class Game:
         if self.state != GameState.CREATED:
             raise Exception  # FIXME
 
-    def cards_belong_to_player(self, player: Player, cards: List[Card]) -> bool:
-        return all(card in self.players_hand[player.id] for card in cards)
+    def cards_belong_to_player(self, player: Player, combo: Combo) -> bool:
+        return all(card in self.players_hand[player.id] for card in combo)
 
-    def assert_can_play_cards(self, player: Player, cards: List[Card]) -> None:
+    def assert_can_play_cards(self, player: Player, combo: Combo) -> None:
         """Assert player can play cards"""
         if not self.playing_cards_state:
             raise Exception  # FIXME
         if player not in self.players:
             raise Exception  # FIXME
-        if not cards:
+        if not combo:
             raise Exception  # FIXME
         if player != self.first_player:
             raise Exception  # FIXME
-        if not self.cards_belong_to_player(player, cards):
+        if not self.cards_belong_to_player(player, combo):
             raise Exception  # FIXME
+
         # TODO: check if it's combination of Ace and any card
         # TODO: check if it's 2+2+.., 3+3+.. combo
 
-    def assert_can_discard_cards(self, player: Player, cards: Combo) -> None:
+    def assert_can_discard_cards(self, player: Player, combo: Combo) -> None:
         """Assert can player discard these cards"""
         if not self.discarding_cards_state:
             raise Exception  # FIXME
-        if not self.cards_belong_to_player(player, cards):
+        if not self.cards_belong_to_player(player, combo):
+            raise Exception  # FIXME
+        if player != self.first_player:
+            raise Exception  # FIXME
+        if player not in self.players:
+            raise Exception  # FIXME
+        if not combo:
             raise Exception  # FIXME
         enemy = self.current_enemy
-        enemy_attack_power = Card.get_attack_power(cards, enemy)
-        if enemy_attack_power < enemy.attack - enemy.get_reduced_attack(self.played_cards):
+        # damage from combo without suits power should be enough to deal with enemies attack damage
+        combo_damage = sum(card.attack for card in combo)
+        if enemy.attack - enemy.get_reduced_attack_damage(self.played_cards) > combo_damage:
             raise Exception  # FIXME
+
+        # TODO: check if it's combination of Ace and any card
+        # TODO: check if it's 2+2+.., 3+3+.. combo
 
     def defeat_enemy(self) -> None:
         """Defeat current enemy"""
@@ -301,11 +314,12 @@ class Game:
             # if player doesn't have cards on hand enough to deal with enemies attack - game lost
             self.state = GameState.LOST
 
-        # if Card.get_attack_power(self.played_cards, enemy) > 0:
-        #     # if player should deal with enemy attack transit to discard card state then
-        #     self.state = GameState.DISCARDING_CARDS
-
-        self.toggle_next_player_turn()
+        if enemy.attack - enemy.get_reduced_attack_damage(self.played_cards) > 0:
+            # if player should deal with enemy attack transit to discard card state then
+            self.state = GameState.DISCARDING_CARDS
+        else:
+            # otherwise, it's next player turn
+            self.toggle_next_player_turn()
 
     def can_defeat_enemies_attack(self, player: Player, enemy: Enemy) -> bool:
         """True if player can defeat current enemy"""
@@ -377,6 +391,8 @@ if __name__ == "__main__":
     game.start_game()
     print(game.get_game_state())
     game.play_cards(pl1, [game.players_hand[pl1.id][0]])
+    print(game.get_game_state())
+    game.discard_cards(pl1, [game.players_hand[pl1.id][1]])
     print(game.get_game_state())
     game.play_cards(pl2, [game.players_hand[pl2.id][4]])
     print(game.get_game_state())
