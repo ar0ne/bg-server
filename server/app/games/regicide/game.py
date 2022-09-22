@@ -1,5 +1,6 @@
 """Regicide main game file"""
 import enum
+import json
 import random
 from dataclasses import dataclass
 from itertools import product
@@ -14,7 +15,7 @@ class Suits(enum.Enum):
 
     @classmethod
     def list(cls) -> List[str]:
-        return list(map(lambda c: c.name, cls))
+        return list(map(lambda c: c.value, cls))
 
 
 ACE = "A"
@@ -32,12 +33,11 @@ class Player:
 
     id: str
 
-    def __str__(self):
-        return self.id
-
 
 @dataclass(frozen=True)
 class Rank:
+    """Card rank"""
+
     value: str
 
 
@@ -46,16 +46,18 @@ class Card:
     """Card"""
 
     ATTACK = {
-        ACE: 1,
         JACK: 10,
         QUEEN: 15,
         KING: 20,
+        ACE: 1,
     }
+    ATTACK.update({str(v): v for v in range(2, 11)})
     HEALTH = {
         JACK: 20,
         QUEEN: 30,
         KING: 40,
     }
+    # HEALTH.update({str(v): v for v in range(2, 11)})
 
     suit: Suits
     rank: Rank
@@ -63,20 +65,19 @@ class Card:
     @property
     def health(self) -> int:
         """Get health"""
-        if self.suit in self.HEALTH:
-            return self.HEALTH[self.suit]
-        # can it be used for discarding
+        if self.rank.value in self.HEALTH:
+            return self.HEALTH[self.rank.value]
+        # TODO: can it be used for discarding? if not simplify
         return 0
 
     @property
     def attack(self) -> int:
         """Get attack power"""
-        if self.suit in self.ATTACK:
-            if self.suit == Suits.CLUBS:
-                # TODO: what if enemy has immune ?
-                return self.ATTACK[self.suit] * 2
-            return self.ATTACK[self.suit]
-        return int(self.rank.value)
+        return self.ATTACK[self.rank.value]
+
+    def __str__(self) -> str:
+        """To string"""
+        return f"{self.suit.value} {self.rank.value}"
 
 
 class Deck:
@@ -122,7 +123,7 @@ class Deck:
 
     def __str__(self) -> str:
         """To string"""
-        return str(self.cards)
+        return json.dumps(self.cards)
 
     def __len__(self) -> int:
         """Length of card deck"""
@@ -158,8 +159,8 @@ class Game:
         self.first_player = self._next_player_turn()
         self.state = GameState.created
         self.players_hand = {}
-        # represents cards played against current enemy before they went to discard pile
-        self.played_cards_deck = Deck()
+        # list of lists represents cards combo played against enemy before they went to discard pile
+        self.played_cards = []
         self.turn = 0
 
     def start_game(self) -> None:
@@ -198,11 +199,21 @@ class Game:
         # TODO: check if it's combination of Ace and any card
         # TODO: check if it's 2+2+.., 3+3+.. combo
 
+    @staticmethod
+    def doubling(enemy: Card, cards: List[Card]) -> bool:
+        return enemy.suit != Suits.CLUBS and any(card.suit == Suits.CLUBS for card in cards)
+
+    def cards_power(self, enemy: Card, cards: List[Card]):
+        attack_sum = sum(map(lambda c: c.attack, cards))
+        if self.doubling(enemy, cards):
+            attack_sum *= 2
+        return attack_sum
+
     def is_current_enemy_defeated(self) -> bool:
         """True if enemy defeated, True if sum of played cards is equal to enemy health"""
-        cards = self.played_cards_deck.cards
-        subtracted_health = 2  # FIXME: calculate all cards and their suits power
+
         enemy = self.get_current_enemy()
+        subtracted_health = sum(map(lambda c: self.cards_power(enemy, c), self.played_cards))
         if enemy.health <= subtracted_health:
             return True
         return False
@@ -215,7 +226,7 @@ class Game:
             # transit to won state if enemy deck is empty now
             self.state = GameState.won
         # remove all played cards from the deck
-        self.played_cards_deck.clear()
+        self.played_cards = []
 
     def play_cards(self, player: Player, cards: Union[Card, List[Card]]):
         """Play cards"""
@@ -229,7 +240,7 @@ class Game:
             filter(lambda c: c not in cards, self.players_hand[player.id])
         )
         # add cards to played cards deck
-        self.played_cards_deck.append(cards)
+        self.played_cards.append(cards)
         # check has been enemy defeated
         if self.is_current_enemy_defeated():
             self._defeat_enemy()
@@ -241,13 +252,14 @@ class Game:
         enemy = self.get_current_enemy()
         return {
             "discard_deck_size": len(self.discard_deck),
-            "played_deck": str(self.played_cards_deck),
+            "played_cards": str(self.played_cards),
             "enemy": {
+                "card": str(enemy),
                 "health": enemy.health,
                 "attack": enemy.attack,
             },
             "first_player": self.first_player,
-            "players": self.players,
+            "players": str(self.players),
             "state": self.state,
             "turn": self.turn,
             # players hands (perhaps depend on current user)
@@ -267,7 +279,7 @@ class Game:
         """Create tavern cards deck"""
         ranks = (*map(str, range(2, 11)), ACE)
         combinations = product(ranks, Suits.list())
-        players_deck = list(map(lambda c: Card(suit=c[0], rank=Rank(c[1])), combinations))
+        players_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), combinations))
         random.shuffle(players_deck)
         self.tavern_deck = Deck(players_deck)
 
@@ -275,7 +287,7 @@ class Game:
         """Create enemy cards deck"""
         enemy_ranks = (JACK, QUEEN, KING)
         face_combs = product(enemy_ranks, Suits.list())
-        enemy_deck = list(map(lambda c: Card(suit=c[0], rank=Rank(c[1])), face_combs))
+        enemy_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))
         self.enemy_deck = Deck([*jacks, *queens, *kings])
