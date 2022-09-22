@@ -5,7 +5,12 @@ import json
 import random
 from dataclasses import dataclass
 from itertools import product
-from typing import List, Optional, Iterable, Union
+from typing import List, Optional, Iterable, Union, TypeVar
+
+
+Enemy = TypeVar("Enemy", bound="Card")
+PlayedCards = List[List["Card"]]
+Combo = List["Card"]
 
 
 class Suits(enum.Enum):
@@ -15,7 +20,8 @@ class Suits(enum.Enum):
     SPADES = "♠"
 
     @classmethod
-    def list(cls) -> List[str]:
+    def list_values(cls) -> List[str]:
+        """Generates list of suits values"""
         return list(map(lambda c: c.value, cls))
 
 
@@ -75,6 +81,36 @@ class Card:
     def attack(self) -> int:
         """Get attack power"""
         return self.ATTACK[self.rank.value]
+
+    @staticmethod
+    def is_double_damage(combo: Combo, enemy: Enemy) -> bool:
+        """True if possible to double cards attack"""
+        return enemy.suit != Suits.CLUBS and any(card.suit == Suits.CLUBS for card in combo)
+
+    @classmethod
+    def get_attack_power(cls, combo: Combo, enemy: Enemy) -> int:
+        """Calculate cards attack power"""
+        damage = sum(map(lambda c: c.attack, combo))
+        if cls.is_double_damage(combo, enemy):
+            # if enemy doesn't have immune and played clubs we double attack power
+            damage *= 2
+        return damage
+
+    def get_reduced_attack_power(self, combo: Combo) -> int:
+        """Calculate reduced enemy attack value if combo contains spades and enemy doesn't immune"""
+        return self.suit != Suits.SPADES and sum(card.suit == Suits.SPADES for card in combo)
+
+    def get_reduced_attack(self, cards: PlayedCards) -> int:
+        """Calculate reduced enemy attack by played cards"""
+        return sum(map(lambda c: self.get_reduced_attack_power(c), cards))
+
+    def get_damage(self, cards: PlayedCards) -> int:
+        """Calculate attack from all played cards"""
+        return sum(map(lambda c: Card.get_attack_power(c, self), cards))
+
+    def is_defeated(self, cards: PlayedCards) -> bool:
+        """True if enemy defeated (sum of attacks played cards is equal to enemy health or more)"""
+        return self.health <= self.get_damage(cards)
 
     def __str__(self) -> str:
         """To string"""
@@ -221,33 +257,16 @@ class Game:
         # TODO: check if it's combination of Ace and any card
         # TODO: check if it's 2+2+.., 3+3+.. combo
 
-    def assert_can_discard_cards(self, player: Player, cards: List[Card]) -> None:
+    def assert_can_discard_cards(self, player: Player, cards: Combo) -> None:
         """Assert can player discard these cards"""
         if not self.discarding_cards_state:
             raise Exception  # FIXME
         if not self.cards_belong_to_player(player, cards):
             raise Exception  # FIXME
-
-    @staticmethod
-    def doubling(enemy: Card, cards: List[Card]) -> bool:
-        """True if possible to double cards attack"""
-        return enemy.suit != Suits.CLUBS and any(card.suit == Suits.CLUBS for card in cards)
-
-    def cards_power(self, enemy: Card, cards: List[Card]) -> int:
-        """Calculate cards attack power"""
-        attack_sum = sum(map(lambda c: c.attack, cards))
-        if self.doubling(enemy, cards):
-            # if enemy doesn't have immune and played clubs we double attack power
-            attack_sum *= 2
-        return attack_sum
-
-    def is_current_enemy_defeated(self) -> bool:
-        """True if enemy defeated (sum of attacks played cards is equal to enemy health or more)"""
-        enemy = self.get_current_enemy()
-        subtracted_health = sum(map(lambda c: self.cards_power(enemy, c), self.played_cards))
-        if enemy.health <= subtracted_health:
-            return True
-        return False
+        enemy = self.current_enemy
+        enemy_attack_power = Card.get_attack_power(cards, enemy)
+        if enemy_attack_power < enemy.attack - enemy.get_reduced_attack(self.played_cards):
+            raise Exception  # FIXME
 
     def defeat_enemy(self) -> None:
         """Defeat current enemy"""
@@ -260,11 +279,11 @@ class Game:
         # clean up played cards
         self.played_cards = []
 
-    def play_cards(self, player: Player, cards: Union[Card, List[Card]]):
+    def play_cards(self, player: Player, cards: Combo):
         """Play cards"""
-        if isinstance(cards, Card):
-            cards = [cards]
         self.assert_can_play_cards(player, cards)
+
+        enemy = self.current_enemy
         # remove cards from player's hand
         self.players_hand[player.id] = list(
             filter(lambda c: c not in cards, self.players_hand[player.id])
@@ -272,25 +291,39 @@ class Game:
         # add cards to played cards deck
         self.played_cards.append(cards)
         # check has been enemy defeated
-        if self.is_current_enemy_defeated():
+        if enemy.is_defeated(self.played_cards):
             self.defeat_enemy()
+
+        if not len(self.enemy_deck):
             # transit to won state if enemy deck is empty now
-            if not len(self.enemy_deck):
-                self.state = GameState.WON
+            self.state = GameState.WON
+        if not self.can_defeat_enemies_attack(player, enemy):
+            # if player doesn't have cards on hand enough to deal with enemies attack - game lost
+            self.state = GameState.LOST
+
+        # if Card.get_attack_power(self.played_cards, enemy) > 0:
+        #     # if player should deal with enemy attack transit to discard card state then
+        #     self.state = GameState.DISCARDING_CARDS
+
         self.toggle_next_player_turn()
 
-    def discard_cards(self, player: Player, cards: Union[Card, List[Card]]) -> None:
+    def can_defeat_enemies_attack(self, player: Player, enemy: Enemy) -> bool:
+        """True if player can defeat current enemy"""
+        # TODO:
+        return True
+
+    def discard_cards(self, player: Player, cards: Combo) -> None:
         """Discard cards to defeat from enemy attack"""
         self.assert_can_discard_cards(player, cards)
 
-        # TODO: if player can't defeat game lost
+        # TODO: if player can't defeat game lost ?
 
         # increase turn counter
         self.turn += 1
 
     def get_game_state(self) -> dict:
         """Returns state of the game and all public information"""
-        enemy = self.get_current_enemy()
+        enemy = self.current_enemy
         return {
             "discard_deck_size": len(self.discard_deck),
             "played_cards": str(self.played_cards),
@@ -312,14 +345,15 @@ class Game:
             },
         }
 
-    def get_current_enemy(self) -> Optional[Card]:
+    @property
+    def current_enemy(self) -> Optional[Card]:
         """Gets current enemy"""
         return self.enemy_deck.peek()
 
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""
         ranks = (*map(str, range(2, 11)), ACE)
-        combinations = product(ranks, Suits.list())
+        combinations = product(ranks, Suits.list_values())
         players_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), combinations))
         random.shuffle(players_deck)
         self.tavern_deck = Deck(players_deck)
@@ -327,7 +361,7 @@ class Game:
     def _create_enemy_deck(self) -> None:
         """Create enemy cards deck"""
         enemy_ranks = (JACK, QUEEN, KING)
-        face_combs = product(enemy_ranks, Suits.list())
+        face_combs = product(enemy_ranks, Suits.list_values())
         enemy_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))
