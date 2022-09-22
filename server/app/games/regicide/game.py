@@ -3,13 +3,19 @@ import enum
 import random
 from dataclasses import dataclass
 from itertools import product
-from typing import List, Optional, Iterable, Union, Tuple
+from typing import List, Optional, Iterable, Union
 
-HEARTS = "hearts"
-SPADES = "spades"
-CLUBS = "clubs"
-DIAMONDS = "diamonds"
-SUITS = (CLUBS, DIAMONDS, HEARTS, SPADES)
+
+class Suits(enum.Enum):
+    CLUBS = "♣"
+    DIAMONDS = "♦"
+    HEARTS = "♥"
+    SPADES = "♠"
+
+    @classmethod
+    def list(cls) -> List[str]:
+        return list(map(lambda c: c.name, cls))
+
 
 ACE = "A"
 KING = "K"
@@ -18,18 +24,6 @@ JACK = "J"
 
 # FIXME: should be dynamic
 HAND_SIZE = 7
-
-HEALTH = {
-    JACK: 20,
-    QUEEN: 30,
-    KING: 40,
-}
-
-ATTACK = {
-    JACK: 10,
-    QUEEN: 15,
-    KING: 20,
-}
 
 
 @dataclass(frozen=True)
@@ -46,33 +40,43 @@ class Player:
 class Rank:
     value: str
 
-    def __str__(self) -> str:
-        """to string"""
-        if self.value == CLUBS:
-            return CLUBS
-        if self.value == HEARTS:
-            return HEARTS
-        if self.value == SPADES:
-            return SPADES
-        return DIAMONDS
-
 
 @dataclass(frozen=True)
 class Card:
     """Card"""
 
-    suit: str
+    ATTACK = {
+        ACE: 1,
+        JACK: 10,
+        QUEEN: 15,
+        KING: 20,
+    }
+    HEALTH = {
+        JACK: 20,
+        QUEEN: 30,
+        KING: 40,
+    }
+
+    suit: Suits
     rank: Rank
 
     @property
-    def health(self) -> Optional[int]:
-        if self.suit in HEALTH:
-            return HEALTH[self.suit]
+    def health(self) -> int:
+        """Get health"""
+        if self.suit in self.HEALTH:
+            return self.HEALTH[self.suit]
+        # can it be used for discarding
+        return 0
 
     @property
-    def attack(self) -> Optional[int]:
-        if self.suit in ATTACK:
-            return ATTACK[self.suit]
+    def attack(self) -> int:
+        """Get attack power"""
+        if self.suit in self.ATTACK:
+            if self.suit == Suits.CLUBS:
+                # TODO: what if enemy has immune ?
+                return self.ATTACK[self.suit] * 2
+            return self.ATTACK[self.suit]
+        return int(self.rank.value)
 
 
 class Deck:
@@ -198,7 +202,7 @@ class Game:
         """True if enemy defeated, True if sum of played cards is equal to enemy health"""
         cards = self.played_cards_deck.cards
         subtracted_health = 2  # FIXME: calculate all cards and their suits power
-        enemy = self.enemy_deck.peek()
+        enemy = self.get_current_enemy()
         if enemy.health <= subtracted_health:
             return True
         return False
@@ -234,7 +238,7 @@ class Game:
 
     def get_game_state(self) -> dict:
         """Returns state of the game and all public information"""
-        enemy = self.enemy_deck.peek()
+        enemy = self.get_current_enemy()
         return {
             "discard_deck_size": len(self.discard_deck),
             "played_deck": str(self.played_cards_deck),
@@ -255,10 +259,14 @@ class Game:
             },
         }
 
+    def get_current_enemy(self) -> Optional[Card]:
+        """Gets current enemy"""
+        return self.enemy_deck.peek()
+
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""
         ranks = (*map(str, range(2, 11)), ACE)
-        combinations = product(ranks, SUITS)
+        combinations = product(ranks, Suits.list())
         players_deck = list(map(lambda c: Card(suit=c[0], rank=Rank(c[1])), combinations))
         random.shuffle(players_deck)
         self.tavern_deck = Deck(players_deck)
@@ -266,7 +274,7 @@ class Game:
     def _create_enemy_deck(self) -> None:
         """Create enemy cards deck"""
         enemy_ranks = (JACK, QUEEN, KING)
-        face_combs = product(enemy_ranks, SUITS)
+        face_combs = product(enemy_ranks, Suits.list())
         enemy_deck = list(map(lambda c: Card(suit=c[0], rank=Rank(c[1])), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))
@@ -285,4 +293,3 @@ if __name__ == "__main__":
     print(game.get_game_state())
     game.play_cards(pl2, [game.players_hand[pl2.id][4]])
     print(game.get_game_state())
-
