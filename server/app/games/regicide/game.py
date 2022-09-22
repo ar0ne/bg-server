@@ -191,11 +191,13 @@ class Game:
         """Init game"""
         assert len(players), "No players found."
         self.players = players
+        # display number of current turn
+        self.turn = 1
+        # create tavern and enemy decks
         self._create_tavern_deck()
         self._create_enemy_deck()
-        #
+        # create empty discard deck
         self.discard_deck = Deck()
-        # self.defeated_enemies = Deck()
         self.next_player_loop = cycle(self.players)
         # FIXME: randomize it, otherwise first player from list always start
         self.first_player = self.toggle_next_player_turn()
@@ -205,10 +207,6 @@ class Game:
         self.players_hand = {}
         # list of lists represents cards combo played against enemy before they went to discard pile
         self.played_cards = []
-        # list of all defeated enemies
-        self.defeated_enemies = []
-        # display number of current turn
-        self.turn = 1
 
     @property
     def playing_cards_state(self) -> bool:
@@ -231,6 +229,7 @@ class Game:
 
     def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
+        self.turn += 1
         if len(self.players) == 1:
             # no need to update first player if it's solo game
             return self.first_player
@@ -275,65 +274,77 @@ class Game:
         enemy = self.current_enemy
         # damage from combo without suits power should be enough to deal with enemies attack damage
         combo_damage = sum(card.attack for card in combo)
-        if enemy.attack - enemy.get_reduced_attack_damage(self.played_cards) > combo_damage:
+        if self.get_attack_damage(enemy) > combo_damage:
             raise Exception  # FIXME
 
         # TODO: check if it's combination of Ace and any card
         # TODO: check if it's 2+2+.., 3+3+.. combo
 
-    def defeat_enemy(self) -> None:
-        """Defeat current enemy"""
+    def pull_next_enemy(self) -> None:
+        """Remove current enemy, throw off played cards to discard pile"""
         enemy = self.enemy_deck.pop()
-        # move enemy to defeated list
-        self.defeated_enemies.append(enemy)
         # move cards from played to discard pile
         flat_played_cards = list(itertools.chain.from_iterable(self.played_cards))
+        # TODO: doesn't matter in which order we throw away cards?
         self.discard_deck.append(flat_played_cards)
+        # TODO: if last attack equal to enemy helth we should move it to top of tavern pile
+        self.discard_deck.append(enemy)
         # clean up played cards
         self.played_cards = []
 
-    def play_cards(self, player: Player, cards: Combo):
+    def get_attack_damage(self, enemy: Enemy) -> int:
+        """Get enemy's attack damage power"""
+        return enemy.attack - enemy.get_reduced_attack_damage(self.played_cards)
+
+    def play_cards(self, player: Player, combo: Combo):
         """Play cards"""
-        self.assert_can_play_cards(player, cards)
+        self.assert_can_play_cards(player, combo)
 
         enemy = self.current_enemy
         # remove cards from player's hand
         self.players_hand[player.id] = list(
-            filter(lambda c: c not in cards, self.players_hand[player.id])
+            filter(lambda c: c not in combo, self.players_hand[player.id])
         )
         # add cards to played cards deck
-        self.played_cards.append(cards)
+        self.played_cards.append(combo)
         # check has been enemy defeated
-        if enemy.is_defeated(self.played_cards):
-            self.defeat_enemy()
-
-        if not len(self.enemy_deck):
+        enemy_defeated = enemy.is_defeated(self.played_cards)
+        if enemy_defeated:
+            # pull next enemy from castle deck and discard defeated enemy and played cards
+            self.pull_next_enemy()
             # transit to won state if enemy deck is empty now
-            self.state = GameState.WON
-        if not self.can_defeat_enemies_attack(player, enemy):
-            # if player doesn't have cards on hand enough to deal with enemies attack - game lost
-            self.state = GameState.LOST
-
-        if enemy.attack - enemy.get_reduced_attack_damage(self.played_cards) > 0:
-            # if player should deal with enemy attack transit to discard card state then
-            self.state = GameState.DISCARDING_CARDS
+            if not len(self.enemy_deck):
+                self.state = GameState.WON
         else:
-            # otherwise, it's next player turn
-            self.toggle_next_player_turn()
+            # if enemy still has attack power, transit game to discard card state
+            self.state = GameState.DISCARDING_CARDS
+
+            if self.get_attack_damage(enemy) <= 0:
+                # enemy can't attack, let next player to play cards
+                self.state = GameState.PLAYING_CARDS
+                self.toggle_next_player_turn()
+            elif not self.can_defeat_enemies_attack(player, enemy):
+                # player must have cards on hand enough to deal with enemies attack, otherwise
+                # game lost
+                self.state = GameState.LOST
 
     def can_defeat_enemies_attack(self, player: Player, enemy: Enemy) -> bool:
         """True if player can defeat current enemy"""
         # TODO:
         return True
 
-    def discard_cards(self, player: Player, cards: Combo) -> None:
+    def discard_cards(self, player: Player, combo: Combo) -> None:
         """Discard cards to defeat from enemy attack"""
-        self.assert_can_discard_cards(player, cards)
+        self.assert_can_discard_cards(player, combo)
 
-        # TODO: if player can't defeat game lost ?
+        # TODO: if player can't defeat game lost ? Should we raise error or let player lost?
 
-        # increase turn counter
-        self.turn += 1
+        # move cards to discard pile
+        self.discard_deck.append(combo)
+
+        # next player could play card
+        self.state = GameState.PLAYING_CARDS
+        self.toggle_next_player_turn()
 
     def get_game_state(self) -> dict:
         """Returns state of the game and all public information"""
