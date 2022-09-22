@@ -1,5 +1,6 @@
 """Regicide main game file"""
 import enum
+import itertools
 import json
 import random
 from dataclasses import dataclass
@@ -153,15 +154,27 @@ class Game:
         self.players = players
         self._create_tavern_deck()
         self._create_enemy_deck()
+        #
         self.discard_deck = Deck()
         # self.defeated_enemies = Deck()
         self.next_player_loop = cycle(self.players)
-        self.first_player = self._next_player_turn()
+        #
+        self.first_player = self.toggle_next_player_turn()
+        #
         self.state = GameState.created
+        # dict of lists of cards for each player
         self.players_hand = {}
         # list of lists represents cards combo played against enemy before they went to discard pile
         self.played_cards = []
-        self.turn = 0
+        # list of all defeated enemies
+        self.defeated_enemies = []
+        # display number of current turn
+        self.turn = 1
+
+    @property
+    def game_is_running(self) -> bool:
+        """True if game is in progress"""
+        return self.state == GameState.running
 
     def start_game(self) -> None:
         """Player draw cards"""
@@ -170,7 +183,7 @@ class Game:
             self.players_hand[player.id] = self.tavern_deck.draw_cards(HAND_SIZE)
         self.state = GameState.running
 
-    def _next_player_turn(self) -> Player:
+    def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
         if len(self.players) == 1:
             # no need to update first player if it's solo game
@@ -183,9 +196,12 @@ class Game:
         if self.state != GameState.created:
             raise Exception  # FIXME
 
+    def cards_belong_to_player(self, player: Player, cards: List[Card]) -> bool:
+        return all(card in self.players_hand[player.id] for card in cards)
+
     def assert_can_play_cards(self, player: Player, cards: List[Card]) -> None:
         """Assert player can play cards"""
-        if self.state != GameState.running:
+        if not self.game_is_running:
             raise Exception  # FIXME
         if player not in self.players:
             raise Exception  # FIXME
@@ -193,11 +209,17 @@ class Game:
             raise Exception  # FIXME
         if player != self.first_player:
             raise Exception  # FIXME
-        for card in cards:
-            if card not in self.players_hand[player.id]:
-                raise Exception  # FIXME
+        if self.cards_belong_to_player(player, cards):
+            raise Exception  # FIXME
         # TODO: check if it's combination of Ace and any card
         # TODO: check if it's 2+2+.., 3+3+.. combo
+
+    def assert_can_discard_cards(self, player: Player, cards: List[Card]) -> None:
+        """Assert can player discard these cards"""
+        if not self.game_is_running:
+            raise Exception  # FIXME
+        if not self.cards_belong_to_player(player, cards):
+            raise Exception  # FIXME
 
     @staticmethod
     def doubling(enemy: Card, cards: List[Card]) -> bool:
@@ -210,22 +232,22 @@ class Game:
         return attack_sum
 
     def is_current_enemy_defeated(self) -> bool:
-        """True if enemy defeated, True if sum of played cards is equal to enemy health"""
-
+        """True if enemy defeated (sum of attacks played cards is equal to enemy health or more)"""
         enemy = self.get_current_enemy()
         subtracted_health = sum(map(lambda c: self.cards_power(enemy, c), self.played_cards))
         if enemy.health <= subtracted_health:
             return True
         return False
 
-    def _defeat_enemy(self) -> None:
+    def defeat_enemy(self) -> None:
         """Defeat current enemy"""
         enemy = self.enemy_deck.pop()
-        # TODO: move to defeated enemies
-        if not len(self.enemy_deck):
-            # transit to won state if enemy deck is empty now
-            self.state = GameState.won
-        # remove all played cards from the deck
+        # move enemy to defeated list
+        self.defeated_enemies.append(enemy)
+        # move cards from played to discard pile
+        flat_played_cards = list(itertools.chain.from_iterable(self.played_cards))
+        self.discard_deck.append(flat_played_cards)
+        # clean up played cards
         self.played_cards = []
 
     def play_cards(self, player: Player, cards: Union[Card, List[Card]]):
@@ -233,9 +255,7 @@ class Game:
         if isinstance(cards, Card):
             cards = [cards]
         self.assert_can_play_cards(player, cards)
-
-        self.turn += 1
-        # reveal cards from player's hand
+        # remove cards from player's hand
         self.players_hand[player.id] = list(
             filter(lambda c: c not in cards, self.players_hand[player.id])
         )
@@ -243,9 +263,21 @@ class Game:
         self.played_cards.append(cards)
         # check has been enemy defeated
         if self.is_current_enemy_defeated():
-            self._defeat_enemy()
+            self.defeat_enemy()
+            # transit to won state if enemy deck is empty now
+            if not len(self.enemy_deck):
+                self.state = GameState.won
 
-        self._next_player_turn()
+        self.toggle_next_player_turn()
+
+    def discard_cards(self, player: Player, cards: Union[Card, List[Card]]) -> None:
+        """Discard cards to defeat from enemy attack"""
+        self.assert_can_discard_cards(player, cards)
+
+        # TODO: if player can't defeat game lost
+
+        # increase turn counter
+        self.turn += 1
 
     def get_game_state(self) -> dict:
         """Returns state of the game and all public information"""
