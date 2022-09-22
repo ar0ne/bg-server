@@ -139,10 +139,11 @@ def cycle(iters: Iterable):
 
 
 class GameState(enum.Enum):
-    created = "created"
-    running = "running"
-    lost = "lost"
-    won = "won"
+    CREATED = "created"
+    PLAYING_CARDS = "playing_cards"
+    DISCARDING_CARDS = "discarding_cards"
+    LOST = "lost"
+    WON = "won"
 
 
 class Game:
@@ -158,10 +159,10 @@ class Game:
         self.discard_deck = Deck()
         # self.defeated_enemies = Deck()
         self.next_player_loop = cycle(self.players)
-        #
+        # FIXME: randomize it, otherwise first player from list always start
         self.first_player = self.toggle_next_player_turn()
-        #
-        self.state = GameState.created
+        # setup game state
+        self.state = GameState.CREATED
         # dict of lists of cards for each player
         self.players_hand = {}
         # list of lists represents cards combo played against enemy before they went to discard pile
@@ -172,28 +173,34 @@ class Game:
         self.turn = 1
 
     @property
-    def game_is_running(self) -> bool:
-        """True if game is in progress"""
-        return self.state == GameState.running
+    def playing_cards_state(self) -> bool:
+        """True if game is in play cards state"""
+        return self.state == GameState.PLAYING_CARDS
+
+    @property
+    def discarding_cards_state(self) -> bool:
+        """True if game is discard cards state"""
+        return self.state == GameState.DISCARDING_CARDS
 
     def start_game(self) -> None:
         """Player draw cards"""
         self.assert_can_start_game()
+        # players draw X random cards on hands
         for player in self.players:
             self.players_hand[player.id] = self.tavern_deck.draw_cards(HAND_SIZE)
-        self.state = GameState.running
+        # first player could play cards now
+        self.state = GameState.PLAYING_CARDS
 
     def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
         if len(self.players) == 1:
             # no need to update first player if it's solo game
             return self.first_player
-        next_player = next(self.next_player_loop)
-        self.first_player = next_player
-        return next_player
+        self.first_player = next(self.next_player_loop)
+        return self.first_player
 
     def assert_can_start_game(self) -> None:
-        if self.state != GameState.created:
+        if self.state != GameState.CREATED:
             raise Exception  # FIXME
 
     def cards_belong_to_player(self, player: Player, cards: List[Card]) -> bool:
@@ -201,7 +208,7 @@ class Game:
 
     def assert_can_play_cards(self, player: Player, cards: List[Card]) -> None:
         """Assert player can play cards"""
-        if not self.game_is_running:
+        if not self.playing_cards_state:
             raise Exception  # FIXME
         if player not in self.players:
             raise Exception  # FIXME
@@ -209,25 +216,28 @@ class Game:
             raise Exception  # FIXME
         if player != self.first_player:
             raise Exception  # FIXME
-        if self.cards_belong_to_player(player, cards):
+        if not self.cards_belong_to_player(player, cards):
             raise Exception  # FIXME
         # TODO: check if it's combination of Ace and any card
         # TODO: check if it's 2+2+.., 3+3+.. combo
 
     def assert_can_discard_cards(self, player: Player, cards: List[Card]) -> None:
         """Assert can player discard these cards"""
-        if not self.game_is_running:
+        if not self.discarding_cards_state:
             raise Exception  # FIXME
         if not self.cards_belong_to_player(player, cards):
             raise Exception  # FIXME
 
     @staticmethod
     def doubling(enemy: Card, cards: List[Card]) -> bool:
+        """True if possible to double cards attack"""
         return enemy.suit != Suits.CLUBS and any(card.suit == Suits.CLUBS for card in cards)
 
-    def cards_power(self, enemy: Card, cards: List[Card]):
+    def cards_power(self, enemy: Card, cards: List[Card]) -> int:
+        """Calculate cards attack power"""
         attack_sum = sum(map(lambda c: c.attack, cards))
         if self.doubling(enemy, cards):
+            # if enemy doesn't have immune and played clubs we double attack power
             attack_sum *= 2
         return attack_sum
 
@@ -266,8 +276,7 @@ class Game:
             self.defeat_enemy()
             # transit to won state if enemy deck is empty now
             if not len(self.enemy_deck):
-                self.state = GameState.won
-
+                self.state = GameState.WON
         self.toggle_next_player_turn()
 
     def discard_cards(self, player: Player, cards: Union[Card, List[Card]]) -> None:
