@@ -10,6 +10,7 @@ from typing import List, Optional, Iterable, Union, TypeVar, Dict
 Enemy = TypeVar("Enemy", bound="Card")
 PlayedCards = List[List["Card"]]
 Combo = List["Card"]
+Hand = List["Card"]
 
 
 class Suits(enum.Enum):
@@ -33,11 +34,16 @@ JACK = "J"
 HAND_SIZE = 7
 
 
-@dataclass(frozen=True)
 class Player:
     """Player"""
+    def __init__(self, id: str) -> None:
+        """Init player"""
+        self.id = id
+        self.hand = []
 
-    id: str
+    def __str__(self) -> str:
+        """To string"""
+        return self.id
 
 
 @dataclass(frozen=True)
@@ -95,7 +101,7 @@ class Card:
     @staticmethod
     def get_combo_damage(combo: Combo) -> int:
         """Calculate damage of combo"""
-        return sum(map(lambda c: c.attack, combo))
+        return sum(card.attack for card in combo)
 
     def get_reduced_attack_power(self, combo: Combo) -> int:
         """Calculate reduced enemy attack value if combo contains spades and enemy doesn't immune"""
@@ -204,8 +210,6 @@ class Game:
         self.first_player = self.toggle_next_player_turn()
         # setup game state
         self.state = GameState.CREATED
-        # dict of lists of cards for each player
-        self.players_hand: Dict[str, Combo] = {}
         # list of lists represents cards combo played against enemy before they went to discard pile
         self.played_cards: PlayedCards = []
 
@@ -224,7 +228,7 @@ class Game:
         self.assert_can_start_game()
         # players draw X random cards on hands
         for player in self.players:
-            self.set_player_hand(player, self.tavern_deck.draw_cards(HAND_SIZE))
+            player.hand = self.tavern_deck.draw_cards(HAND_SIZE)
         # first player could play cards now
         self.state = GameState.PLAYING_CARDS
 
@@ -241,8 +245,9 @@ class Game:
         if self.state != GameState.CREATED:
             raise Exception  # FIXME
 
-    def cards_belong_to_player(self, player: Player, combo: Combo) -> bool:
-        return all(card in self.get_player_hand(player) for card in combo)
+    @staticmethod
+    def cards_belong_to_player(player: Player, combo: Combo) -> bool:
+        return all(card in player.hand for card in combo)
 
     def assert_can_play_cards(self, player: Player, combo: Combo) -> None:
         """Assert player can play cards"""
@@ -274,12 +279,9 @@ class Game:
             raise Exception  # FIXME
         enemy = self.current_enemy
         # damage from combo without suits power should be enough to deal with enemies attack damage
-        combo_damage = sum(card.attack for card in combo)
+        combo_damage = Card.get_combo_damage(combo)
         if self.get_attack_damage(enemy, self.played_cards) > combo_damage:
             raise Exception  # FIXME
-
-        # TODO: check if it's combination of Ace and any card
-        # TODO: check if it's 2+2+.., 3+3+.. combo
 
     def pull_next_enemy(self) -> None:
         """Remove current enemy, throw off played cards to discard pile"""
@@ -313,9 +315,7 @@ class Game:
 
         enemy = self.current_enemy
         # remove cards from player's hand
-        self.set_player_hand(
-            player, list(filter(lambda c: c not in combo, self.get_player_hand(player)))
-        )
+        player.hand = list(filter(lambda c: c not in combo, player.hand))
         # add cards to played cards deck
         self.played_cards.append(combo)
         # check has been enemy defeated
@@ -341,17 +341,9 @@ class Game:
 
     def can_defeat_enemies_attack(self, player: Player, enemy: Enemy) -> bool:
         """True if player can defeat current enemy"""
-        hand = self.get_player_hand(player)
+        hand = player.hand
         total_hand_damage = Card.get_combo_damage(hand)
         return total_hand_damage > self.get_attack_damage(enemy, self.played_cards)
-
-    def get_player_hand(self, player: Player) -> Combo:
-        """Get player's hand"""
-        return self.players_hand[player.id]
-
-    def set_player_hand(self, player: Player, hand: Combo) -> None:
-        """Set player hand"""
-        self.players_hand[player.id] = hand
 
     def discard_cards(self, player: Player, combo: Combo) -> None:
         """Discard cards to defeat from enemy attack"""
@@ -373,16 +365,15 @@ class Game:
                 "health": enemy.health,
                 "attack": enemy.attack,
             },
-            "first_player": self.first_player,
-            "players": str(self.players),
+            "first_player": str(self.first_player),
+            "players": [str(p) for p in self.players],
             "state": self.state,
             "turn": self.turn,
             # players hands (perhaps depend on current user)
             # TODO: add hand size
             "hands": {
-                player: str(self.get_player_hand(player))
+                str(player): str(player.hand)
                 for player in self.players
-                if player.id in self.players_hand
             },
         }
 
@@ -417,9 +408,9 @@ if __name__ == "__main__":
     print(game.get_game_state())
     game.start_game()
     print(game.get_game_state())
-    game.play_cards(pl1, [game.players_hand[pl1.id][0]])
+    game.play_cards(pl1, [pl1.hand[0]])
     print(game.get_game_state())
-    game.discard_cards(pl1, [game.players_hand[pl1.id][1]])
+    game.discard_cards(pl1, [pl1.hand[1]])
     print(game.get_game_state())
-    game.play_cards(pl2, [game.players_hand[pl2.id][4]])
+    game.play_cards(pl2, [pl2.hand[4]])
     print(game.get_game_state())
