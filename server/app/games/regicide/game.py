@@ -25,22 +25,14 @@ class Suits(enum.Enum):
         return list(map(lambda c: c.value, cls))
 
 
-ACE = "A"
-KING = "K"
-QUEEN = "Q"
-JACK = "J"
-
-# FIXME: should be dynamic
-HAND_SIZE = 7
-
-
 class Player:
     """Player"""
 
-    def __init__(self, id: str) -> None:
+    def __init__(self, id: str, hand_size: int = 7) -> None:
         """Init player"""
         self.id = id
         self.hand: Hand = []
+        self.hand_size = hand_size
 
     def __str__(self) -> str:
         """To string"""
@@ -57,6 +49,11 @@ class Rank:
 @dataclass(frozen=True)
 class Card:
     """Card"""
+
+    ACE = "A"
+    KING = "K"
+    QUEEN = "Q"
+    JACK = "J"
 
     ATTACK = {
         JACK: 10,
@@ -140,18 +137,10 @@ class Deck:
 
     def pop_many(self, count: int = 1) -> List[Card]:
         """Pop first element from the deck"""
+        assert count <= len(self.cards), "Can't pop more deck contains."
         cards = self.cards[:count]
         self.cards = self.cards[count:]
         return cards
-
-    def draw_cards(self, count: int = 1) -> List[Card]:
-        """Draw cards and reveal them from deck"""
-        # assert we can draw
-        if len(self.cards) < count:
-            raise Exception  # FIXME
-        draw = self.cards[:count]
-        self.cards = self.cards[count:]
-        return draw
 
     def append(self, cards: Union[Card, List[Card]]) -> None:
         """Append single or several cards to the end of a deck"""
@@ -194,27 +183,55 @@ class GameState(enum.Enum):
     WON = "won"
 
 
+@dataclass(frozen=True)
+class GameData:
+    """Represents internal game state data"""
+
+    turn: int
+    players: List[Player]
+
+
 class Game:
     """Regicide game class"""
 
-    def __init__(self, players: List[Player]) -> None:
+    def __init__(self, players_ids: List[str]) -> None:
         """Init game"""
-        assert len(players), "No players found."
-        self.players = players
+        assert len(players_ids), "No players found."
+        self.players = list(Player(p_id) for p_id in players_ids)
         # display number of current turn
+        self.turn = 0
+        # create empty discard deck
+        self.discard_deck = Deck()
+        self.next_player_loop = cycle(self.players)
+        # list of lists represents cards combo played against enemy before they went to discard pile
+        self.played_cards: PlayedCards = []
+        # FIXME: randomize it, otherwise first player from list always start
+        self.first_player = self.toggle_next_player_turn()
+        # empty enemy deck
+        self.enemy_deck = Deck()
+        # setup game state
+        self.state = GameState.CREATED
+
+    def create_new_game(self) -> None:
+        """Create new game"""
         self.turn = 1
         # create tavern and enemy decks
         self._create_tavern_deck()
         self._create_enemy_deck()
-        # create empty discard deck
-        self.discard_deck = Deck()
-        self.next_player_loop = cycle(self.players)
-        # FIXME: randomize it, otherwise first player from list always start
-        self.first_player = self.toggle_next_player_turn()
-        # setup game state
-        self.state = GameState.CREATED
-        # list of lists represents cards combo played against enemy before they went to discard pile
-        self.played_cards: PlayedCards = []
+
+        self.assert_can_start_game()  # TODO: do we need this assertion?
+
+        # players draw X random cards on hands
+        for player in self.players:
+            player.hand = self.tavern_deck.pop_many(player.hand_size)
+        # first player could play cards now
+        self.state = GameState.PLAYING_CARDS
+
+    def load(self, data: GameData) -> None:
+        """Load data"""
+
+    def dump(self) -> GameData:
+        """Dump current game state"""
 
     @property
     def playing_cards_state(self) -> bool:
@@ -225,15 +242,6 @@ class Game:
     def discarding_cards_state(self) -> bool:
         """True if game is discard cards state"""
         return self.state == GameState.DISCARDING_CARDS
-
-    def start_game(self) -> None:
-        """Player draw cards"""
-        self.assert_can_start_game()
-        # players draw X random cards on hands
-        for player in self.players:
-            player.hand = self.tavern_deck.draw_cards(HAND_SIZE)
-        # first player could play cards now
-        self.state = GameState.PLAYING_CARDS
 
     def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
@@ -336,11 +344,11 @@ class Game:
             self.tavern_deck.append(draw_cards)
         # if diamonds - draw cards to players hands
         if enemy.suit != Suits.DIAMONDS and any(Suits.DIAMONDS == card.suit for card in combo):
-            hands_capacity = sum(HAND_SIZE - len(pl.hand) for pl in self.players)
+            hands_capacity = sum(pl.hand_size - len(pl.hand) for pl in self.players)
             tavern_length = len(self.tavern_deck)
             # ensure we don't draw cards more than available
             draw_count = min(hands_capacity, tavern_length, combo_damage)
-            draw_cards = self.tavern_deck.draw_cards(draw_count)
+            draw_cards = self.tavern_deck.pop_many(draw_count)
             player_index = self.players.index(player)
             # create new players list starting from current player
             players = self.players[player_index:] + self.players[:player_index]
@@ -406,7 +414,7 @@ class Game:
                 "card": str(enemy),
                 "health": enemy.health,
                 "attack": enemy.attack,
-            },
+            } if enemy else None,
             "first_player": str(self.first_player),
             "players": [str(p) for p in self.players],
             "state": self.state,
@@ -423,7 +431,7 @@ class Game:
 
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""
-        ranks = (*map(str, range(2, 11)), ACE)
+        ranks = (*map(str, range(2, 11)), Card.ACE)
         combinations = product(ranks, Suits.list_values())
         players_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), combinations))
         random.shuffle(players_deck)
@@ -431,7 +439,7 @@ class Game:
 
     def _create_enemy_deck(self) -> None:
         """Create enemy cards deck"""
-        enemy_ranks = (JACK, QUEEN, KING)
+        enemy_ranks = (Card.JACK, Card.QUEEN, Card.KING)
         face_combs = product(enemy_ranks, Suits.list_values())
         enemy_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
@@ -440,12 +448,11 @@ class Game:
 
 
 if __name__ == "__main__":
-    pl1 = Player("Joe")
-    pl2 = Player("Bob")
-    game = Game([pl1, pl2])
+    game = Game(["joe", "bob"])
+    pl1, pl2 = game.players
 
     print(game.get_game_state())
-    game.start_game()
+    game.create_new_game()
     print(game.get_game_state())
     game.play_cards(pl1, [pl1.hand[0]])
     print(game.get_game_state())
