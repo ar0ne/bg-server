@@ -28,8 +28,8 @@ class Game:
         self.tavern_deck = Deck()
         self.enemy_deck = Deck()
 
-        # list of lists represents cards combo played against enemy before they went to discard pile
-        self.played_cards: List[CardCombo] = []
+        # list of combos represents cards played against enemy before they went to discard pile
+        self.played_combos: List[CardCombo] = []
 
         # randomly peek first player
         random.shuffle(self.players)
@@ -46,7 +46,7 @@ class Game:
         self._create_enemy_deck()
         # ensure we clear piles
         self.discard_deck.clear()
-        self.played_cards = []
+        self.played_combos = []
 
         # players draw X random cards on hands
         for player in self.players:
@@ -105,24 +105,24 @@ class Game:
         enemy = self.current_enemy
         # damage from combo without suits power should be enough to deal with enemies attack damage
         combo_damage = Card.get_combo_damage(combo)
-        if self.get_enemy_attack_damage(enemy, self.played_cards) > combo_damage:
+        if self.get_enemy_attack_damage(enemy, self.played_combos) > combo_damage:
             raise Exception  # FIXME
 
     def _pull_next_enemy(self) -> None:
         """Remove current enemy, throw off played cards to discard pile"""
         enemy = self.enemy_deck.pop()
         # move cards from played to discard pile
-        flat_played_cards = list(itertools.chain.from_iterable(self.played_cards))
+        flat_played_combos = list(itertools.chain.from_iterable(self.played_combos))
 
-        if not self.get_remaining_enemy_health(enemy, self.played_cards):
+        if not self.get_remaining_enemy_health(enemy, self.played_combos):
             self.tavern_deck.append(enemy)
         else:
             self.discard_deck.append(enemy)
 
-        self.discard_deck.append(flat_played_cards)
+        self.discard_deck.append(flat_played_combos)
 
         # clean up played cards
-        self.played_cards = []
+        self.played_combos = []
 
     @staticmethod
     def get_total_damage_to_enemy(enemy: Enemy, cards: List[CardCombo]) -> int:
@@ -180,9 +180,9 @@ class Game:
         # activate suits powers if possible
         self._process_played_combo(player, enemy, combo)
         # add cards to played cards deck
-        self.played_cards.append(combo)
+        self.played_combos.append(combo)
         # check has been enemy defeated
-        enemy_defeated = self.is_defeated(enemy, self.played_cards)
+        enemy_defeated = self.is_defeated(enemy, self.played_combos)
         if enemy_defeated:
             # pull next enemy from castle deck and discard defeated enemy and played cards
             self._pull_next_enemy()
@@ -193,7 +193,7 @@ class Game:
             # if enemy still has attack power, transit game to discard card state
             self.state = GameState.DISCARDING_CARDS
 
-            if self.get_enemy_attack_damage(enemy, self.played_cards) <= 0:
+            if self.get_enemy_attack_damage(enemy, self.played_combos) <= 0:
                 # enemy can't attack, let next player to play cards
                 self.state = GameState.PLAYING_CARDS
                 self.toggle_next_player_turn()
@@ -206,7 +206,7 @@ class Game:
         """True if player can defeat current enemy"""
         hand = player.hand
         total_hand_damage = Card.get_combo_damage(hand)
-        return total_hand_damage > self.get_enemy_attack_damage(enemy, self.played_cards)
+        return total_hand_damage > self.get_enemy_attack_damage(enemy, self.played_combos)
 
     def discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
@@ -223,16 +223,16 @@ class Game:
         # fmt: off
         return {
             "discard_deck_size": len(self.discard_deck),
-            "played_cards": [
+            "played_combos": [
                 [str(card) for card in combo]
-                for combo in self.played_cards
+                for combo in self.played_combos
             ],
             "enemy": {
                 "card": str(enemy),
                 "health": enemy.health,
-                "health_left": self.get_remaining_enemy_health(enemy, self.played_cards),
+                "health_left": self.get_remaining_enemy_health(enemy, self.played_combos),
                 "attack": enemy.attack,
-                "attack_left": self.get_enemy_attack_damage(enemy, self.played_cards),
+                "attack_left": self.get_enemy_attack_damage(enemy, self.played_combos),
             }
             if enemy else None,
             "first_player": str(self.first_player),

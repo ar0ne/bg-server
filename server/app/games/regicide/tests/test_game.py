@@ -24,7 +24,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(0, len(game.discard_deck))
         self.assertEqual(0, len(game.tavern_deck))
         self.assertEqual(0, len(game.enemy_deck))
-        self.assertEqual(0, len(game.played_cards))
+        self.assertEqual(0, len(game.played_combos))
         self.assertEqual(GameState.CREATED, game.state)
 
     def test_start_new_game(self) -> None:
@@ -42,7 +42,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(2, len(game.players))
         self.assertTrue(game.first_player in game.players)
         self.assertEqual(0, len(game.discard_deck))
-        self.assertEqual(0, len(game.played_cards))
+        self.assertEqual(0, len(game.played_combos))
         self.assertEqual(12, len(game.enemy_deck))
         self.assertEqual(40 - 2 * hand_size, len(game.tavern_deck))
         self.assertTrue(all(len(player.hand) == hand_size for player in game.players))

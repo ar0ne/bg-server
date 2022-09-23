@@ -8,8 +8,6 @@ from server.app.games.regicide.models import GameState, Player, Card, Suit, Deck
 
 def load_data(game: Game, data: GameData) -> None:
     """Load data"""
-    game.turn = data.turn
-    game.state = GameState(data.state)
     # fmt: off
     game.players = [
         Player(player_id, [
@@ -18,7 +16,13 @@ def load_data(game: Game, data: GameData) -> None:
         ])
         for player_id, hand in data.players
     ]
-
+    game.played_combos = [
+        [
+            Card(Suit(card[1]), card[0])
+            for card in combo
+        ]
+        for combo in data.played_combos
+    ]
     game.discard_deck = Deck([
         Card(Suit(suit), rank)
         for rank, suit in data.discard_deck
@@ -38,6 +42,9 @@ def load_data(game: Game, data: GameData) -> None:
     while game.toggle_next_player_turn().id != data.first_player_id:
         pass
 
+    game.turn = data.turn
+    game.state = GameState(data.state)
+
 
 def dump_data(game: Game) -> GameData:
     """Dump current game state"""
@@ -51,7 +58,7 @@ def dump_data(game: Game) -> GameData:
         discard_deck=to_flat_hand(game.discard_deck.cards),
         first_player_id=game.first_player.id,
         players=[(pl.id, to_flat_hand(pl.hand)) for pl in game.players],
-        played_cards=[to_flat_hand(combo) for combo in game.played_cards],
+        played_combos=[to_flat_hand(combo) for combo in game.played_combos],
         state=game.state.value,  # type: ignore
         tavern_deck=to_flat_hand(game.tavern_deck.cards),
         turn=game.turn,
