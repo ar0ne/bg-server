@@ -13,7 +13,7 @@ Combo = List["Card"]
 Hand = List["Card"]
 
 
-class Suits(enum.Enum):
+class Suit(enum.Enum):
     CLUBS = "♣"
     DIAMONDS = "♦"
     HEARTS = "♥"
@@ -46,7 +46,6 @@ class Rank:
     value: str
 
 
-@dataclass(frozen=True)
 class Card:
     """Card"""
 
@@ -67,10 +66,11 @@ class Card:
         QUEEN: 30,
         KING: 40,
     }
-    # HEALTH.update({str(v): v for v in range(2, 11)})
 
-    suit: Suits
-    rank: Rank
+    def __init__(self, suit: Suit, rank: Rank) -> None:
+        """Init Card"""
+        self.suit = suit
+        self.rank = rank
 
     @property
     def health(self) -> int:
@@ -85,7 +85,7 @@ class Card:
     @staticmethod
     def is_double_damage(combo: Combo, enemy: Enemy) -> bool:
         """True if possible to double cards attack"""
-        return enemy.suit != Suits.CLUBS and any(card.suit == Suits.CLUBS for card in combo)
+        return enemy.suit != Suit.CLUBS and any(card.suit == Suit.CLUBS for card in combo)
 
     @classmethod
     def get_attack_power(cls, combo: Combo, enemy: Enemy) -> int:
@@ -103,8 +103,8 @@ class Card:
 
     def get_reduced_attack_power(self, combo: Combo) -> int:
         """Calculate reduced enemy attack value if combo contains spades and enemy doesn't immune"""
-        return self.suit != Suits.SPADES and sum(
-            card.attack for card in combo if card.suit == Suits.SPADES
+        return self.suit != Suit.SPADES and sum(
+            card.attack for card in combo if card.suit == Suit.SPADES
         )
 
     def get_reduced_attack_damage(self, cards: PlayedCards) -> int:
@@ -333,7 +333,7 @@ class Game:
         """Process played combo"""
         combo_damage = Card.get_combo_damage(combo)
         # if hearts - shuffle and move cards from discard to tavern deck
-        if enemy.suit != Suits.HEARTS and any(Suits.HEARTS == card.suit for card in combo):
+        if enemy.suit != Suit.HEARTS and any(Suit.HEARTS == card.suit for card in combo):
             # shuffle deck
             self.discard_deck.shuffle()
             # ensure we don't try to move to many cards
@@ -343,7 +343,7 @@ class Game:
             # add cards to bottom of tavern deck
             self.tavern_deck.append(draw_cards)
         # if diamonds - draw cards to players hands
-        if enemy.suit != Suits.DIAMONDS and any(Suits.DIAMONDS == card.suit for card in combo):
+        if enemy.suit != Suit.DIAMONDS and any(Suit.DIAMONDS == card.suit for card in combo):
             hands_capacity = sum(pl.hand_size - len(pl.hand) for pl in self.players)
             tavern_length = len(self.tavern_deck)
             # ensure we don't draw cards more than available
@@ -409,19 +409,22 @@ class Game:
         enemy = self.current_enemy
         return {
             "discard_deck_size": len(self.discard_deck),
-            "played_cards": str(self.played_cards),
+            "played_cards": [[str(card) for card in combo] for combo in self.played_cards],
             "enemy": {
                 "card": str(enemy),
                 "health": enemy.health,
                 "attack": enemy.attack,
-            } if enemy else None,
+            }
+            if enemy
+            else None,
             "first_player": str(self.first_player),
             "players": [str(p) for p in self.players],
-            "state": self.state,
+            "state": str(self.state),
             "turn": self.turn,
             # players hands (perhaps depend on current user)
             # TODO: add hand size
-            "hands": {str(player): str(player.hand) for player in self.players},
+            "hand_size": self.first_player.hand_size,
+            "hands": {str(player): [str(card) for card in player.hand] for player in self.players},
         }
 
     @property
@@ -432,16 +435,16 @@ class Game:
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""
         ranks = (*map(str, range(2, 11)), Card.ACE)
-        combinations = product(ranks, Suits.list_values())
-        players_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), combinations))
+        combinations = product(ranks, Suit.list_values())
+        players_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=Rank(c[0])), combinations))
         random.shuffle(players_deck)
         self.tavern_deck = Deck(players_deck)
 
     def _create_enemy_deck(self) -> None:
         """Create enemy cards deck"""
         enemy_ranks = (Card.JACK, Card.QUEEN, Card.KING)
-        face_combs = product(enemy_ranks, Suits.list_values())
-        enemy_deck = list(map(lambda c: Card(suit=Suits(c[1]), rank=Rank(c[0])), face_combs))
+        face_combs = product(enemy_ranks, Suit.list_values())
+        enemy_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=Rank(c[0])), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))
         self.enemy_deck = Deck([*jacks, *queens, *kings])
