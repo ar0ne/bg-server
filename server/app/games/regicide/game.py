@@ -3,9 +3,9 @@ import enum
 import itertools
 import json
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from itertools import product
-from typing import List, Optional, Iterable, Union, TypeVar, Dict
+from typing import List, Optional, Iterable, Union, TypeVar, Dict, Tuple
 
 Enemy = TypeVar("Enemy", bound="Card")
 PlayedCards = List[List["Card"]]
@@ -28,10 +28,10 @@ class Suit(enum.Enum):
 class Player:
     """Player"""
 
-    def __init__(self, id: str, hand_size: int = 7) -> None:
+    def __init__(self, id: str, hand: Optional[Hand] = None, hand_size: int = 7) -> None:
         """Init player"""
         self.id = id
-        self.hand: Hand = []
+        self.hand: Hand = hand if hand else []
         self.hand_size = hand_size
 
     def __str__(self) -> str:
@@ -187,8 +187,12 @@ class GameState(enum.Enum):
 class GameData:
     """Represents internal game state data"""
 
+    discard_deck: List[Tuple[str, str]]
+    first_player_id: str
+    players: List[Tuple[str, List[Tuple[str, str]]]]
+    state: str
+    tavern_deck: List[Tuple[str, str]]
     turn: int
-    players: List[Player]
 
 
 class Game:
@@ -200,15 +204,17 @@ class Game:
         self.players = list(Player(p_id) for p_id in players_ids)
         # display number of current turn
         self.turn = 0
-        # create empty discard deck
+        # create empty decks
         self.discard_deck = Deck()
-        self.next_player_loop = cycle(self.players)
+        self.tavern_deck = Deck()
+        self.enemy_deck = Deck()
+
         # list of lists represents cards combo played against enemy before they went to discard pile
         self.played_cards: PlayedCards = []
+
+        self.next_player_loop = cycle(self.players)
         # FIXME: randomize it, otherwise first player from list always start
         self.first_player = self.toggle_next_player_turn()
-        # empty enemy deck
-        self.enemy_deck = Deck()
         # setup game state
         self.state = GameState.CREATED
 
@@ -218,8 +224,7 @@ class Game:
         # create tavern and enemy decks
         self._create_tavern_deck()
         self._create_enemy_deck()
-
-        self.assert_can_start_game()  # TODO: do we need this assertion?
+        self.played_cards = []
 
         # players draw X random cards on hands
         for player in self.players:
@@ -229,9 +234,52 @@ class Game:
 
     def load(self, data: GameData) -> None:
         """Load data"""
+        self.turn = data.turn
+        self.state = GameState(data.state)
+        # fmt: off
+        self.players = [
+            Player(player_id, [
+                Card(Suit(card[1]), Rank(card[0]))
+                for card in hand
+            ])
+            for player_id, hand in data.players
+        ]
+
+        self.discard_deck = Deck([
+            Card(Suit(suit), Rank(rank))
+            for rank, suit in data.discard_deck]
+        )
+        self.tavern_deck = Deck([
+            Card(Suit(suit), Rank(rank))
+            for rank, suit in data.tavern_deck]
+        )
+        # fmt: on
+
+        # shift players' loop until first player from data
+        self.next_player_loop = cycle(self.players)
+        while self.toggle_next_player_turn().id != data.first_player_id:
+            pass
 
     def dump(self) -> GameData:
         """Dump current game state"""
+
+        def flat_card(card: Card) -> Tuple[str, str]:
+            return card.rank.value, card.suit.value  # type: ignore
+
+        def flat_deck(deck: Deck) -> List[Tuple[str, str]]:
+            return [flat_card(card) for card in deck.cards]
+
+        def flat_hand(player: Player) -> List[Tuple[str, str]]:
+            return [flat_card(card) for card in player.hand]
+
+        return GameData(
+            discard_deck=flat_deck(self.discard_deck),
+            first_player_id=self.first_player.id,
+            players=[(pl.id, flat_hand(pl)) for pl in self.players],
+            state=self.state.value,  # type: ignore
+            tavern_deck=flat_deck(self.tavern_deck),
+            turn=self.turn,
+        )
 
     @property
     def playing_cards_state(self) -> bool:
@@ -454,12 +502,26 @@ if __name__ == "__main__":
     game = Game(["joe", "bob"])
     pl1, pl2 = game.players
 
+    print("init game")
     print(game.get_game_state())
+    print("create new game")
     game.create_new_game()
     print(game.get_game_state())
+    print("play a card")
     game.play_cards(pl1, [pl1.hand[0]])
     print(game.get_game_state())
-    game.discard_cards(pl1, [pl1.hand[1]])
+
+    print("dump")
+    dump = game.dump()
+    print("new game")
+    game.create_new_game()
     print(game.get_game_state())
-    game.play_cards(pl2, [pl2.hand[4]])
+    print("load previous save")
+    game.load(dump)
     print(game.get_game_state())
+
+
+    # game.discard_cards(pl1, [pl1.hand[1]])
+    # print(game.get_game_state())
+    # game.play_cards(pl2, [pl2.hand[4]])
+    # print(game.get_game_state())
