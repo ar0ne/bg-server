@@ -2,12 +2,9 @@
 import itertools
 import random
 from itertools import product
-from typing import Optional, Iterable, List
+from typing import Optional, List, Iterable
 
-from server.app.games.regicide.models import (
-    Deck, GameState, Card, Suit, Player, CardCombo, CardHand, Enemy
-)
-from server.app.games.regicide.dto import GameData, FlatCard
+from server.app.games.regicide.models import Deck, GameState, Card, Suit, Player, CardCombo, Enemy
 
 
 def cycle(iters: Iterable):
@@ -56,56 +53,6 @@ class Game:
             player.hand = self.tavern_deck.pop_many(player.hand_size)
         # first player could play cards now
         self.state = GameState.PLAYING_CARDS
-
-    def load(self, data: GameData) -> None:
-        """Load data"""
-        self.turn = data.turn
-        self.state = GameState(data.state)
-        # fmt: off
-        self.players = [
-            Player(player_id, [
-                Card(Suit(card[1]), card[0])
-                for card in hand
-            ])
-            for player_id, hand in data.players
-        ]
-
-        self.discard_deck = Deck([
-            Card(Suit(suit), rank)
-            for rank, suit in data.discard_deck
-        ])
-        self.tavern_deck = Deck([
-            Card(Suit(suit), rank)
-            for rank, suit in data.tavern_deck
-        ])
-        self.enemy_deck = Deck([
-            Card(Suit(suit), rank)
-            for rank, suit in data.enemy_deck
-        ])
-        # fmt: on
-
-        # shift players' loop until first player from data
-        self.next_player_loop = cycle(self.players)
-        while self.toggle_next_player_turn().id != data.first_player_id:
-            pass
-
-    def dump(self) -> GameData:
-        """Dump current game state"""
-
-        def to_flat_hand(hand: CardHand) -> List[FlatCard]:
-            """Flats card hand object"""
-            return [(card.rank, card.suit.value) for card in hand]  # type: ignore
-
-        return GameData(
-            enemy_deck=to_flat_hand(self.enemy_deck.cards),
-            discard_deck=to_flat_hand(self.discard_deck.cards),
-            first_player_id=self.first_player.id,
-            players=[(pl.id, to_flat_hand(pl.hand)) for pl in self.players],
-            played_cards=[to_flat_hand(combo) for combo in self.played_cards],
-            state=self.state.value,  # type: ignore
-            tavern_deck=to_flat_hand(self.tavern_deck.cards),
-            turn=self.turn,
-        )
 
     @property
     def playing_cards_state(self) -> bool:
