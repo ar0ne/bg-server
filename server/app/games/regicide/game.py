@@ -123,7 +123,7 @@ class Deck:
         """Init deck"""
         if not cards:
             cards = []
-        self.cards: List[Card] = cards
+        self.cards: Hand = cards
 
     def peek(self) -> Optional[Card]:
         """Peek first element from the deck"""
@@ -183,15 +183,19 @@ class GameState(enum.Enum):
     WON = "won"
 
 
+FlatCard = Tuple[str, str]
+
+
 @dataclass(frozen=True)
 class GameData:
     """Represents internal game state data"""
 
-    discard_deck: List[Tuple[str, str]]
+    enemy_deck: List[FlatCard]
+    discard_deck: List[FlatCard]
     first_player_id: str
-    players: List[Tuple[str, List[Tuple[str, str]]]]
+    players: List[Tuple[str, List[FlatCard]]]
     state: str
-    tavern_deck: List[Tuple[str, str]]
+    tavern_deck: List[FlatCard]
     turn: int
 
 
@@ -247,12 +251,16 @@ class Game:
 
         self.discard_deck = Deck([
             Card(Suit(suit), Rank(rank))
-            for rank, suit in data.discard_deck]
-        )
+            for rank, suit in data.discard_deck
+        ])
         self.tavern_deck = Deck([
             Card(Suit(suit), Rank(rank))
-            for rank, suit in data.tavern_deck]
-        )
+            for rank, suit in data.tavern_deck
+        ])
+        self.enemy_deck = Deck([
+            Card(Suit(suit), Rank(rank))
+            for rank, suit in data.enemy_deck
+        ])
         # fmt: on
 
         # shift players' loop until first player from data
@@ -263,21 +271,16 @@ class Game:
     def dump(self) -> GameData:
         """Dump current game state"""
 
-        def flat_card(card: Card) -> Tuple[str, str]:
-            return card.rank.value, card.suit.value  # type: ignore
-
-        def flat_deck(deck: Deck) -> List[Tuple[str, str]]:
-            return [flat_card(card) for card in deck.cards]
-
-        def flat_hand(player: Player) -> List[Tuple[str, str]]:
-            return [flat_card(card) for card in player.hand]
+        def flat_hand(hand: Hand) -> List[Tuple[str, str]]:
+            return [(card.rank.value, card.suit.value) for card in hand]  # type: ignore
 
         return GameData(
-            discard_deck=flat_deck(self.discard_deck),
+            enemy_deck=flat_hand(self.enemy_deck.cards),
+            discard_deck=flat_hand(self.discard_deck.cards),
             first_player_id=self.first_player.id,
-            players=[(pl.id, flat_hand(pl)) for pl in self.players],
+            players=[(pl.id, flat_hand(pl.hand)) for pl in self.players],
             state=self.state.value,  # type: ignore
-            tavern_deck=flat_deck(self.tavern_deck),
+            tavern_deck=flat_hand(self.tavern_deck.cards),
             turn=self.turn,
         )
 
@@ -519,7 +522,6 @@ if __name__ == "__main__":
     print("load previous save")
     game.load(dump)
     print(game.get_game_state())
-
 
     # game.discard_cards(pl1, [pl1.hand[1]])
     # print(game.get_game_state())
