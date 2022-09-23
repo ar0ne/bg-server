@@ -274,7 +274,7 @@ class Game:
         enemy = self.current_enemy
         # damage from combo without suits power should be enough to deal with enemies attack damage
         combo_damage = sum(card.attack for card in combo)
-        if self.get_attack_damage(enemy) > combo_damage:
+        if self.get_attack_damage(enemy, self.played_cards) > combo_damage:
             raise Exception  # FIXME
 
         # TODO: check if it's combination of Ace and any card
@@ -285,16 +285,26 @@ class Game:
         enemy = self.enemy_deck.pop()
         # move cards from played to discard pile
         flat_played_cards = list(itertools.chain.from_iterable(self.played_cards))
-        # TODO: doesn't matter in which order we throw away cards?
+
+        if not self.get_remaining_enemy_health(enemy, self.played_cards):
+            self.tavern_deck.append(enemy)
+        else:
+            self.discard_deck.append(enemy)
+
         self.discard_deck.append(flat_played_cards)
-        # TODO: if last attack equal to enemy helth we should move it to top of tavern pile
-        self.discard_deck.append(enemy)
+
         # clean up played cards
         self.played_cards = []
 
-    def get_attack_damage(self, enemy: Enemy) -> int:
+    @staticmethod
+    def get_attack_damage(enemy: Enemy, cards: PlayedCards) -> int:
         """Get enemy's attack damage power"""
-        return enemy.attack - enemy.get_reduced_attack_damage(self.played_cards)
+        return enemy.attack - enemy.get_reduced_attack_damage(cards)
+
+    @staticmethod
+    def get_remaining_enemy_health(enemy: Enemy, cards: PlayedCards) -> int:
+        """Calculate remaining enemy health"""
+        return enemy.health - enemy.get_damage(cards)
 
     def play_cards(self, player: Player, combo: Combo):
         """Play cards"""
@@ -319,7 +329,7 @@ class Game:
             # if enemy still has attack power, transit game to discard card state
             self.state = GameState.DISCARDING_CARDS
 
-            if self.get_attack_damage(enemy) <= 0:
+            if self.get_attack_damage(enemy, self.played_cards) <= 0:
                 # enemy can't attack, let next player to play cards
                 self.state = GameState.PLAYING_CARDS
                 self.toggle_next_player_turn()
