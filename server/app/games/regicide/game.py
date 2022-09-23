@@ -5,8 +5,7 @@ import json
 import random
 from dataclasses import dataclass
 from itertools import product
-from typing import List, Optional, Iterable, Union, TypeVar
-
+from typing import List, Optional, Iterable, Union, TypeVar, Dict
 
 Enemy = TypeVar("Enemy", bound="Card")
 PlayedCards = List[List["Card"]]
@@ -72,10 +71,7 @@ class Card:
     @property
     def health(self) -> int:
         """Get health"""
-        if self.rank.value in self.HEALTH:
-            return self.HEALTH[self.rank.value]
-        # TODO: can it be used for discarding? if not simplify
-        return 0
+        return self.HEALTH[self.rank.value]
 
     @property
     def attack(self) -> int:
@@ -90,11 +86,16 @@ class Card:
     @classmethod
     def get_attack_power(cls, combo: Combo, enemy: Enemy) -> int:
         """Calculate cards attack power"""
-        damage = sum(map(lambda c: c.attack, combo))
+        damage = cls.get_combo_damage(combo)
         if cls.is_double_damage(combo, enemy):
             # if enemy doesn't have immune and played clubs we double attack power
             damage *= 2
         return damage
+
+    @staticmethod
+    def get_combo_damage(combo: Combo) -> int:
+        """Calculate damage of combo"""
+        return sum(map(lambda c: c.attack, combo))
 
     def get_reduced_attack_power(self, combo: Combo) -> int:
         """Calculate reduced enemy attack value if combo contains spades and enemy doesn't immune"""
@@ -204,9 +205,9 @@ class Game:
         # setup game state
         self.state = GameState.CREATED
         # dict of lists of cards for each player
-        self.players_hand = {}
+        self.players_hand: Dict[str, Combo] = {}
         # list of lists represents cards combo played against enemy before they went to discard pile
-        self.played_cards = []
+        self.played_cards: PlayedCards = []
 
     @property
     def playing_cards_state(self) -> bool:
@@ -223,7 +224,7 @@ class Game:
         self.assert_can_start_game()
         # players draw X random cards on hands
         for player in self.players:
-            self.players_hand[player.id] = self.tavern_deck.draw_cards(HAND_SIZE)
+            self.set_player_hand(player, self.tavern_deck.draw_cards(HAND_SIZE))
         # first player could play cards now
         self.state = GameState.PLAYING_CARDS
 
@@ -241,7 +242,7 @@ class Game:
             raise Exception  # FIXME
 
     def cards_belong_to_player(self, player: Player, combo: Combo) -> bool:
-        return all(card in self.players_hand[player.id] for card in combo)
+        return all(card in self.get_player_hand(player) for card in combo)
 
     def assert_can_play_cards(self, player: Player, combo: Combo) -> None:
         """Assert player can play cards"""
@@ -312,8 +313,8 @@ class Game:
 
         enemy = self.current_enemy
         # remove cards from player's hand
-        self.players_hand[player.id] = list(
-            filter(lambda c: c not in combo, self.players_hand[player.id])
+        self.set_player_hand(
+            player, list(filter(lambda c: c not in combo, self.get_player_hand(player)))
         )
         # add cards to played cards deck
         self.played_cards.append(combo)
@@ -340,18 +341,23 @@ class Game:
 
     def can_defeat_enemies_attack(self, player: Player, enemy: Enemy) -> bool:
         """True if player can defeat current enemy"""
-        # TODO:
-        return True
+        hand = self.get_player_hand(player)
+        total_hand_damage = Card.get_combo_damage(hand)
+        return total_hand_damage > self.get_attack_damage(enemy, self.played_cards)
+
+    def get_player_hand(self, player: Player) -> Combo:
+        """Get player's hand"""
+        return self.players_hand[player.id]
+
+    def set_player_hand(self, player: Player, hand: Combo) -> None:
+        """Set player hand"""
+        self.players_hand[player.id] = hand
 
     def discard_cards(self, player: Player, combo: Combo) -> None:
         """Discard cards to defeat from enemy attack"""
         self.assert_can_discard_cards(player, combo)
-
-        # TODO: if player can't defeat game lost ? Should we raise error or let player lost?
-
         # move cards to discard pile
         self.discard_deck.append(combo)
-
         # next player could play card
         self.state = GameState.PLAYING_CARDS
         self.toggle_next_player_turn()
@@ -374,7 +380,7 @@ class Game:
             # players hands (perhaps depend on current user)
             # TODO: add hand size
             "hands": {
-                player: str(self.players_hand[player.id])
+                player: str(self.get_player_hand(player))
                 for player in self.players
                 if player.id in self.players_hand
             },
