@@ -1,8 +1,9 @@
 """Types"""
 from typing import TypeVar, List, Tuple
 
-Enemy = TypeVar("Enemy", bound="Card")
-PlayedCards = List[List["Card"]]
-Combo = List["Card"]
-Hand = List["Card"]
+from server.app.games.regicide.models import Card
+
+Enemy = TypeVar("Enemy", bound=Card)
+CardCombo = List[Card]
+CardHand = List[Card]
 FlatCard = Tuple[str, str]

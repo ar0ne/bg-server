@@ -4,9 +4,9 @@ import random
 from itertools import product
 from typing import List, Optional, Iterable
 
-from server.app.games.regicide.domain import Deck, GameState, Card, Suit, Rank, Player
+from server.app.games.regicide.models import Deck, GameState, Card, Suit, Rank, Player
 from server.app.games.regicide.dto import GameData
-from server.app.games.regicide.types import PlayedCards, Hand, FlatCard, Combo, Enemy
+from server.app.games.regicide.types import List, CardCombo, Enemy, CardHand, FlatCard
 
 
 def cycle(iters: Iterable):
@@ -31,7 +31,7 @@ class Game:
         self.enemy_deck = Deck()
 
         # list of lists represents cards combo played against enemy before they went to discard pile
-        self.played_cards: PlayedCards = []
+        self.played_cards: List[CardCombo] = []
 
         # randomly peek first player
         random.shuffle(self.players)
@@ -89,16 +89,17 @@ class Game:
     def dump(self) -> GameData:
         """Dump current game state"""
 
-        def flat_hand(hand: Hand) -> List[FlatCard]:
+        def to_flat_hand(hand: CardHand) -> List[FlatCard]:
+            """Flats card hand object"""
             return [(card.rank.value, card.suit.value) for card in hand]  # type: ignore
 
         return GameData(
-            enemy_deck=flat_hand(self.enemy_deck.cards),
-            discard_deck=flat_hand(self.discard_deck.cards),
+            enemy_deck=to_flat_hand(self.enemy_deck.cards),
+            discard_deck=to_flat_hand(self.discard_deck.cards),
             first_player_id=self.first_player.id,
-            players=[(pl.id, flat_hand(pl.hand)) for pl in self.players],
+            players=[(pl.id, to_flat_hand(pl.hand)) for pl in self.players],
             state=self.state.value,  # type: ignore
-            tavern_deck=flat_hand(self.tavern_deck.cards),
+            tavern_deck=to_flat_hand(self.tavern_deck.cards),
             turn=self.turn,
         )
 
@@ -122,10 +123,10 @@ class Game:
         return self.first_player
 
     @staticmethod
-    def cards_belong_to_player(player: Player, combo: Combo) -> bool:
+    def cards_belong_to_player(player: Player, combo: CardCombo) -> bool:
         return all(card in player.hand for card in combo)
 
-    def assert_can_play_cards(self, player: Player, combo: Combo) -> None:
+    def assert_can_play_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert player can play cards"""
         if not self.playing_cards_state:
             raise Exception  # FIXME
@@ -141,7 +142,7 @@ class Game:
         # TODO: check if it's combination of Ace and any card
         # TODO: check if it's 2+2+.., 3+3+.. combo
 
-    def assert_can_discard_cards(self, player: Player, combo: Combo) -> None:
+    def assert_can_discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert can player discard these cards"""
         if not self.discarding_cards_state:
             raise Exception  # FIXME
@@ -176,24 +177,24 @@ class Game:
         self.played_cards = []
 
     @staticmethod
-    def get_total_damage_to_enemy(enemy: Enemy, cards: PlayedCards) -> int:
+    def get_total_damage_to_enemy(enemy: Enemy, cards: List[CardCombo]) -> int:
         """Calculate attack from all played cards"""
         return sum(Card.get_attack_power(combo, enemy) for combo in cards)
 
-    def is_defeated(self, enemy: Enemy, cards: PlayedCards) -> bool:
+    def is_defeated(self, enemy: Enemy, cards: List[CardCombo]) -> bool:
         """True if enemy defeated (sum of attacks played cards is equal to enemy health or more)"""
         return enemy.health <= self.get_total_damage_to_enemy(enemy, cards)
 
     @staticmethod
-    def get_enemy_attack_damage(enemy: Enemy, cards: PlayedCards) -> int:
+    def get_enemy_attack_damage(enemy: Enemy, combos: List[CardCombo]) -> int:
         """Get enemy's attack damage power"""
-        return enemy.attack - enemy.get_reduced_attack_damage(cards)
+        return enemy.attack - enemy.get_reduced_attack_damage(combos)
 
-    def get_remaining_enemy_health(self, enemy: Enemy, cards: PlayedCards) -> int:
+    def get_remaining_enemy_health(self, enemy: Enemy, combos: List[CardCombo]) -> int:
         """Calculate remaining enemy health"""
-        return enemy.health - self.get_total_damage_to_enemy(enemy, cards)
+        return enemy.health - self.get_total_damage_to_enemy(enemy, combos)
 
-    def _process_played_combo(self, player: Player, enemy: Enemy, combo: Combo) -> None:
+    def _process_played_combo(self, player: Player, enemy: Enemy, combo: CardCombo) -> None:
         """Process played combo"""
         combo_damage = Card.get_combo_damage(combo)
         # if hearts - shuffle and move cards from discard to tavern deck
@@ -221,7 +222,7 @@ class Game:
             # add cards to players' hands
             list(map(lambda c: next(players_loop).hand.append(c), draw_cards))
 
-    def play_cards(self, player: Player, combo: Combo):
+    def play_cards(self, player: Player, combo: CardCombo):
         """Play cards"""
         self.assert_can_play_cards(player, combo)
 
@@ -259,7 +260,7 @@ class Game:
         total_hand_damage = Card.get_combo_damage(hand)
         return total_hand_damage > self.get_enemy_attack_damage(enemy, self.played_cards)
 
-    def discard_cards(self, player: Player, combo: Combo) -> None:
+    def discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
         self.assert_can_discard_cards(player, combo)
         # move cards to discard pile

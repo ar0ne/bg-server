@@ -5,7 +5,7 @@ import random
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
-from server.app.games.regicide.types import Hand, Combo, Enemy, PlayedCards
+from server.app.games.regicide.types import CardHand, CardCombo, Enemy
 
 
 class GameState(enum.Enum):
@@ -31,10 +31,10 @@ class Suit(enum.Enum):
 class Player:
     """Player"""
 
-    def __init__(self, id: str, hand: Optional[Hand] = None, hand_size: int = 7) -> None:
+    def __init__(self, id: str, hand: Optional[CardHand] = None, hand_size: int = 7) -> None:
         """Init player"""
         self.id = id
-        self.hand: Hand = hand if hand else []
+        self.hand: CardHand = hand if hand else []
         self.hand_size = hand_size
 
     def __str__(self) -> str:
@@ -86,12 +86,12 @@ class Card:
         return self.ATTACK[self.rank.value]
 
     @staticmethod
-    def is_double_damage(combo: Combo, enemy: Enemy) -> bool:
+    def is_double_damage(combo: CardCombo, enemy: Enemy) -> bool:
         """True if possible to double cards attack"""
         return enemy.suit != Suit.CLUBS and any(card.suit == Suit.CLUBS for card in combo)
 
     @classmethod
-    def get_attack_power(cls, combo: Combo, enemy: Enemy) -> int:
+    def get_attack_power(cls, combo: CardCombo, enemy: Enemy) -> int:
         """Calculate cards attack power"""
         damage = cls.get_combo_damage(combo)
         if cls.is_double_damage(combo, enemy):
@@ -100,19 +100,19 @@ class Card:
         return damage
 
     @staticmethod
-    def get_combo_damage(combo: Combo) -> int:
+    def get_combo_damage(combo: CardCombo) -> int:
         """Calculate damage of combo"""
         return sum(card.attack for card in combo)
 
-    def get_reduced_attack_power(self, combo: Combo) -> int:
+    def get_reduced_attack_power(self, combo: CardCombo) -> int:
         """Calculate reduced enemy attack value if combo contains spades and enemy doesn't immune"""
         return self.suit != Suit.SPADES and sum(
             card.attack for card in combo if card.suit == Suit.SPADES
         )
 
-    def get_reduced_attack_damage(self, cards: PlayedCards) -> int:
+    def get_reduced_attack_damage(self, combos: List[CardCombo]) -> int:
         """Calculate reduced enemy attack by played cards"""
-        return sum(self.get_reduced_attack_power(card) for card in cards)
+        return sum(self.get_reduced_attack_power(combo) for combo in combos)
 
     def __str__(self) -> str:
         """To string"""
@@ -122,11 +122,11 @@ class Card:
 class Deck:
     """Card deck"""
 
-    def __init__(self, cards: Optional[List[Card]] = None) -> None:
+    def __init__(self, cards: Optional[CardHand] = None) -> None:
         """Init deck"""
         if not cards:
             cards = []
-        self.cards: Hand = cards
+        self.cards: CardHand = cards
 
     def peek(self) -> Optional[Card]:
         """Peek first element from the deck"""
@@ -138,14 +138,14 @@ class Deck:
         self.cards = self.cards[1:]
         return card
 
-    def pop_many(self, count: int = 1) -> List[Card]:
+    def pop_many(self, count: int = 1) -> CardCombo:
         """Pop first element from the deck"""
         assert count <= len(self.cards), "Can't pop more deck contains."
         cards = self.cards[:count]
         self.cards = self.cards[count:]
         return cards
 
-    def append(self, cards: Union[Card, List[Card]]) -> None:
+    def append(self, cards: Union[Card, CardCombo]) -> None:
         """Append single or several cards to the end of a deck"""
         if isinstance(cards, List):
             self.cards = self.cards + cards
