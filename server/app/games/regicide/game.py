@@ -2,11 +2,12 @@
 import itertools
 import random
 from itertools import product
-from typing import List, Optional, Iterable
+from typing import Optional, Iterable, List
 
-from server.app.games.regicide.models import Deck, GameState, Card, Suit, Rank, Player
-from server.app.games.regicide.dto import GameData
-from server.app.games.regicide.types import List, CardCombo, Enemy, CardHand, FlatCard
+from server.app.games.regicide.models import (
+    Deck, GameState, Card, Suit, Player, CardCombo, CardHand, Enemy
+)
+from server.app.games.regicide.dto import GameData, FlatCard
 
 
 def cycle(iters: Iterable):
@@ -40,12 +41,14 @@ class Game:
         # setup game state
         self.state = GameState.CREATED
 
-    def create_new_game(self) -> None:
+    def start_new_game(self) -> None:
         """Create new game"""
         self.turn = 1
         # create tavern and enemy decks
         self._create_tavern_deck()
         self._create_enemy_deck()
+        # ensure we clear piles
+        self.discard_deck.clear()
         self.played_cards = []
 
         # players draw X random cards on hands
@@ -61,22 +64,22 @@ class Game:
         # fmt: off
         self.players = [
             Player(player_id, [
-                Card(Suit(card[1]), Rank(card[0]))
+                Card(Suit(card[1]), card[0])
                 for card in hand
             ])
             for player_id, hand in data.players
         ]
 
         self.discard_deck = Deck([
-            Card(Suit(suit), Rank(rank))
+            Card(Suit(suit), rank)
             for rank, suit in data.discard_deck
         ])
         self.tavern_deck = Deck([
-            Card(Suit(suit), Rank(rank))
+            Card(Suit(suit), rank)
             for rank, suit in data.tavern_deck
         ])
         self.enemy_deck = Deck([
-            Card(Suit(suit), Rank(rank))
+            Card(Suit(suit), rank)
             for rank, suit in data.enemy_deck
         ])
         # fmt: on
@@ -91,13 +94,14 @@ class Game:
 
         def to_flat_hand(hand: CardHand) -> List[FlatCard]:
             """Flats card hand object"""
-            return [(card.rank.value, card.suit.value) for card in hand]  # type: ignore
+            return [(card.rank, card.suit.value) for card in hand]  # type: ignore
 
         return GameData(
             enemy_deck=to_flat_hand(self.enemy_deck.cards),
             discard_deck=to_flat_hand(self.discard_deck.cards),
             first_player_id=self.first_player.id,
             players=[(pl.id, to_flat_hand(pl.hand)) for pl in self.players],
+            played_cards=[to_flat_hand(combo) for combo in self.played_cards],
             state=self.state.value,  # type: ignore
             tavern_deck=to_flat_hand(self.tavern_deck.cards),
             turn=self.turn,
@@ -116,9 +120,6 @@ class Game:
     def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
         self.turn += 1
-        if len(self.players) == 1:
-            # no need to update first player if it's solo game
-            return self.first_player
         self.first_player = next(self.next_player_loop)
         return self.first_player
 
@@ -309,7 +310,7 @@ class Game:
         """Create tavern cards deck"""
         ranks = (*map(str, range(2, 11)), Card.ACE)
         combinations = product(ranks, Suit.list_values())
-        players_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=Rank(c[0])), combinations))
+        players_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), combinations))
         random.shuffle(players_deck)
         self.tavern_deck = Deck(players_deck)
 
@@ -317,7 +318,7 @@ class Game:
         """Create enemy cards deck"""
         enemy_ranks = (Card.JACK, Card.QUEEN, Card.KING)
         face_combs = product(enemy_ranks, Suit.list_values())
-        enemy_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=Rank(c[0])), face_combs))
+        enemy_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))
         self.enemy_deck = Deck([*jacks, *queens, *kings])

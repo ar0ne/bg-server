@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 
-from server.app.games.regicide.types import FlatCard
+FlatCard = Tuple[str, str]
 
 
 @dataclass(frozen=True)
@@ -13,6 +13,7 @@ class GameData:
     discard_deck: List[FlatCard]
     first_player_id: str
     players: List[Tuple[str, List[FlatCard]]]
+    played_cards: List[List[FlatCard]]
     state: str
     tavern_deck: List[FlatCard]
     turn: int

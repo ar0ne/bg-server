@@ -3,12 +3,15 @@ import enum
 import json
 import random
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple, TypeVar
 
-from server.app.games.regicide.types import CardHand, CardCombo, Enemy
+Enemy = TypeVar("Enemy", bound="Card")
+CardCombo = List["Card"]
+CardHand = List["Card"]
 
 
 class GameState(enum.Enum):
+    """Represents current state of the game"""
     CREATED = "created"
     PLAYING_CARDS = "playing_cards"
     DISCARDING_CARDS = "discarding_cards"
@@ -17,6 +20,7 @@ class GameState(enum.Enum):
 
 
 class Suit(enum.Enum):
+    """Represents suit of the card"""
     CLUBS = "♣"
     DIAMONDS = "♦"
     HEARTS = "♥"
@@ -42,20 +46,22 @@ class Player:
         return self.id
 
 
-@dataclass(frozen=True)
-class Rank:
-    """Card rank"""
-
-    value: str
-
-
 class Card:
     """Card"""
 
-    ACE = "A"
-    KING = "K"
-    QUEEN = "Q"
+    TWO = "2"
+    THREE = "3"
+    FOUR = "4"
+    FIVE = "5"
+    SIX = "6"
+    SEVEN = "7"
+    EIGHT = "8"
+    NINE = "9"
+    TEN = "10"
     JACK = "J"
+    QUEEN = "Q"
+    KING = "K"
+    ACE = "A"
 
     ATTACK = {
         JACK: 10,
@@ -70,7 +76,7 @@ class Card:
         KING: 40,
     }
 
-    def __init__(self, suit: Suit, rank: Rank) -> None:
+    def __init__(self, suit: Suit, rank: str) -> None:
         """Init Card"""
         self.suit = suit
         self.rank = rank
@@ -78,12 +84,12 @@ class Card:
     @property
     def health(self) -> int:
         """Get health"""
-        return self.HEALTH[self.rank.value]
+        return self.HEALTH[self.rank]
 
     @property
     def attack(self) -> int:
         """Get attack power"""
-        return self.ATTACK[self.rank.value]
+        return self.ATTACK[self.rank]
 
     @staticmethod
     def is_double_damage(combo: CardCombo, enemy: Enemy) -> bool:
@@ -116,7 +122,7 @@ class Card:
 
     def __str__(self) -> str:
         """To string"""
-        return f"{self.suit.value} {self.rank.value}"
+        return f"{self.suit.value} {self.rank}"
 
 
 class Deck:
