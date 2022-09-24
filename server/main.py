@@ -14,9 +14,11 @@ from server.handlers import (
     AuthSignUpHandler,
     AuthLoginHandler,
     AuthLogoutHandler,
+    GameHandler,
+    GameRoomHandler,
     RoomHandler,
     RoomPlayersHandler,
-    MainHandler,
+    MainHandler, PlayerHandler,
 )
 
 define("port", default=8888, help="run on the given port", type=int)
@@ -41,9 +43,13 @@ class Application(tornado.web.Application):
             (r"/auth/sign-up/?", AuthSignUpHandler),
             (r"/auth/login/?", AuthLoginHandler),
             (r"/auth/logout/?", AuthLogoutHandler),
-            (r"/rooms/?", RoomHandler),
-            (r"/rooms/([a-zA-Z0-9_.-]+)/?", RoomHandler),
+            (r"/games/([a-zA-Z0-9_.-]+)/rooms/?", GameRoomHandler),
+            (r"/games/([a-zA-Z0-9_.-]+)/?", GameHandler),
+            (r"/games/?", GameHandler),
             (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
+            (r"/rooms/([a-zA-Z0-9_.-]+)/?", RoomHandler),
+            (r"/rooms/?", RoomHandler),
+            (r"/players/([a-zA-Z0-9_.-]+)/?", PlayerHandler),
             (r"/", MainHandler),
         ]
         settings = dict(

@@ -4,13 +4,6 @@
 
 {% if current_user %}
 <h4>Hi, {% if current_user.name %}{{ current_user.name }}{% else %}{{ current_user.nickname }}{% end %}!</h4>
-
-<form action="/rooms/" method="POST">
-  <input name="admin" type="hidden" value="{{ current_user.id }}">
-  <input name="game" type="hidden" value="{{ game_id }}">
-  {% module xsrf_form_html() %}
-  <input type="submit" value="Create new room">
-</form>
 {% end %}
 
 <h3>Available rooms</h3>

@@ -100,19 +100,9 @@ class RoomHandler(BaseRequestHandler):
             return
         room = await Room.filter(id=room_id).first() if room_id else None
         players = await room.participants.all()
-        data = dict(room=room, players=players)
+        game = await room.game.get()
+        data = dict(room=room, players=players, game=game)
         await self.render("room.html", **data)
-
-    async def post(self, room_id: str) -> None:
-        """Create game room"""
-        admin_id = self.get_argument("admin")
-        game_id = self.get_argument("game")
-        admin = await Player.get(id=admin_id)
-        game = await Game.get(id=game_id)
-        room = await Room.create(admin=admin, game=game, status=0)
-        await room.participants.add(admin)
-
-        await self.render("room.html", room=room)
 
 
 class RoomPlayersHandler(BaseRequestHandler):
@@ -131,3 +121,44 @@ class RoomPlayersHandler(BaseRequestHandler):
             raise Exception  # FIXME
         await room.participants.add(player)
         self.redirect(f"/rooms/{room_id}")
+
+
+class GameHandler(BaseRequestHandler):
+    """Games handler"""
+
+    @tornado.web.authenticated
+    async def get(self, game_id: str = "") -> None:
+        """Get game or all games endpoint"""
+        if not game_id:
+            games = await Game.all()
+            self.render("games.html", games=games)
+            return
+        game = await Game.get(id=game_id)
+        await self.render("game.html", game=game)
+
+
+class GameRoomHandler(BaseRequestHandler):
+    """Game room handler"""
+
+    async def post(self, game_id: str) -> None:
+        """Create game room"""
+        admin_id = self.get_argument("admin")
+        admin = await Player.get(id=admin_id)
+        game = await Game.get(id=game_id)
+        room = await Room.create(admin=admin, game=game, status=0)
+        await room.participants.add(admin)
+
+        players = await room.participants.all()
+        game = await room.game.get()
+        data = dict(room=room, players=players, game=game)
+        await self.render("room.html", **data)
+
+
+class PlayerHandler(BaseRequestHandler):
+    """Player info handler"""
+
+    @tornado.web.authenticated
+    async def get(self, player_id: str) -> None:
+        """Render public info about player"""
+        player = await Player.get(id=player_id)
+        self.render("player.html", player=player)

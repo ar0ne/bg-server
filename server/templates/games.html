@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<p>Available games:</p>
+<ul>
+    {% for game in games %}
+    <li>{{ game.name }}
+        <a href="/games/{{ game.id }}">Play</a>
+    </li>
+    {% end %}
+</ul>
+
+{% end %}
