@@ -2,8 +2,7 @@
 import enum
 import json
 import random
-from dataclasses import dataclass
-from typing import List, Optional, Union, Tuple, TypeVar
+from typing import List, Optional, Union, TypeVar
 
 Enemy = TypeVar("Enemy", bound="Card")
 CardCombo = List["Card"]

@@ -6,7 +6,7 @@ import tornado
 
 from server.app.models import Player, Game, Room
 from server.app.utils import JsonDecoderMixin
-from server.constants import COOKIE_USER_KEY, REGICIDE
+from server.constants import COOKIE_USER_KEY, REGICIDE, GameRoomStatus
 
 
 class BaseRequestHandler(JsonDecoderMixin, tornado.web.RequestHandler):
@@ -27,7 +27,7 @@ class MainHandler(BaseRequestHandler):
     """Main request handler"""
 
     async def get(self) -> None:
-        rooms = await Room.filter(status=0)
+        rooms = await Room.filter(status=GameRoomStatus.CREATED.value)
         game = await Game.get(name=REGICIDE)
         game_id = game.id if game else None
         # FIXME: we have only single game atm
@@ -98,11 +98,25 @@ class RoomHandler(BaseRequestHandler):
         if not room_id:
             self.redirect(self.get_argument("next", "/"))
             return
-        room = await Room.filter(id=room_id).first() if room_id else None
+        room = await Room.filter(id=room_id).select_related("admin").first() if room_id else None
+
+        room.status = GameRoomStatus(room.status).name  # hack to display beautified status
         players = await room.participants.all()
         game = await room.game.get()
         data = dict(room=room, players=players, game=game)
         await self.render("room.html", **data)
+
+    @tornado.web.authenticated
+    async def post(self, room_id: str) -> None:
+        """Admin could update the status of the room to start the game"""
+        room = await Room.get(id=room_id).select_related("admin")
+        if self.current_user != room.admin:
+            raise Exception  # FIXME
+        status = GameRoomStatus(int(self.get_argument("status")))
+        room.status = status.value
+        await room.save()
+        # TODO: server should notify all participants about this changes
+        self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
 
 class RoomPlayersHandler(BaseRequestHandler):
@@ -121,6 +135,10 @@ class RoomPlayersHandler(BaseRequestHandler):
             raise Exception  # FIXME
         await room.participants.add(player)
         self.redirect(f"/rooms/{room_id}")
+
+    @tornado.web.authenticated
+    async def delete(self, room_id: str) -> None:
+        """Player could cancel own participation"""
 
 
 class GameHandler(BaseRequestHandler):
@@ -145,7 +163,7 @@ class GameRoomHandler(BaseRequestHandler):
         admin_id = self.get_argument("admin")
         admin = await Player.get(id=admin_id)
         game = await Game.get(id=game_id)
-        room = await Room.create(admin=admin, game=game, status=0)
+        room = await Room.create(admin=admin, game=game, status=GameRoomStatus.CREATED.value)
         await room.participants.add(admin)
 
         players = await room.participants.all()

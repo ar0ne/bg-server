@@ -2,7 +2,7 @@
 
 from tortoise import Model, fields
 
-from server.constants import REGICIDE
+from server.constants import REGICIDE, GameRoomStatus
 
 
 class Player(Model):
@@ -49,5 +49,5 @@ async def init_fake_data():
         nickname="bar",
         password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
     )
-    room = await Room.create(admin=foo, game=game, status=0)
+    room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value)
     await room.participants.add(foo)

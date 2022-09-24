@@ -13,13 +13,20 @@
       <a href="/players/{{ player.id }}">See</a>
      </li>
    {% end %}
+   {% if current_user.id == room.admin.id %}
+    <form method="post" action="/rooms/{{ room.id }}/?status=1">
+        <input type="hidden" name="_method" value="put" />
+         {% module xsrf_form_html() %}
+        <input type="submit" value="Start">
+    </form>
+   {% end %}
    {% if current_user not in players %}
    <form action="/rooms/{{ room.id }}/players/" method="POST">
     <input name="player_id" type="hidden" value="{{ current_user.id }}">
      {% module xsrf_form_html() %}
      <input type="submit" value="Join">
    </form>
-    {% end %}
+   {% end %}
 {% end %}
 
 {% end %}
