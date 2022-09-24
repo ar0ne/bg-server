@@ -7,7 +7,7 @@ from typing import Optional, List, Iterable
 from server.app.games.regicide.models import Deck, GameState, Card, Suit, Player, CardCombo, Enemy
 
 
-def cycle(iters: Iterable):
+def infinite_cycle(iters: Iterable):
     """Infinite loop generator"""
     while True:
         for it in iters:
@@ -64,7 +64,7 @@ class Game:
 
         # randomly peek first player
         random.shuffle(self.players)
-        self.next_player_loop = cycle(self.players)
+        self.next_player_loop = infinite_cycle(self.players)
         self.first_player = self.toggle_next_player_turn()
         # setup game state
         self.state = GameState.CREATED
@@ -103,7 +103,6 @@ class Game:
     def play_cards(self, player: Player, combo: CardCombo):
         """Play cards"""
         self._assert_can_play_cards(player, combo)
-
         enemy = self.current_enemy
         # remove cards from player's hand
         player.hand = list(filter(lambda c: c not in combo, player.hand))
@@ -111,18 +110,19 @@ class Game:
         self._process_played_combo(player, enemy, combo)
         # add cards to played cards deck
         self.played_combos.append(combo)
+        # move to the next state
+        self.state = GameState.DISCARDING_CARDS
         # check has been enemy defeated
         enemy_defeated = is_enemy_defeated(enemy, self.played_combos)
         if enemy_defeated:
+            # no need to discard cards
+            self.state = GameState.PLAYING_CARDS
             # pull next enemy from castle deck and discard defeated enemy and played cards
             self._pull_next_enemy()
             # transit to won state if enemy deck is empty now
             if not len(self.enemy_deck):
                 self.state = GameState.WON
         else:
-            # if enemy still has attack power, transit game to discard card state
-            self.state = GameState.DISCARDING_CARDS
-
             if get_enemy_attack_damage(enemy, self.played_combos) <= 0:
                 # enemy can't attack, let next player to play cards
                 self.state = GameState.PLAYING_CARDS
@@ -131,6 +131,7 @@ class Game:
                 # player must have cards on hand enough to deal with enemies attack, otherwise
                 # game lost
                 self.state = GameState.LOST
+        self.turn += 1
 
     def discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
@@ -140,6 +141,7 @@ class Game:
         # next player could play card
         self.state = GameState.PLAYING_CARDS
         self.toggle_next_player_turn()
+        self.turn += 1
 
     def get_game_state(self) -> dict:
         """Returns state of the game and all public information"""
@@ -174,7 +176,6 @@ class Game:
 
     def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
-        self.turn += 1
         self.first_player = next(self.next_player_loop)
         return self.first_player
 
@@ -213,18 +214,16 @@ class Game:
             raise Exception  # FIXME
 
     def _pull_next_enemy(self) -> None:
-        """Remove current enemy, throw off played cards to discard pile"""
+        """Remove current enemy, throw off played cards to discard"""
         enemy = self.enemy_deck.pop()
-        # move cards from played to discard pile
-        flat_played_combos = list(itertools.chain.from_iterable(self.played_combos))
-
+        # if damage was equal to enemy health as a bonus we put card on top of tavern
         if not get_remaining_enemy_health(enemy, self.played_combos):
             self.tavern_deck.append(enemy)
         else:
             self.discard_deck.append(enemy)
-
+        # move cards from played to discard pile
+        flat_played_combos = list(itertools.chain.from_iterable(self.played_combos))
         self.discard_deck.append(flat_played_combos)
-
         # clean up played cards
         self.played_combos = []
 
@@ -252,7 +251,7 @@ class Game:
             # create new players list starting from current player
             players = self.players[player_index:] + self.players[:player_index]
             # make infinite loop
-            players_loop = cycle(players)
+            players_loop = infinite_cycle(players)
             # add cards to players' hands
             list(map(lambda c: next(players_loop).hand.append(c), draw_cards))
 

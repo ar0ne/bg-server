@@ -1,12 +1,18 @@
 """Unit tests for game"""
 import unittest
 
+from server.app.games.regicide.dto import GameData
 from server.app.games.regicide.game import Game
 from server.app.games.regicide.models import GameState, Card, Suit, Deck
+from server.app.games.regicide.utils import load_data
 
 
 class TestGame(unittest.TestCase):
     """Test cases for game"""
+    def setUp(self) -> None:
+        """Setup test cases"""
+        self.user1_id = "user1"
+        self.user2_id = "user2"
 
     def test_create_game(self) -> None:
         """Tests creating new game object"""
@@ -20,7 +26,7 @@ class TestGame(unittest.TestCase):
 
         self.assertEqual(user_id, game.first_player.id)
         self.assertEqual(1, len(game.players))
-        self.assertEqual(1, game.turn)
+        self.assertEqual(0, game.turn)
         self.assertEqual(0, len(game.discard_deck))
         self.assertEqual(0, len(game.tavern_deck))
         self.assertEqual(0, len(game.enemy_deck))
@@ -46,3 +52,40 @@ class TestGame(unittest.TestCase):
         self.assertEqual(12, len(game.enemy_deck))
         self.assertEqual(40 - 2 * hand_size, len(game.tavern_deck))
         self.assertTrue(all(len(player.hand) == hand_size for player in game.players))
+
+    def test_play_cards_kill_enemy(self) -> None:
+        """Tests playing cards and kill enemy"""
+        dump = GameData(
+            enemy_deck=[("J", "♣"), ("J", "♥")],
+            discard_deck=[("5", "♥")],
+            first_player_id=self.user1_id,
+            players=[
+                (self.user1_id, [("4", "♥")]),
+                (self.user2_id, [("2", "♥")]),
+            ],
+            played_combos=[
+                [("10", "♣")],
+                [("6", "♠")]
+            ],
+            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            tavern_deck=[("2", "♣")],
+            turn=4,
+        )
+        game = Game([self.user1_id, self.user2_id])
+        load_data(game, dump)
+        enemy = game.enemy_deck.peek()
+
+        # Player #1 kills enemy and draws 1 card from discard to tavern and should defeat next enemy
+        # And enemy doesn't have immune
+        game.play_cards(game.first_player, [game.first_player.hand[0]])
+
+        self.assertEqual(GameState.PLAYING_CARDS, game.state)
+        self.assertEqual(5, game.turn)
+        self.assertEqual(game.first_player.id, self.user1_id)
+        self.assertEqual(1, len(game.enemy_deck))
+        self.assertNotEqual(enemy, game.enemy_deck.peek())
+        self.assertEqual(3, len(game.discard_deck))
+        self.assertEqual(3, len(game.tavern_deck))
+        self.assertEqual(0, len(game.players[0].hand))
+        self.assertEqual(1, len(game.players[1].hand))
+

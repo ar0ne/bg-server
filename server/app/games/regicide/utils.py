@@ -2,7 +2,7 @@
 from typing import List
 
 from server.app.games.regicide.dto import GameData, FlatCard
-from server.app.games.regicide.game import Game, cycle
+from server.app.games.regicide.game import Game, infinite_cycle
 from server.app.games.regicide.models import GameState, Player, Card, Suit, Deck, CardHand
 
 
@@ -38,7 +38,7 @@ def load_data(game: Game, data: GameData) -> None:
     # fmt: on
 
     # shift players' loop until first player from data
-    game.next_player_loop = cycle(game.players)
+    game.next_player_loop = infinite_cycle(game.players)
     while game.toggle_next_player_turn().id != data.first_player_id:
         pass
 
