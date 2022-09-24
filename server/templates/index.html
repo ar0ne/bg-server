@@ -3,7 +3,7 @@
 {% block body %}
 
 {% if current_user %}
-<h4>Hi, {{ current_user.name }}!</h4>
+<h4>Hi, {% if current_user.name %}{{ current_user.name }}{% else %}{{ current_user.nickname }}{% end %}!</h4>
 
 <form action="/rooms/" method="POST">
   <input name="admin" type="hidden" value="{{ current_user.id }}">

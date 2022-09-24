@@ -15,6 +15,7 @@ from server.handlers import (
     AuthLoginHandler,
     AuthLogoutHandler,
     RoomHandler,
+    RoomPlayersHandler,
     MainHandler,
 )
 
@@ -40,7 +41,9 @@ class Application(tornado.web.Application):
             (r"/auth/sign-up/?", AuthSignUpHandler),
             (r"/auth/login/?", AuthLoginHandler),
             (r"/auth/logout/?", AuthLogoutHandler),
-            (r"/rooms/?(.*)", RoomHandler),
+            (r"/rooms/?", RoomHandler),
+            (r"/rooms/([a-zA-Z0-9_.-]+)/?", RoomHandler),
+            (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
             (r"/", MainHandler),
         ]
         settings = dict(
@@ -49,6 +52,7 @@ class Application(tornado.web.Application):
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             xsrf_cookies=True,
+            login_url="/auth/login/"
         )
         super().__init__(handlers, **settings)
 

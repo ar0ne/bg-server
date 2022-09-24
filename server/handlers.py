@@ -17,11 +17,10 @@ class BaseRequestHandler(JsonDecoderMixin, tornado.web.RequestHandler):
         # self.current_user in prepare instead.
         if self.current_user:
             return
-        user_id = self.get_secure_cookie(COOKIE_USER_KEY).decode("utf-8")
+        user_id = self.get_secure_cookie(COOKIE_USER_KEY)
         if not user_id:
             return
-
-        self.current_user = await Player.filter(id=user_id).first()
+        self.current_user = await Player.filter(id=user_id.decode("utf-8")).first()
 
 
 class MainHandler(BaseRequestHandler):
@@ -29,7 +28,7 @@ class MainHandler(BaseRequestHandler):
 
     async def get(self) -> None:
         rooms = await Room.filter(status=0)
-        game = await Game.filter(name=REGICIDE).first()
+        game = await Game.get(name=REGICIDE)
         game_id = game.id if game else None
         # FIXME: we have only single game atm
         data = dict(rooms=rooms, game_id=game_id)
@@ -68,7 +67,7 @@ class AuthLoginHandler(BaseRequestHandler):
 
     async def post(self):
         email = self.get_argument("email")
-        player = await Player(email=email).first()
+        player = await Player.filter(email=email).first()
         if not player:
             await self.render("login.html", error="email not found")
             return
@@ -94,21 +93,41 @@ class AuthLogoutHandler(BaseRequestHandler):
 class RoomHandler(BaseRequestHandler):
     """Room request handler"""
 
+    @tornado.web.authenticated
     async def get(self, room_id: Optional[str] = None) -> None:
         if not room_id:
             self.redirect(self.get_argument("next", "/"))
             return
-        if room_id:
-            room = await Room.filter(id=room_id).first()
-        await self.render("room.html", room=room)
+        room = await Room.filter(id=room_id).first() if room_id else None
+        players = await room.participants.all()
+        data = dict(room=room, players=players)
+        await self.render("room.html", **data)
 
-    async def post(self, _) -> None:
+    async def post(self, room_id: str) -> None:
         """Create game room"""
         admin_id = self.get_argument("admin")
         game_id = self.get_argument("game")
-        admin = await Player.filter(id=admin_id).first()
-        game = await Game.filter(id=game_id).first()
+        admin = await Player.get(id=admin_id)
+        game = await Game.get(id=game_id)
         room = await Room.create(admin=admin, game=game, status=0)
         await room.participants.add(admin)
 
         await self.render("room.html", room=room)
+
+
+class RoomPlayersHandler(BaseRequestHandler):
+    """Room players handler"""
+
+    @tornado.web.authenticated
+    async def post(self, room_id: str) -> None:
+        """join room"""
+        player_id = self.get_argument("player_id")
+        player = self.current_user
+        if str(player.id) != player_id:
+            raise Exception  # FIXME
+        room = await Room.get(id=room_id).prefetch_related("participants")
+        player_already_joined = await room.participants.filter(id__in=player_id).exists()
+        if not room or player_already_joined:
+            raise Exception  # FIXME
+        await room.participants.add(player)
+        self.redirect(f"/rooms/{room_id}")

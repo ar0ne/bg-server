@@ -43,14 +43,11 @@ async def init_fake_data():
         nickname="foo",
         password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
     )
-    bar = await Player.create(
+    await Player.create(
         email="bar@b.ar",
         name="Bar",
         nickname="bar",
         password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
     )
-    room = await Room.create(
-        admin=foo, game=game, status=1
-    )
+    room = await Room.create(admin=foo, game=game, status=0)
     await room.participants.add(foo)
-    await room.participants.add(bar)

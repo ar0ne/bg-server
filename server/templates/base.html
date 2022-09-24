@@ -11,8 +11,9 @@
       <div id="header">
         <div style="">
           {% if current_user %}
+            <a href="/players/{{ current_user.id }}/">{{ current_user.nickname }}</a>
             <a href="/rooms">{{ _("Game rooms") }}</a> -
-            <a href="/auth/logout?next={{ url_escape(request.uri) }}">{{ _("Sign out") }}</a>
+            <a href="/auth/logout?next={{ url_escape(request.uri) }}">{{ _("Log out") }}</a>
           {% else %}
             {% raw _('<a href="%(url)s">Sign in</a>') % {"url": "/auth/login?next=" + url_escape(request.uri)} %}
             {% raw _('<a href="%(url)s">Sign Up</a>') % {"url": "/auth/sign-up?next=" + url_escape(request.uri)} %}

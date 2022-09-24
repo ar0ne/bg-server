@@ -6,7 +6,17 @@
 {% else %}
    <p>Room # {{ room.id }}</p>
    <p>Status: {{ room.status }}</p>
-   <button>Join</button>
+   <p>Participants: </p>
+   {% for player in players %}
+     <li>Player: {{ player.nickname }} |
+      <a href="/players/{{ player.id }}">See</a>
+     </li>
+   {% end %}
+   <form action="/rooms/{{ room.id }}/players/" method="POST">
+    <input name="player_id" type="hidden" value="{{ current_user.id }}">
+     {% module xsrf_form_html() %}
+     <input type="submit" value="Join">
+   </form>
 {% end %}
 
 {% end %}
