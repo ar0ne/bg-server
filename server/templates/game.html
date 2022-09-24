@@ -8,7 +8,7 @@
 <p>...</p>
 
 <p>Play game</p>
-<form action="/games/{{ game.id }}/rooms/" method="POST">
+<form action="/games/{{ game.name }}/rooms/" method="POST">
   <input name="admin" type="hidden" value="{{ current_user.id }}"><br>
   {% module xsrf_form_html() %}
   <input type="submit" value="Create Room">

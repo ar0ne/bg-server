@@ -6,7 +6,7 @@
 {% else %}
    <p>Room # {{ room.id }}</p>
    <p>Status: {{ room.status }}</p>
-   <p>Game:  <a href="/games/{{ game.id }}/">{{ game.name }}</a></p>
+   <p>Game:  <a href="/games/{{ game.name }}/">{{ game.name }}</a></p>
    <p>Participants: </p>
    {% for player in players %}
      <li>Player: {{ player.nickname }} |

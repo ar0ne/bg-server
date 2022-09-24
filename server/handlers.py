@@ -145,24 +145,24 @@ class GameHandler(BaseRequestHandler):
     """Games handler"""
 
     @tornado.web.authenticated
-    async def get(self, game_id: str = "") -> None:
+    async def get(self, game_name: str = "") -> None:
         """Get game or all games endpoint"""
-        if not game_id:
+        if not game_name:
             games = await Game.all()
             self.render("games.html", games=games)
             return
-        game = await Game.get(id=game_id)
+        game = await Game.get(name=game_name)
         await self.render("game.html", game=game)
 
 
 class GameRoomHandler(BaseRequestHandler):
     """Game room handler"""
 
-    async def post(self, game_id: str) -> None:
+    async def post(self, game_name: str) -> None:
         """Create game room"""
         admin_id = self.get_argument("admin")
         admin = await Player.get(id=admin_id)
-        game = await Game.get(id=game_id)
+        game = await Game.get(name=game_name)
         room = await Room.create(admin=admin, game=game, status=GameRoomStatus.CREATED.value)
         await room.participants.add(admin)
 

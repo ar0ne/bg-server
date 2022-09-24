@@ -20,7 +20,7 @@ class Game(Model):
     """Game model"""
 
     id = fields.UUIDField(pk=True)
-    name = fields.TextField()
+    name = fields.CharField(unique=True, max_length=50)
 
 
 class Room(Model):
