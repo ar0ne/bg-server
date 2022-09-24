@@ -2,19 +2,20 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Some title</title>
+    <title>Game server</title>
     <link rel="stylesheet" href="{{ static_url("main.css") }}" type="text/css">
     {% block head %}{% end %}
   </head>
   <body>
     <div id="body">
       <div id="header">
-        <div style="float:right">
+        <div style="">
           {% if current_user %}
             <a href="/rooms">{{ _("Game rooms") }}</a> -
             <a href="/auth/logout?next={{ url_escape(request.uri) }}">{{ _("Sign out") }}</a>
           {% else %}
             {% raw _('<a href="%(url)s">Sign in</a>') % {"url": "/auth/login?next=" + url_escape(request.uri)} %}
+            {% raw _('<a href="%(url)s">Sign Up</a>') % {"url": "/auth/sign-up?next=" + url_escape(request.uri)} %}
           {% end %}
         </div>
       </div>

@@ -2,6 +2,7 @@
 Main
 """
 from datetime import datetime
+from typing import Optional
 
 import bcrypt
 import asyncio
@@ -59,9 +60,10 @@ class MainHandler(BaseRequestHandler):
 class RoomHandler(BaseRequestHandler):
     """Room request handler"""
 
-    async def get(self) -> None:
-        room_id = self.get_argument("id", None)
-        room = None
+    async def get(self, room_id: Optional[str] = None) -> None:
+        if not room_id:
+            self.redirect(self.get_argument("next", "/"))
+            return
         if room_id:
             with db_session:
                 room = select(r for r in Room if r.id == room_id).first()
@@ -143,7 +145,7 @@ class Application(tornado.web.Application):
             (r"/auth/sign-up", AuthSignUpHandler),
             (r"/auth/login", AuthLoginHandler),
             (r"/auth/logout", AuthLogoutHandler),
-            (r"/rooms", RoomHandler),
+            (r"/rooms/(.*)", RoomHandler),
             (r"/", MainHandler),
         ]
         settings = dict(

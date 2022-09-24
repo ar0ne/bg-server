@@ -39,20 +39,20 @@ sql_debug(True)
 def init_fake_data():
     with db_session:
         game = Game(name="Regicide")
-        joe = Player(
+        foo = Player(
             date_joined=datetime.now(),
-            email="joe@pl.er",
-            name="Joe",
-            nickname="joe",
-            password="123",
+            email="foo@f.oo",
+            name="Foo",
+            nickname="foo",
+            password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
         )
-        bob = Player(
+        bar = Player(
             date_joined=datetime.now(),
-            email="bob@pl.er",
-            name="Bob",
-            nickname="bob",
-            password="123",
+            email="bar@b.ar",
+            name="Bar",
+            nickname="bar",
+            password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
         )
-        room = Room(
-            admin=joe, date_created=datetime.now(), game=game, participants=[joe, bob], status=1
+        Room(
+            admin=foo, date_created=datetime.now(), game=game, participants=[foo, bar], status=1
         )
