@@ -12,6 +12,7 @@ CardHand = List["Card"]
 
 class GameState(enum.Enum):
     """Represents current state of the game"""
+
     CREATED = "created"
     PLAYING_CARDS = "playing_cards"
     DISCARDING_CARDS = "discarding_cards"
@@ -21,6 +22,7 @@ class GameState(enum.Enum):
 
 class Suit(enum.Enum):
     """Represents suit of the card"""
+
     CLUBS = "♣"
     DIAMONDS = "♦"
     HEARTS = "♥"
@@ -111,9 +113,14 @@ class Card:
         return sum(card.attack for card in combo)
 
     def get_reduced_attack_power(self, combo: CardCombo) -> int:
-        """Calculate reduced enemy attack value if combo contains spades and enemy doesn't immune"""
-        return self.suit != Suit.SPADES and sum(
-            card.attack for card in combo if card.suit == Suit.SPADES
+        """
+        Calculate reduced enemy attack value if combo contains spades and enemy doesn't have
+        immune
+        """
+        return (
+            self.get_attack_power(combo, self)
+            if self.suit != Suit.SPADES and any(card.suit == Suit.SPADES for card in combo)
+            else 0
         )
 
     def get_reduced_attack_damage(self, combos: List[CardCombo]) -> int:
@@ -175,4 +182,3 @@ class Deck:
     def __len__(self) -> int:
         """Length of card deck"""
         return len(self.cards)
-

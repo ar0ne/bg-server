@@ -122,6 +122,7 @@ class Game:
             # transit to won state if enemy deck is empty now
             if not len(self.enemy_deck):
                 self.state = GameState.WON
+                return
         else:
             if get_enemy_attack_damage(enemy, self.played_combos) <= 0:
                 # enemy can't attack, let next player to play cards
@@ -131,6 +132,7 @@ class Game:
                 # player must have cards on hand enough to deal with enemies attack, otherwise
                 # game lost
                 self.state = GameState.LOST
+                return
         self.turn += 1
 
     def discard_cards(self, player: Player, combo: CardCombo) -> None:
@@ -229,7 +231,7 @@ class Game:
 
     def _process_played_combo(self, player: Player, enemy: Enemy, combo: CardCombo) -> None:
         """Process played combo"""
-        combo_damage = Card.get_combo_damage(combo)
+        combo_damage = Card.get_attack_power(combo, enemy)
         # if hearts - shuffle and move cards from discard to tavern deck
         if enemy.suit != Suit.HEARTS and any(Suit.HEARTS == card.suit for card in combo):
             # shuffle deck
