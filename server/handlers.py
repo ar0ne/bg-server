@@ -4,9 +4,11 @@ from typing import Optional
 import bcrypt
 import tornado
 
-from server.app.models import Player, Game, Room
+from server.app.models import Player, Game, Room, GameData
 from server.app.utils import JsonDecoderMixin
 from server.constants import COOKIE_USER_KEY, REGICIDE, GameRoomStatus
+from server.games.regicide.game import Game as RegicideGame
+from server.games.regicide.utils import dump_data
 
 
 class BaseRequestHandler(JsonDecoderMixin, tornado.web.RequestHandler):
@@ -99,23 +101,36 @@ class RoomHandler(BaseRequestHandler):
             self.redirect(self.get_argument("next", "/"))
             return
         room = await Room.filter(id=room_id).select_related("admin").first() if room_id else None
-
-        room.status = GameRoomStatus(room.status).name  # hack to display beautified status
         players = await room.participants.all()
         game = await room.game.get()
         data = dict(room=room, players=players, game=game)
-        await self.render("room.html", **data)
+        if room.status == GameRoomStatus.CREATED.value:
+            room.status = GameRoomStatus(room.status).name  # hack to display beautified status
+            await self.render("room.html", **data)
+        else:
+            data["data"] = await GameData.filter(room=room, game=game).first()
+            await self.render("playground.html", **data)
 
     @tornado.web.authenticated
     async def post(self, room_id: str) -> None:
         """Admin could update the status of the room to start the game"""
-        room = await Room.get(id=room_id).select_related("admin")
+        room = (
+            await Room.get(id=room_id)
+            .select_related("admin", "game")
+            .prefetch_related("participants")
+        )
         if self.current_user != room.admin:
             raise Exception  # FIXME
         status = GameRoomStatus(int(self.get_argument("status")))
         room.status = status.value
         await room.save()
         # TODO: server should notify all participants about this changes
+        # TODO: we have to resolve which game manager to use and how?
+        players_ids = await room.participants.all().values_list("id", flat=True)
+        regicide = RegicideGame(players_ids)
+        regicide.start_new_game()
+        dump = dump_data(regicide)
+        await GameData.create(game=room.game, room=room, dump=dump)
         self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
 

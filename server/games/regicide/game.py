@@ -4,7 +4,7 @@ import random
 from itertools import product
 from typing import Optional, List, Iterable
 
-from server.app.games.regicide.models import Deck, GameState, Card, Suit, Player, CardCombo, Enemy
+from server.games.regicide.models import Deck, GameState, Card, Suit, Player, CardCombo, Enemy
 
 
 def infinite_cycle(iters: Iterable):

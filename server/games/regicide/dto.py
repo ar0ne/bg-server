@@ -1,8 +1,11 @@
 """DTO"""
-from dataclasses import dataclass
+import json
+from dataclasses import asdict, dataclass, is_dataclass
 from typing import List, Tuple
 
 FlatCard = Tuple[str, str]
+
+
 
 
 @dataclass(frozen=True)

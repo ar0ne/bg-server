@@ -1,8 +1,10 @@
 """Utility functions"""
 import json
+from dataclasses import is_dataclass, asdict
 from typing import Any
 
 from datetime import datetime
+from uuid import UUID
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -27,3 +29,12 @@ class JsonEncoder:
     @staticmethod
     def encode(value: Any) -> str:
         return json.dumps(value, sort_keys=True, indent=1, cls=DateTimeEncoder)
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if is_dataclass(o):
+            return asdict(o)
+        if isinstance(o, UUID):
+            return str(o)
+        return super().default(o)

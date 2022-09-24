@@ -1,7 +1,9 @@
 """DB models"""
+import json
 
 from tortoise import Model, fields
 
+from server.app.utils import CustomJSONEncoder
 from server.constants import REGICIDE, GameRoomStatus
 
 
@@ -21,6 +23,16 @@ class Game(Model):
 
     id = fields.UUIDField(pk=True)
     name = fields.CharField(unique=True, max_length=50)
+
+
+JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
+class GameData(Model):
+    """Game data"""
+
+    id = fields.UUIDField(pk=True)
+    game = fields.ForeignKeyField("models.Game")
+    room = fields.ForeignKeyField("models.Room")
+    dump = fields.JSONField(encoder=JSON_ENCODER)
 
 
 class Room(Model):

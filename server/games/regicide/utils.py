@@ -1,9 +1,9 @@
 """Game utilities"""
 from typing import List
 
-from server.app.games.regicide.dto import GameData, FlatCard
-from server.app.games.regicide.game import Game, infinite_cycle
-from server.app.games.regicide.models import GameState, Player, Card, Suit, Deck, CardHand
+from server.games.regicide.dto import GameData, FlatCard
+from server.games.regicide.game import Game, infinite_cycle
+from server.games.regicide.models import GameState, Player, Card, Suit, Deck, CardHand
 
 
 def load_data(game: Game, data: GameData) -> None:
