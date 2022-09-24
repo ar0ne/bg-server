@@ -73,7 +73,7 @@ class TestGame(unittest.TestCase):
         load_data(game, dump)
         enemy = game.enemy_deck.peek()
 
-        # Player #1 kills enemy and draws 1 card from discard to tavern and should defeat next enemy
+        # Player kills enemy and draws 1 card from discard to tavern and should defeat next enemy
         # And enemy doesn't have immune
         game.play_cards(game.first_player, [game.first_player.hand[0]])
 
@@ -215,5 +215,65 @@ class TestGame(unittest.TestCase):
         self.assertEqual(1, len(game.discard_deck))
         self.assertEqual(0, len(game.tavern_deck))
         self.assertEqual(2, len(game.played_combos))
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertEqual(1, len(game.players[1].hand))
+
+    def test_play_cards__combo_with_ace(self) -> None:
+        """Tests playing card combo from ace and card"""
+        dump = GameData(
+            enemy_deck=[("Q", "♦")],
+            discard_deck=[("4", "♣")],
+            first_player_id=self.user1_id,
+            players=[
+                (self.user2_id, [("3", "♣")]),
+                (self.user1_id, [("5", "♣"), ("10", "♠"), ("K", "♦"), ("A", "♦")]),
+            ],
+            played_combos=[[("4", "♠")]],
+            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            tavern_deck=[("4", "♣")],
+            turn=6,
+        )
+        game = Game([self.user2_id, self.user1_id])
+        load_data(game, dump)
+
+        # player plays combo from ace and 5, game moves to discard cards state
+        game.play_cards(game.first_player, [game.first_player.hand[0], game.first_player.hand[3]])
+
+        self.assertEqual(GameState.DISCARDING_CARDS, game.state)
+        self.assertEqual(7, game.turn)
+        self.assertEqual(game.first_player.id, self.user1_id)
+        self.assertEqual(1, len(game.enemy_deck))
+        self.assertEqual(1, len(game.discard_deck))
+        self.assertEqual(1, len(game.tavern_deck))
+        self.assertEqual(2, len(game.played_combos))
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertEqual(2, len(game.players[1].hand))
+
+    def test_discard_cards(self) -> None:
+        """Tests discarding cards"""
+        dump = GameData(
+            enemy_deck=[("Q", "♦")],
+            discard_deck=[("4", "♣")],
+            first_player_id=self.user1_id,
+            players=[
+                (self.user2_id, [("3", "♣")]),
+                (self.user1_id, [("10", "♠"), ("K", "♦")]),
+            ],
+            played_combos=[[("4", "♠")], [("5", "♣"), ("A", "♦")]],
+            state=GameState.DISCARDING_CARDS.value,  # type: ignore
+            tavern_deck=[("4", "♣")],
+            turn=6,
+        )
+        game = Game([self.user2_id, self.user1_id])
+        load_data(game, dump)
+
+        game.discard_cards(game.first_player, [game.players[1].hand[1]])
+
+        self.assertEqual(GameState.PLAYING_CARDS, game.state)
+        self.assertEqual(game.first_player.id, self.user2_id)
+        self.assertEqual(2, len(game.discard_deck))
+        self.assertEqual(2, len(game.played_combos))
+        self.assertEqual(1, len(game.tavern_deck))
+        self.assertEqual(6, game.turn)
         self.assertEqual(1, len(game.players[0].hand))
         self.assertEqual(1, len(game.players[1].hand))

@@ -105,7 +105,7 @@ class Game:
         self._assert_can_play_cards(player, combo)
         enemy = self.current_enemy
         # remove cards from player's hand
-        player.hand = list(filter(lambda c: c not in combo, player.hand))
+        self._remove_cards_from_hand(player, combo)
         # activate suits powers if possible
         self._process_played_combo(player, enemy, combo)
         # add cards to played cards deck
@@ -138,12 +138,13 @@ class Game:
     def discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
         self._assert_can_discard_cards(player, combo)
+        # remove cards from player's hand
+        self._remove_cards_from_hand(player, combo)
         # move cards to discard pile
         self.discard_deck.append(combo)
         # next player could play card
         self.state = GameState.PLAYING_CARDS
         self.toggle_next_player_turn()
-        self.turn += 1
 
     def get_game_state(self) -> dict:
         """Returns state of the game and all public information"""
@@ -214,6 +215,10 @@ class Game:
         combo_damage = Card.get_combo_damage(combo)
         if get_enemy_attack_damage(enemy, self.played_combos) > combo_damage:
             raise Exception  # FIXME
+
+    def _remove_cards_from_hand(self, player: Player, combo: CardCombo) -> None:
+        """Removes cards from hand"""
+        player.hand = list(filter(lambda c: c not in combo, player.hand))
 
     def _pull_next_enemy(self) -> None:
         """Remove current enemy, throw off played cards to discard"""
