@@ -15,6 +15,7 @@ def infinite_cycle(iters: Iterable):
 
 
 def cards_belong_to_player(player: Player, combo: CardCombo) -> bool:
+    """True if all cards in combo from players hand"""
     return all(card in player.hand for card in combo)
 
 
@@ -44,8 +45,21 @@ def is_enemy_defeated(enemy: Enemy, cards: List[CardCombo]) -> bool:
     return enemy.health <= get_total_damage_to_enemy(enemy, cards)
 
 
+def is_valid_duplicate_combo(rank: str, combo: CardCombo) -> bool:
+    """True if it is valid combo from duplicated cards"""
+    if not any(card.rank == rank for card in combo):
+        return True
+    if not all(card.rank == rank for card in combo):
+        return False
+    if Card.get_combo_damage(combo) > 10:
+        return False
+    return True
+
+
 class Game:
     """Regicide game class"""
+
+    DUPLICATED_COMBO_RANKS = (Card.TWO, Card.THREE, Card.FOUR, Card.FIVE)
 
     def __init__(self, players_ids: List[str]) -> None:
         """Init game"""
@@ -86,7 +100,6 @@ class Game:
 
     def start_new_game(self) -> None:
         """Create new game"""
-        self.turn = 1
         # create tavern and enemy decks
         self._create_tavern_deck()
         self._create_enemy_deck()
@@ -99,13 +112,14 @@ class Game:
             player.hand = self.tavern_deck.pop_many(player.hand_size)
         # first player could play cards now
         self.state = GameState.PLAYING_CARDS
+        self.turn = 1
 
     def play_cards(self, player: Player, combo: CardCombo):
         """Play cards"""
         self._assert_can_play_cards(player, combo)
         enemy = self.current_enemy
         # remove cards from player's hand
-        self._remove_cards_from_hand(player, combo)
+        player.remove_cards_from_hand(combo)
         # activate suits powers if possible
         self._process_played_combo(player, enemy, combo)
         # add cards to played cards deck
@@ -139,7 +153,7 @@ class Game:
         """Discard cards to defeat from enemy attack"""
         self._assert_can_discard_cards(player, combo)
         # remove cards from player's hand
-        self._remove_cards_from_hand(player, combo)
+        player.remove_cards_from_hand(combo)
         # move cards to discard pile
         self.discard_deck.append(combo)
         # next player could play card
@@ -195,22 +209,16 @@ class Game:
         if not cards_belong_to_player(player, combo):
             raise Exception  # FIXME
         combo_size = len(combo)
-        if combo_size > 1:
-            if any(card.rank == Card.ACE for card in combo):
-                if combo_size > 2:
-                    raise Exception  # FIXME
-            else:
-                ranks = (Card.TWO, Card.THREE, Card.FOUR, Card.FIVE)
-                list(self._assert_valid_duplicate_rank_combo(rank, combo) for rank in ranks)
-
-    @staticmethod
-    def _assert_valid_duplicate_rank_combo(rank: str, combo: CardCombo) -> None:
-        if not any(card.rank == rank for card in combo):
+        if combo_size == 1:
             return
-        if not all(card.rank == rank for card in combo):
-            raise Exception  # FIXME
-        if Card.get_combo_damage(combo) > 10:
-            raise Exception  # FIXME
+        if any(card.rank == Card.ACE for card in combo):
+            if combo_size > 2:
+                raise Exception  # FIXME
+        else:
+            if any(
+                not is_valid_duplicate_combo(rank, combo) for rank in self.DUPLICATED_COMBO_RANKS
+            ):
+                raise Exception  # FIXME
 
     def _assert_can_discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert can player discard these cards"""
@@ -229,10 +237,6 @@ class Game:
         combo_damage = Card.get_combo_damage(combo)
         if get_enemy_attack_damage(enemy, self.played_combos) > combo_damage:
             raise Exception  # FIXME
-
-    def _remove_cards_from_hand(self, player: Player, combo: CardCombo) -> None:
-        """Removes cards from hand"""
-        player.hand = list(filter(lambda c: c not in combo, player.hand))
 
     def _pull_next_enemy(self) -> None:
         """Remove current enemy, throw off played cards to discard"""

@@ -43,6 +43,10 @@ class Player:
         self.hand: CardHand = hand if hand else []
         self.hand_size = hand_size
 
+    def remove_cards_from_hand(self, combo: CardCombo) -> None:
+        """Removes cards from hand"""
+        self.hand = list(filter(lambda c: c not in combo, self.hand))
+
     def __str__(self) -> str:
         """To string"""
         return self.id
