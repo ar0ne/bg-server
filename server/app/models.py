@@ -1,58 +1,56 @@
 """DB models"""
 
-from datetime import datetime
+from tortoise import Model, fields
 
-from pony.orm import Required, Optional, PrimaryKey, Set, Database, sql_debug, db_session
-
-db = Database()
+from server.app.constants import REGICIDE
 
 
-class Player(db.Entity):
-    admin_rooms = Set("Room", reverse="admin")
-    date_joined = Required(datetime)
-    email = Required(str, unique=True)
-    id = PrimaryKey(int, auto=True)  # FIXME: uuid4
-    joined_rooms = Set("Room", reverse="participants")
-    name = Optional(str)
-    nickname = Required(str, unique=True)
-    password = Required(str)
+class Player(Model):
+    """Player model"""
+
+    date_joined = fields.DatetimeField(auto_now_add=True)
+    email = fields.TextField(email=True)
+    id = fields.UUIDField(pk=True)
+    name = fields.TextField(null=True)
+    nickname = fields.CharField(unique=True, max_length=60)
+    password = fields.TextField()
 
 
-class Game(db.Entity):
-    id = PrimaryKey(int, auto=True)  # FIXME: uuid4
-    name = Required(str)
-    games = Set("Room")
+class Game(Model):
+    """Game model"""
+
+    id = fields.UUIDField(pk=True)
+    name = fields.TextField()
 
 
-class Room(db.Entity):
-    admin = Required(Player)
-    date_closed = Optional(datetime)
-    date_created = Required(datetime)
-    game = Required(Game)
-    id = PrimaryKey(int, auto=True)  # FIXME: uuid4
-    participants = Set(Player)
-    status = Required(int)  # FIXME: Enum?
+class Room(Model):
+    """Room model"""
+
+    admin = fields.ForeignKeyField("models.Player", related_name="admin_rooms")
+    date_closed = fields.DatetimeField(null=True)
+    date_created = fields.DatetimeField(auto_now_add=True)
+    game = fields.ForeignKeyField("models.Game", related_name="rooms")
+    id = fields.UUIDField(pk=True)
+    participants = fields.ManyToManyField("models.Player", related_name="")
+    status = fields.SmallIntField()
 
 
-sql_debug(True)
-
-def init_fake_data():
-    with db_session:
-        game = Game(name="Regicide")
-        foo = Player(
-            date_joined=datetime.now(),
-            email="foo@f.oo",
-            name="Foo",
-            nickname="foo",
-            password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
-        )
-        bar = Player(
-            date_joined=datetime.now(),
-            email="bar@b.ar",
-            name="Bar",
-            nickname="bar",
-            password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
-        )
-        Room(
-            admin=foo, date_created=datetime.now(), game=game, participants=[foo, bar], status=1
-        )
+async def init_fake_data():
+    game = await Game.create(name=REGICIDE)
+    foo = await Player.create(
+        email="foo@f.oo",
+        name="Foo",
+        nickname="foo",
+        password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
+    )
+    bar = await Player.create(
+        email="bar@b.ar",
+        name="Bar",
+        nickname="bar",
+        password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
+    )
+    room = await Room.create(
+        admin=foo, game=game, status=1
+    )
+    await room.participants.add(foo)
+    await room.participants.add(bar)

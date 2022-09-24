@@ -1,3 +1,4 @@
+aerich~=0.7.0
 bcrypt==4.0.0
-pony==0.7.16
 tornado==6.2
+tortoise-orm==0.19.2

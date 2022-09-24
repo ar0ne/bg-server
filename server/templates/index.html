@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h4>{{ title }}</h4>
 
 {% if current_user %}
-<h4>You're authorized.</h4>
+<h4>Hi, {{ current_user.name }}!</h4>
+
+<form action="/rooms/" method="POST">
+  <input name="admin" type="hidden" value="{{ current_user.id }}">
+  <input name="game" type="hidden" value="{{ game_id }}">
+  {% module xsrf_form_html() %}
+  <input type="submit" value="Create new room">
+</form>
 {% end %}
 
+<h3>Available rooms</h3>
 <ul>
    {% for room in rooms %}
      <li>Room ID: {{ room.id }}
