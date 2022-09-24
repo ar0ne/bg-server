@@ -2,7 +2,7 @@
 
 from tortoise import Model, fields
 
-from server.app.constants import REGICIDE
+from server.constants import REGICIDE
 
 
 class Player(Model):
