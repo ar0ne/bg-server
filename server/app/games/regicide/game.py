@@ -194,9 +194,23 @@ class Game:
             raise Exception  # FIXME
         if not cards_belong_to_player(player, combo):
             raise Exception  # FIXME
+        combo_size = len(combo)
+        if combo_size > 1:
+            if any(card.rank == Card.ACE for card in combo):
+                if combo_size > 2:
+                    raise Exception  # FIXME
+            else:
+                ranks = (Card.TWO, Card.THREE, Card.FOUR, Card.FIVE)
+                list(self._assert_valid_duplicate_rank_combo(rank, combo) for rank in ranks)
 
-        # TODO: check if it's combination of Ace and any card
-        # TODO: check if it's 2+2+.., 3+3+.. combo
+    @staticmethod
+    def _assert_valid_duplicate_rank_combo(rank: str, combo: CardCombo) -> None:
+        if not any(card.rank == rank for card in combo):
+            return
+        if not all(card.rank == rank for card in combo):
+            raise Exception  # FIXME
+        if Card.get_combo_damage(combo) > 10:
+            raise Exception  # FIXME
 
     def _assert_can_discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert can player discard these cards"""
