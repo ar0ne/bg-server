@@ -2,21 +2,27 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './regicide.css';
 
-class Card extends React.Component {
+function Card(props) {
+    let classNames = "card"
+    const { rank, suit } = props;
+    return (
+        <button
+        className={classNames}
+        onClick={props.onClick}
+        >
+        {rank}{suit}
+        </button>
+    )
+}
 
-    render() {
-        let classNames = "card"
-        const { rank, suit } = this.props;
-        return (
-            <button
-            className={classNames}
-            onClick={this.props.onClick}
-            >
-            {rank}{suit}
-            </button>
-        )
-    };
-
+function CardCombo (props) {
+    let { combo } = props;
+    let combos = combo.map((c, i) => <Card key={i} rank={c[0]} suit={c[1]}/>);
+    return (
+        <div>
+            {combos}
+        </div>
+    )
 }
 
 
@@ -81,10 +87,14 @@ class Enemy extends React.Component {
 }
 
 class PlayedCards extends React.Component {
+
     render() {
+        const { combos } = this.props;
+        let cardCombos = combos.map((combo, i) => <CardCombo key={i} combo={combo}/>);
         return (
             <div>
                 <h1>Played cards component</h1>
+                {cardCombos}
             </div>
         )
     }
@@ -118,7 +128,9 @@ class Game extends React.Component {
             gameState: "",
             hand: [],
             player: "",
+            playedCombos: [],
             tavernDeckSize: [],
+            turn: 0,
         };
     }
 
@@ -133,11 +145,11 @@ class Game extends React.Component {
             },
             "discard_deck_size": 0,
             'first_player_id': '5f684832-9106-4d7f-b69a-74bc0b8a1179',
-            'hand': [['3', '♦'], ['10', '♣'], ['8', '♣'], ['5', '♥'], ['4', '♠'], ['7', '♣'], ['4', '♣']],
-            'played_combos': [],
+            'hand': [['3', '♦'], ['8', '♣'], ['5', '♥'], ['4', '♠'], ['7', '♣'], ['4', '♣']],
+            'played_combos': [['10', '♣']],
             'state': 'playing_cards',
             "tavern_deck_size": 26,
-            "turn": 1,
+            "turn": 2,
         }
 
         this.setState({
@@ -147,18 +159,32 @@ class Game extends React.Component {
             gameState: data["state"],
             hand: data["hand"],
             player: data['first_player_id'],
+            playedCombos: data["played_combos"],
             tavernDeckSize: data["tavern_deck_size"],
+            turn: data["turn"],
         });
     }
 
-    render() {
+    componentDidMount() {
         this.loadData();
+    }
 
-        const { enemy, enemyDeckSize, discardDeckSize, tavernDeckSize, gameState, hand } = this.state
+
+    render() {
+        const {
+            discardDeckSize,
+            enemy,
+            enemyDeckSize,
+            gameState,
+            hand,
+            playedCombos,
+            tavernDeckSize,
+            turn
+        } = this.state
 
          return (
              <div>
-                 <h1 className='status'>{gameState}</h1>
+                 <h1 className='status'>State: { gameState }, Turn: { turn }</h1>
 
                  <EnemyDeck size={ enemyDeckSize }/>
                  <DiscardPile size={ discardDeckSize }/>
@@ -169,7 +195,7 @@ class Game extends React.Component {
                      attack={enemy["attack"]}
                      health={enemy["health"]}
                  />
-                 <PlayedCards/>
+                 <PlayedCards combos={ playedCombos }/>
                  <PlayerHand hand={ hand }/>
 
              </div>
