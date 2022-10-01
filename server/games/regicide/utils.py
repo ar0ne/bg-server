@@ -53,6 +53,8 @@ def dump_data(game: Game) -> GameData:
         """Flats card hand object"""
         return [(card.rank, card.suit.value) for card in hand]  # type: ignore
 
+    # FIXME: on UI we don't need whole Taverna and Discard decks, only sizes
+
     return GameData(
         enemy_deck=to_flat_hand(game.enemy_deck.cards),
         discard_deck=to_flat_hand(game.discard_deck.cards),

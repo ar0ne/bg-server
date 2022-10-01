@@ -27,7 +27,7 @@ class DiscardPile extends React.Component {
 
         return (
             <div>
-            <h1>this is discard deck</h1>
+            <h1>Discard deck</h1>
             <p>Count: {size}</p>
             </div>
         )
@@ -41,7 +41,7 @@ class TavernDeck extends React.Component {
 
         return (
             <div>
-                <h1>this is tavern deck</h1>
+                <h1>Tavern deck</h1>
                 <p>Count: {size}</p>
             </div>
         );
@@ -50,30 +50,24 @@ class TavernDeck extends React.Component {
 
 class EnemyDeck extends React.Component {
     render() {
+        const { size } = this.props;
         return (
             <div>
-                <h1>this is enemy deck</h1>
-
+                <h1>Enemy deck</h1>
+                <p>Left: { size }</p>
             </div>
         )
     }
 }
 
-class CurrentEnemy extends React.Component {
+class Enemy extends React.Component {
 
     render() {
-        const { enemy } = this.props;
-        let rank = "";
-        let suit = "";
-        let health = "";
-        let attack = "";
-        if (enemy) {
-            rank = enemy[0];
-            suit = enemy[1];
-        }
+        const { rank, suit, health, attack } = this.props;
+
         return (
             <div>
-                <h1>This is Current enemy component</h1>
+                <h1>Enemy</h1>
                 <p>Health: {health}</p>
                 <p>Attack: {attack}</p>
                 <Card
@@ -98,9 +92,12 @@ class PlayedCards extends React.Component {
 
 class PlayerHand extends React.Component {
     render() {
+        const { hand } = this.props;
+        let hand_elements = hand.map((c, i) => <Card key={i} suit={c[0]} rank={c[1]} />);
         return (
             <div>
-                <h1>Played cards</h1>
+                <h1>Cards</h1>
+                {hand_elements}
             </div>
         )
     }
@@ -111,44 +108,69 @@ class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            discardDeck: [],
-            enemyDeck: [],
-            firstPlayer: "",
+            discardDeckSize: 0,
+            enemyDeckSize: 0,
+            enemy: {
+                "attack": 0,
+                "card": [],
+                "health": 0,
+            },
             gameState: "",
-            players: [],
-            tavernDeck: [],
+            hand: [],
+            player: "",
+            tavernDeckSize: [],
         };
     }
 
 
     loadData() {
-        let data = {'enemy_deck': [['J', '♣'], ['J', '♦'], ['J', '♥'], ['J', '♠'], ['Q', '♥'], ['Q', '♣'], ['Q', '♦'], ['Q', '♠'], ['K', '♠'], ['K', '♥'], ['K', '♣'], ['K', '♦']], 'discard_deck': [], 'first_player_id': '5f684832-9106-4d7f-b69a-74bc0b8a1179', 'players': [['5f684832-9106-4d7f-b69a-74bc0b8a1179', [['3', '♦'], ['10', '♣'], ['8', '♣'], ['5', '♥'], ['4', '♠'], ['7', '♣'], ['4', '♣']]], ['fd91c4e4-e385-47b7-9ea4-18314c8d25eb', [['9', '♦'], ['A', '♣'], ['2', '♥'], ['5', '♠'], ['4', '♥'], ['8', '♦'], ['A', '♥']]]], 'played_combos': [], 'state': 'playing_cards', 'tavern_deck': [['8', '♠'], ['9', '♥'], ['A', '♦'], ['4', '♦'], ['6', '♣'], ['7', '♥'], ['9', '♣'], ['8', '♥'], ['6', '♥'], ['5', '♣'], ['10', '♦'], ['3', '♣'], ['A', '♠'], ['5', '♦'], ['2', '♠'], ['7', '♠'], ['3', '♠'], ['2', '♣'], ['7', '♦'], ['10', '♥'], ['10', '♠'], ['6', '♠'], ['2', '♦'], ['9', '♠'], ['3', '♥'], ['6', '♦']], 'turn': 1}
+        let data = {
+            "enemy_deck_size": 12,
+            "enemy": {
+                "attack": 10,
+                "card": ['J', '♣'],
+                "health": 20,
+            },
+            "discard_deck_size": 0,
+            'first_player_id': '5f684832-9106-4d7f-b69a-74bc0b8a1179',
+            'hand': [['3', '♦'], ['10', '♣'], ['8', '♣'], ['5', '♥'], ['4', '♠'], ['7', '♣'], ['4', '♣']],
+            'played_combos': [],
+            'state': 'playing_cards',
+            "tavern_deck_size": 26,
+            "turn": 1,
+        }
 
         this.setState({
-            discardDeck: data["discard_deck"],
-            enemyDeck: data["enemy_deck"],
-            firstPlayer: data["first_player_id"],
+            discardDeckSize: data["discard_deck_size"],
+            enemy: data["enemy"],
+            enemyDeckSize: data["enemy_deck_size"],
             gameState: data["state"],
-            players: data["players"],
-            tavernDeck: data["tavern_deck"],
+            hand: data["hand"],
+            player: data['first_player_id'],
+            tavernDeckSize: data["tavern_deck_size"],
         });
     }
 
     render() {
         this.loadData();
 
-        const { enemyDeck, discardDeck, tavernDeck, gameState } = this.state
+        const { enemy, enemyDeckSize, discardDeckSize, tavernDeckSize, gameState, hand } = this.state
 
          return (
              <div>
                  <h1 className='status'>{gameState}</h1>
 
-                 <EnemyDeck deck={enemyDeck}/>
-                 <DiscardPile size={discardDeck.length}/>
-                 <TavernDeck size={tavernDeck.length}/>
-                 <CurrentEnemy enemy={enemyDeck[0]}/>
+                 <EnemyDeck size={ enemyDeckSize }/>
+                 <DiscardPile size={ discardDeckSize }/>
+                 <TavernDeck size={ tavernDeckSize }/>
+                 <Enemy
+                     rank={enemy["card"][0]}
+                     suit={enemy["card"][1]}
+                     attack={enemy["attack"]}
+                     health={enemy["health"]}
+                 />
                  <PlayedCards/>
-                 <PlayerHand/>
+                 <PlayerHand hand={ hand }/>
 
              </div>
          )
