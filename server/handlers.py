@@ -8,7 +8,7 @@ from server.app.models import Player, Game, Room, GameData
 from server.app.utils import JsonDecoderMixin
 from server.constants import COOKIE_USER_KEY, REGICIDE, GameRoomStatus
 from server.games.regicide.game import Game as RegicideGame
-from server.games.regicide.utils import dump_data
+from server.games.regicide.utils import dump_data, load_data
 
 
 class BaseRequestHandler(JsonDecoderMixin, tornado.web.RequestHandler):
@@ -133,6 +133,15 @@ class RoomHandler(BaseRequestHandler):
         await GameData.create(game=room.game, room=room, dump=dump)
         self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
+    @tornado.web.authenticated
+    async def put(self, room_id: str) -> None:
+        """Player could make game turns"""
+        room = await Room.get(id=room_id).select_related("game")
+        turn = self.get_argument("turn")
+        game_data = await GameData.filter(room=room, game=room.game).first()
+        regicide = RegicideGame([self.current_user.id])
+        load_data(regicide, game_data.dump)
+        
 
 class RoomPlayersHandler(BaseRequestHandler):
     """Room players handler"""
@@ -154,6 +163,17 @@ class RoomPlayersHandler(BaseRequestHandler):
     @tornado.web.authenticated
     async def delete(self, room_id: str) -> None:
         """Player could cancel own participation"""
+        # TODO: dry it!
+        player_id = self.get_argument("player_id")
+        player = self.current_user
+        if str(player.id) != player_id:
+            raise Exception  # FIXME
+        room = await Room.get(id=room_id).prefetch_related("participants")
+        player_joined = await room.participants.filter(id__in=player_id).exists()
+        if not (room and player_joined):
+            raise Exception  # FIXME
+        await room.participants.remove(player)
+        self.redirect(f"/rooms/{room_id}")
 
 
 class GameHandler(BaseRequestHandler):
