@@ -3,3 +3,4 @@ venv/
 .env
 .mypy_cache/
 node_modules/
+__pycache__/

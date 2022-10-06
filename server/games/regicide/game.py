@@ -4,6 +4,13 @@ import random
 from itertools import product
 from typing import Optional, List, Iterable
 
+from server.games.regicide.exceptions import (
+    InvalidGameStateError,
+    TurnOrderViolationError,
+    CardBelongsToAnotherError,
+    MaxComboSizeExceededError,
+    InvalidPairComboError,
+)
 from server.games.regicide.models import Deck, GameState, Card, Suit, Player, CardCombo, Enemy
 
 
@@ -199,37 +206,37 @@ class Game:
     def _assert_can_play_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert player can play cards"""
         if not self.playing_cards_state:
-            raise Exception  # FIXME
+            raise InvalidGameStateError
         if player not in self.players:
             raise Exception  # FIXME
         if not combo:
             raise Exception  # FIXME
         if player != self.first_player:
-            raise Exception  # FIXME
+            raise TurnOrderViolationError
         if not cards_belong_to_player(player, combo):
-            raise Exception  # FIXME
+            raise CardBelongsToAnotherError
         combo_size = len(combo)
         if combo_size == 1:
             return
         if any(card.rank == Card.ACE for card in combo):
             if combo_size > 2:
-                raise Exception  # FIXME
+                raise MaxComboSizeExceededError
         else:
             if any(
                 not is_valid_duplicate_combo(rank, combo) for rank in self.DUPLICATED_COMBO_RANKS
             ):
-                raise Exception  # FIXME
+                raise InvalidPairComboError
 
     def _assert_can_discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert can player discard these cards"""
         if not self.discarding_cards_state:
-            raise Exception  # FIXME
-        if not cards_belong_to_player(player, combo):
-            raise Exception  # FIXME
+            raise InvalidGameStateError
         if player != self.first_player:
-            raise Exception  # FIXME
+            raise TurnOrderViolationError
         if player not in self.players:
             raise Exception  # FIXME
+        if not cards_belong_to_player(player, combo):
+            raise CardBelongsToAnotherError
         if not combo:
             raise Exception  # FIXME
         enemy = self.current_enemy
