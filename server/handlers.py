@@ -7,6 +7,7 @@ import tornado
 from server.app.models import Player, Game, Room, GameTurn
 from server.app.utils import JsonDecoderMixin
 from server.constants import COOKIE_USER_KEY, REGICIDE, GameRoomStatus
+from server.games.regicide.adapter import RegicideGameAdapter
 from server.games.regicide.game import Game as RegicideGame
 from server.games.regicide.utils import dump_data, load_data
 
@@ -108,7 +109,8 @@ class RoomHandler(BaseRequestHandler):
             room.status = GameRoomStatus(room.status).name  # hack to display beautified status
             await self.render("room.html", **data)
         else:
-            data["data"] = await GameTurn.filter(room=room).order_by("-turn").first()
+            user = self.current_user
+            data["data"] = await RegicideGameAdapter(room.id).poll(user.id)  # TODO: game observers
             await self.render("playground.html", **data)
 
     @tornado.web.authenticated
@@ -127,10 +129,7 @@ class RoomHandler(BaseRequestHandler):
         # TODO: server should notify all participants about this changes
         # TODO: we have to resolve which game manager to use and how?
         players_ids = await room.participants.all().values_list("id", flat=True)
-        regicide = RegicideGame(players_ids)
-        regicide.start_new_game()
-        dump = dump_data(regicide)
-        await GameTurn.create(room=room, data=dump)
+        await RegicideGameAdapter(room.id).setup(players_ids)
         self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
     @tornado.web.authenticated
@@ -138,7 +137,8 @@ class RoomHandler(BaseRequestHandler):
         """Player could make game turns"""
         room = await Room.get(id=room_id).select_related("game")
         turn = self.get_argument("turn")
-        game_data = await GameTurn.filter(room=room).order_by("-turn").first()
+        user = self.current_user
+        game_data = await RegicideGameAdapter(room.id).update(user.id, turn)
         regicide = RegicideGame([self.current_user.id])
         load_data(regicide, game_data.dump)
         
