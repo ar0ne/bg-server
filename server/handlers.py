@@ -4,7 +4,7 @@ from typing import Optional
 import bcrypt
 import tornado
 
-from server.app.models import Player, Game, Room, GameData
+from server.app.models import Player, Game, Room, GameTurn
 from server.app.utils import JsonDecoderMixin
 from server.constants import COOKIE_USER_KEY, REGICIDE, GameRoomStatus
 from server.games.regicide.game import Game as RegicideGame
@@ -108,7 +108,7 @@ class RoomHandler(BaseRequestHandler):
             room.status = GameRoomStatus(room.status).name  # hack to display beautified status
             await self.render("room.html", **data)
         else:
-            data["data"] = await GameData.filter(room=room, game=game).first()
+            data["data"] = await GameTurn.filter(room=room).order_by("-turn").first()
             await self.render("playground.html", **data)
 
     @tornado.web.authenticated
@@ -130,7 +130,7 @@ class RoomHandler(BaseRequestHandler):
         regicide = RegicideGame(players_ids)
         regicide.start_new_game()
         dump = dump_data(regicide)
-        await GameData.create(game=room.game, room=room, dump=dump)
+        await GameTurn.create(room=room, data=dump)
         self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
     @tornado.web.authenticated
@@ -138,7 +138,7 @@ class RoomHandler(BaseRequestHandler):
         """Player could make game turns"""
         room = await Room.get(id=room_id).select_related("game")
         turn = self.get_argument("turn")
-        game_data = await GameData.filter(room=room, game=room.game).first()
+        game_data = await GameTurn.filter(room=room).order_by("-turn").first()
         regicide = RegicideGame([self.current_user.id])
         load_data(regicide, game_data.dump)
         

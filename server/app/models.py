@@ -6,6 +6,8 @@ from tortoise import Model, fields
 from server.app.utils import CustomJSONEncoder
 from server.constants import REGICIDE, GameRoomStatus
 
+JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
+
 
 class Player(Model):
     """Player model"""
@@ -25,14 +27,6 @@ class Game(Model):
     name = fields.CharField(unique=True, max_length=50)
 
 
-JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
-class GameData(Model):
-    """Game data"""
-
-    id = fields.UUIDField(pk=True)
-    game = fields.ForeignKeyField("models.Game")
-    room = fields.ForeignKeyField("models.Room")
-    dump = fields.JSONField(encoder=JSON_ENCODER)
 
 
 class Room(Model):
@@ -45,6 +39,16 @@ class Room(Model):
     id = fields.UUIDField(pk=True)
     participants = fields.ManyToManyField("models.Player", related_name="")
     status = fields.SmallIntField()
+
+
+class GameTurn(Model):
+    """Temporary model to store game state"""
+
+    id = fields.UUIDField(pk=True)
+    turn = fields.SmallIntField(default=0)
+    room = fields.ForeignKeyField("models.Room")
+    # FIXME: get rid of it
+    data = fields.JSONField(encoder=JSON_ENCODER)
 
 
 async def init_fake_data():

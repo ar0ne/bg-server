@@ -113,7 +113,6 @@ class Game:
         # ensure we clear piles
         self.discard_deck.clear()
         self.played_combos = []
-
         # players draw X random cards on hands
         for player in self.players:
             player.hand = self.tavern_deck.pop_many(player.hand_size)
