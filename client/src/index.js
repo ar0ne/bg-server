@@ -40,6 +40,36 @@ class DiscardPile extends React.Component {
     }
 }
 
+class GameBanner extends React.Component {
+
+    handleOnConfirm(event) {
+        event.preventDefault();
+        console.log("Confirmed!")
+    }
+
+    handleOnCancel(event) {
+        event.preventDefault();
+        console.log("Cancelled!")
+    }
+
+    render() {
+
+        return (
+            <div className="banner">
+                Some text here
+                <button
+                    onClick={(event) => this.handleOnConfirm(event)}
+                    className="btn-confirm"
+                >Confirm</button>
+                <button
+                    onClick={(event) => this.handleOnCancel(event)}
+                    className="btn-cancel"
+                >Cancel</button>
+            </div>
+        )
+    }
+}
+
 class TavernDeck extends React.Component {
     render() {
 
@@ -186,6 +216,7 @@ class Game extends React.Component {
 
          return (
              <div>
+                 <GameBanner />
                  <h1 className='status'>State: { gameState }, Turn: { turn }</h1>
 
                  <EnemyDeck size={ enemyDeckSize }/>
