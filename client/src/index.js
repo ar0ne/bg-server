@@ -17,9 +17,9 @@ function Card(props) {
 
 function CardCombo (props) {
     let { combo } = props;
-    let combos = combo.map((c, i) => <Card key={i} rank={c[0]} suit={c[1]}/>);
+    let combos = combo.map((card, i) => <Card key={i} rank={card[0]} suit={card[1]} />);
     return (
-        <div>
+        <div className="card-combo">
             {combos}
         </div>
     )
@@ -90,11 +90,13 @@ class PlayedCards extends React.Component {
 
     render() {
         const { combos } = this.props;
-        let cardCombos = combos.map((combo, i) => <CardCombo key={i} combo={combo}/>);
+        let cardCombos = combos.map((combo, i) => <CardCombo key={i} combo={combo} />);
         return (
             <div>
                 <h1>Played cards component</h1>
-                {cardCombos}
+                <div className="card-combo-list">
+                    {cardCombos}
+                </div>
             </div>
         )
     }
@@ -103,7 +105,7 @@ class PlayedCards extends React.Component {
 class PlayerHand extends React.Component {
     render() {
         const { hand } = this.props;
-        let hand_elements = hand.map((c, i) => <Card key={i} suit={c[0]} rank={c[1]} />);
+        let hand_elements = hand.map((c, i) => <Card key={i} suit={c[1]} rank={c[0]} />);
         return (
             <div>
                 <h1>Cards</h1>
@@ -146,7 +148,7 @@ class Game extends React.Component {
             "discard_deck_size": 0,
             'first_player_id': '5f684832-9106-4d7f-b69a-74bc0b8a1179',
             'hand': [['3', '♦'], ['8', '♣'], ['5', '♥'], ['4', '♠'], ['7', '♣'], ['4', '♣']],
-            'played_combos': [['10', '♣']],
+            'played_combos': [[['10', '♣']], [['A', '♥'], ['2', '♣']]],
             'state': 'playing_cards',
             "tavern_deck_size": 26,
             "turn": 2,
