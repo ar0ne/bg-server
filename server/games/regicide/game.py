@@ -105,94 +105,102 @@ class Game:
         """Gets current enemy"""
         return self.enemy_deck.peek()
 
-    def start_new_game(self) -> None:
+    @staticmethod
+    def start_new_game(players_ids: List[str]) -> "Game":
         """Create new game"""
+        game = Game(players_ids)
         # create tavern and enemy decks
-        self._create_tavern_deck()
-        self._create_enemy_deck()
+        game._create_tavern_deck()
+        game._create_enemy_deck()
         # ensure we clear piles
-        self.discard_deck.clear()
-        self.played_combos = []
+        game.discard_deck.clear()
+        game.played_combos = []
         # players draw X random cards on hands
-        for player in self.players:
-            player.hand = self.tavern_deck.pop_many(player.hand_size)
+        for player in game.players:
+            player.hand = game.tavern_deck.pop_many(player.hand_size)
         # first player could play cards now
-        self.state = GameState.PLAYING_CARDS
-        self.turn = 1
+        game.state = GameState.PLAYING_CARDS
+        game.turn = 1
+        return game
 
-    def play_cards(self, player: Player, combo: CardCombo):
+    @staticmethod
+    def play_cards(game: "Game", player: Player, combo: CardCombo) -> "Game":
         """Play cards"""
-        self._assert_can_play_cards(player, combo)
-        enemy = self.current_enemy
+        game._assert_can_play_cards(player, combo)
+        enemy = game.current_enemy
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
         # activate suits powers if possible
-        self._process_played_combo(player, enemy, combo)
+        game._process_played_combo(player, enemy, combo)
         # add cards to played cards deck
-        self.played_combos.append(combo)
+        game.played_combos.append(combo)
         # move to the next state
-        self.state = GameState.DISCARDING_CARDS
+        game.state = GameState.DISCARDING_CARDS
         # check has been enemy defeated
-        enemy_defeated = is_enemy_defeated(enemy, self.played_combos)
+        enemy_defeated = is_enemy_defeated(enemy, game.played_combos)
         if enemy_defeated:
             # no need to discard cards
-            self.state = GameState.PLAYING_CARDS
+            game.state = GameState.PLAYING_CARDS
             # pull next enemy from castle deck and discard defeated enemy and played cards
-            self._pull_next_enemy()
+            game._pull_next_enemy()
             # transit to won state if enemy deck is empty now
-            if not len(self.enemy_deck):
-                self.state = GameState.WON
-                return
+            if not len(game.enemy_deck):
+                game.state = GameState.WON
+                return game
         else:
-            if get_enemy_attack_damage(enemy, self.played_combos) <= 0:
+            if get_enemy_attack_damage(enemy, game.played_combos) <= 0:
                 # enemy can't attack, let next player to play cards
-                self.state = GameState.PLAYING_CARDS
-                self.toggle_next_player_turn()
-            elif not can_defeat_enemy_attack(player, enemy, self.played_combos):
+                game.state = GameState.PLAYING_CARDS
+                game.toggle_next_player_turn()
+            elif not can_defeat_enemy_attack(player, enemy, game.played_combos):
                 # player must have cards on hand enough to deal with enemies attack, otherwise
                 # game lost
-                self.state = GameState.LOST
-                return
-        self.turn += 1
+                game.state = GameState.LOST
+                return game
+        game.turn += 1
+        return game
 
-    def discard_cards(self, player: Player, combo: CardCombo) -> None:
+    @staticmethod
+    def discard_cards(game: "Game", player: Player, combo: CardCombo) -> "Game":
         """Discard cards to defeat from enemy attack"""
-        self._assert_can_discard_cards(player, combo)
+        game._assert_can_discard_cards(player, combo)
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
         # move cards to discard pile
-        self.discard_deck.append(combo)
+        game.discard_deck.append(combo)
         # next player could play card
-        self.state = GameState.PLAYING_CARDS
-        self.toggle_next_player_turn()
+        game.state = GameState.PLAYING_CARDS
+        game.toggle_next_player_turn()
+        return game
 
-    def get_game_state(self) -> dict:
+    @staticmethod
+    def get_game_state(game: "Game") -> dict:
         """Returns state of the game and all public information"""
-        enemy = self.current_enemy
+        enemy = game.current_enemy
         # fmt: off
         return {
-            "discard_deck_size": len(self.discard_deck),
+            "discard_deck_size": len(game.discard_deck),
             "played_combos": [
                 [str(card) for card in combo]
-                for combo in self.played_combos
+                for combo in game.played_combos
             ],
             "enemy": {
                 "card": str(enemy),
                 "health": enemy.health,
-                "health_left": get_remaining_enemy_health(enemy, self.played_combos),
+                "health_left": get_remaining_enemy_health(enemy, game.played_combos),
                 "attack": enemy.attack,
-                "attack_left": get_enemy_attack_damage(enemy, self.played_combos),
+                "attack_left": get_enemy_attack_damage(enemy, game.played_combos),
             }
             if enemy else None,
-            "first_player": str(self.first_player),
-            "players": [str(p) for p in self.players],
-            "state": str(self.state),
-            "turn": self.turn,
+            "first_player": str(game.first_player),
+            "players": [str(p) for p in game.players],
+            "state": str(game.state),
+            "turn": game.turn,
             # players hands (perhaps depend on current user)
-            "hand_size": self.first_player.hand_size,
+            "hand_size": game.first_player.hand_size,
             "hands": {
                 str(player): [str(card) for card in player.hand]
-                for player in self.players
+                for player in game.players
             },
         }
         # fmt: on

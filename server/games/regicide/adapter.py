@@ -2,18 +2,21 @@
 from typing import Dict, Any, List
 
 from server.app.models import GameTurn
-from server.games.base import BaseGame, Id
+from server.games.base import AbstractGame, Id
 from server.games.regicide.game import Game
 from server.games.regicide.utils import dump_data
 
 
-class RegicideGameAdapter(BaseGame):
+class RegicideGameAdapter(AbstractGame):
     """Regicide game adapter"""
+
+    def __init__(self, room_id: Id) -> None:
+        """Init adapter"""
+        self.room_id = room_id
 
     async def setup(self, players: List[Id]) -> None:
         """Setup new game"""
-        regicide = Game(players)
-        regicide.start_new_game()
+        regicide = Game.start_new_game(players)
         dump = dump_data(regicide)
         await GameTurn.create(room_id=self.room_id, data=dump)
 

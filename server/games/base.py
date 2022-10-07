@@ -7,12 +7,8 @@ from typing import List, Union, Dict, Any
 Id = Union[str, uuid.UUID]
 
 
-class BaseGame(ABC):
+class AbstractGame(ABC):
     """Base game interface"""
-
-    def __init__(self, room_id: Id) -> None:
-        """Init adapter"""
-        self.room_id = str(room_id)
 
     @abstractmethod
     async def setup(self, players: List[Id]) -> None:

@@ -4,12 +4,12 @@ from typing import Optional
 import bcrypt
 import tornado
 
-from server.app.models import Player, Game, Room, GameTurn
+from server.app.models import Player, Game, Room
 from server.app.utils import JsonDecoderMixin
 from server.constants import COOKIE_USER_KEY, REGICIDE, GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
 from server.games.regicide.game import Game as RegicideGame
-from server.games.regicide.utils import dump_data, load_data
+from server.games.regicide.utils import load_data
 
 
 class BaseRequestHandler(JsonDecoderMixin, tornado.web.RequestHandler):
