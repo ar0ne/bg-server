@@ -22,7 +22,7 @@ class RegicideGameAdapter(AbstractGame):
 
     async def update(self, player: Id, data: Dict[str, Any]) -> None:
         """Update game state"""
-        pass
+        print("Make turn %s, data=%s", player, data)
 
     async def poll(self, player: Id) -> Dict[str, Any]:
         """Poll the last turn data"""

@@ -10,16 +10,11 @@ from tornado.options import define, options, parse_command_line, parse_config_fi
 from tortoise import Tortoise
 
 from server.app.models import init_fake_data
-from server.handlers import (
-    AuthSignUpHandler,
-    AuthLoginHandler,
-    AuthLogoutHandler,
-    GameHandler,
-    GameRoomHandler,
-    RoomHandler,
-    RoomPlayersHandler,
-    MainHandler, PlayerHandler,
-)
+from server.handlers.auth import AuthLoginHandler, AuthSignUpHandler, AuthLogoutHandler
+from server.handlers.game import GameHandler
+from server.handlers.index import MainHandler
+from server.handlers.player import PlayerHandler
+from server.handlers.room import GameRoomHandler, RoomPlayersHandler, RoomHandler
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
