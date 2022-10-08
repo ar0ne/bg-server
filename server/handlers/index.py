@@ -7,8 +7,8 @@ class MainHandler(BaseRequestHandler):
     """Main request handler"""
 
     async def get(self) -> None:
-        rooms = await Room.filter(status=GameRoomStatus.CREATED.value)
         game = await Game.get(name=REGICIDE)
+        rooms = await Room.filter(game=game)
         game_id = game.id if game else None
         # FIXME: we have only single game atm
         data = dict(rooms=rooms, game_id=game_id)

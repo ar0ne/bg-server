@@ -1,6 +1,5 @@
 """Auth handlers"""
 import bcrypt
-import jwt
 import tornado
 
 from server.app.models import Player
@@ -9,6 +8,7 @@ from server.handlers.base import BaseRequestHandler
 
 
 class AuthSignUpHandler(BaseRequestHandler):
+    """Sign Up handler"""
     async def get(self) -> None:
         """render sign up page"""
         await self.render("sign_up.html")
@@ -34,6 +34,7 @@ class AuthSignUpHandler(BaseRequestHandler):
 
 
 class AuthLoginHandler(BaseRequestHandler):
+    """Login handler"""
     def get(self):
         """render login page"""
         self.render("login.html", error=None)
@@ -58,6 +59,7 @@ class AuthLoginHandler(BaseRequestHandler):
 
 
 class AuthLogoutHandler(BaseRequestHandler):
+    """Log Out handler"""
     def get(self):
         self.clear_cookie(COOKIE_USER_KEY)
         self.redirect(self.get_argument("next", "/"))

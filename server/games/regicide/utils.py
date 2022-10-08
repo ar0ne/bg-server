@@ -1,14 +1,15 @@
 """Game utilities"""
 from typing import List
 
-from server.games.regicide.dto import GameData, FlatCard
+from server.games.regicide.dto import FlatCard, GameData
 from server.games.regicide.game import Game, infinite_cycle
-from server.games.regicide.models import GameState, Player, Card, Suit, Deck, CardHand
+from server.games.regicide.models import Card, CardHand, Deck, GameState, Player, Suit
 
 
-def load_data(game: Game, data: GameData) -> None:
+def load_data(data: GameData) -> Game:
     """Load data"""
     # fmt: off
+    game = Game(list(map(lambda p: p[0], data.players)))
     game.players = [
         Player(player_id, [
             Card(Suit(card[1]), card[0])
@@ -44,6 +45,7 @@ def load_data(game: Game, data: GameData) -> None:
 
     game.turn = data.turn
     game.state = GameState(data.state)
+    return game
 
 
 def dump_data(game: Game) -> GameData:

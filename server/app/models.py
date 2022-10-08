@@ -27,8 +27,6 @@ class Game(Model):
     name = fields.CharField(unique=True, max_length=50)
 
 
-
-
 class Room(Model):
     """Room model"""
 

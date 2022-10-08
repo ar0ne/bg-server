@@ -3,12 +3,12 @@ from typing import Optional
 
 import tornado
 
-from server.app.models import Room, Player, Game
+from server.app.models import Game, Player, Room
 from server.constants import GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
+from server.games.regicide.game import Game as RegicideGame
 from server.games.regicide.utils import load_data
 from server.handlers.base import BaseRequestHandler
-from server.games.regicide.game import Game as RegicideGame
 
 
 class RoomHandler(BaseRequestHandler):
@@ -50,15 +50,15 @@ class RoomHandler(BaseRequestHandler):
         await RegicideGameAdapter(room.id).setup(players_ids)
         self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
-    @tornado.web.authenticated
     async def put(self, room_id: str) -> None:
         """Player could make game turns"""
         room = await Room.get(id=room_id).select_related("game")
-        turn = self.get_argument("data")
-        user = self.current_user
-        game_data = await RegicideGameAdapter(room.id).update(user.id, turn)
-        regicide = RegicideGame([self.current_user.id])
-        load_data(regicide, game_data.dump)
+        data = tornado.escape.json_decode(self.request.body)
+        turn = data["data"]
+        # FIXME: ensure we know current user that sent request
+        user_id = self.current_user.id if self.current_user else None
+        await RegicideGameAdapter(room.id).update(user_id, turn)
+        self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
 
 class RoomPlayersHandler(BaseRequestHandler):
@@ -92,6 +92,7 @@ class RoomPlayersHandler(BaseRequestHandler):
             raise Exception  # FIXME
         await room.participants.remove(player)
         self.redirect(f"/rooms/{room_id}")
+
 
 class GameRoomHandler(BaseRequestHandler):
     """Game room handler"""

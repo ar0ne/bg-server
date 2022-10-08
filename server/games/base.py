@@ -1,8 +1,7 @@
 """Base game interface"""
 import uuid
-
 from abc import ABC, abstractmethod
-from typing import List, Union, Dict, Any
+from typing import Any, Dict, List, Union
 
 Id = Union[str, uuid.UUID]
 

@@ -3,7 +3,7 @@ import unittest
 
 from server.app.games.regicide.dto import GameData
 from server.app.games.regicide.game import Game
-from server.app.games.regicide.models import GameState, Card, Suit, Deck
+from server.app.games.regicide.models import Card, Deck, GameState, Suit
 from server.app.games.regicide.utils import load_data
 
 

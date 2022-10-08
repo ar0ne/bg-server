@@ -2,7 +2,7 @@
 import enum
 import json
 import random
-from typing import List, Optional, Union, TypeVar
+from typing import List, Optional, TypeVar, Union
 
 Enemy = TypeVar("Enemy", bound="Card")
 CardCombo = List["Card"]

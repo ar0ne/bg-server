@@ -5,16 +5,15 @@ import asyncio
 import os
 
 import tornado.web
-
 from tornado.options import define, options, parse_command_line, parse_config_file
 from tortoise import Tortoise
 
 from server.app.models import init_fake_data
-from server.handlers.auth import AuthLoginHandler, AuthSignUpHandler, AuthLogoutHandler
+from server.handlers.auth import AuthLoginHandler, AuthLogoutHandler, AuthSignUpHandler
 from server.handlers.game import GameHandler
 from server.handlers.index import MainHandler
 from server.handlers.player import PlayerHandler
-from server.handlers.room import GameRoomHandler, RoomPlayersHandler, RoomHandler
+from server.handlers.room import GameRoomHandler, RoomHandler, RoomPlayersHandler
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
@@ -71,7 +70,8 @@ async def init_database() -> None:
     )
     if options.db_provider == "sqlite":
         # FIXME: fix for other db providers
-        await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["server.app.models"]})
+        # await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["server.app.models"]})
+        await Tortoise.init(db_url="sqlite://db.sqlite", modules={"models": ["server.app.models"]})
     # Generate the schema
     await Tortoise.generate_schemas()
 
@@ -82,7 +82,7 @@ async def main() -> None:
     parse_config_file(CONFIG_FILE_PATH)
 
     await init_database()
-    await init_fake_data()  # FIXME: remove it later
+    # await init_fake_data()  # FIXME: remove it later
 
     app = Application(None)
     app.listen(options.port)

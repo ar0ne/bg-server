@@ -2,16 +2,16 @@
 import itertools
 import random
 from itertools import product
-from typing import Optional, List, Iterable
+from typing import Iterable, List, Optional
 
 from server.games.regicide.exceptions import (
-    InvalidGameStateError,
-    TurnOrderViolationError,
     CardBelongsToAnotherError,
-    MaxComboSizeExceededError,
+    InvalidGameStateError,
     InvalidPairComboError,
+    MaxComboSizeExceededError,
+    TurnOrderViolationError
 )
-from server.games.regicide.models import Deck, GameState, Card, Suit, Player, CardCombo, Enemy
+from server.games.regicide.models import Card, CardCombo, Deck, Enemy, GameState, Player, Suit
 
 
 def infinite_cycle(iters: Iterable):
@@ -91,12 +91,12 @@ class Game:
         self.state = GameState.CREATED
 
     @property
-    def playing_cards_state(self) -> bool:
+    def is_playing_cards_state(self) -> bool:
         """True if game is in play cards state"""
         return self.state == GameState.PLAYING_CARDS
 
     @property
-    def discarding_cards_state(self) -> bool:
+    def is_discarding_cards_state(self) -> bool:
         """True if game is discard cards state"""
         return self.state == GameState.DISCARDING_CARDS
 
@@ -124,7 +124,7 @@ class Game:
         return game
 
     @staticmethod
-    def play_cards(game: "Game", player: Player, combo: CardCombo) -> "Game":
+    def play_cards(game: "Game", player: Player, combo: CardCombo) -> None:
         """Play cards"""
         game._assert_can_play_cards(player, combo)
         enemy = game.current_enemy
@@ -146,7 +146,7 @@ class Game:
             # transit to won state if enemy deck is empty now
             if not len(game.enemy_deck):
                 game.state = GameState.WON
-                return game
+                return
         else:
             if get_enemy_attack_damage(enemy, game.played_combos) <= 0:
                 # enemy can't attack, let next player to play cards
@@ -156,12 +156,11 @@ class Game:
                 # player must have cards on hand enough to deal with enemies attack, otherwise
                 # game lost
                 game.state = GameState.LOST
-                return game
+                return
         game.turn += 1
-        return game
 
     @staticmethod
-    def discard_cards(game: "Game", player: Player, combo: CardCombo) -> "Game":
+    def discard_cards(game: "Game", player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
         game._assert_can_discard_cards(player, combo)
         # remove cards from player's hand
@@ -171,7 +170,6 @@ class Game:
         # next player could play card
         game.state = GameState.PLAYING_CARDS
         game.toggle_next_player_turn()
-        return game
 
     @staticmethod
     def get_game_state(game: "Game") -> dict:
@@ -210,9 +208,16 @@ class Game:
         self.first_player = next(self.next_player_loop)
         return self.first_player
 
+    def find_player(self, player_id: str) -> Optional[Player]:
+        """Find player by id"""
+        for player in self.players:
+            if player.id == player_id:
+                return player
+        return None
+
     def _assert_can_play_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert player can play cards"""
-        if not self.playing_cards_state:
+        if not self.is_playing_cards_state:
             raise InvalidGameStateError
         if player not in self.players:
             raise Exception  # FIXME
@@ -236,7 +241,7 @@ class Game:
 
     def _assert_can_discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Assert can player discard these cards"""
-        if not self.discarding_cards_state:
+        if not self.is_discarding_cards_state:
             raise InvalidGameStateError
         if player != self.first_player:
             raise TurnOrderViolationError

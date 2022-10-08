@@ -6,11 +6,10 @@
 <h4>Hi, {% if current_user.name %}{{ current_user.name }}{% else %}{{ current_user.nickname }}{% end %}!</h4>
 {% end %}
 
-<h3>Available rooms</h3>
+<h3>Rooms</h3>
 <ul>
    {% for room in rooms %}
-     <li>Room ID: {{ room.id }}
-      <a href="/rooms/{{ room.id }}">Open</a>
+     <li>{{ room.status }} | <a href="/rooms/{{ room.id }}">{{ room.id }}</a>
      </li>
    {% end %}
  </ul>
