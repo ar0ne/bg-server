@@ -6,8 +6,6 @@ import tornado
 from server.app.models import Game, Player, Room
 from server.constants import GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
-from server.games.regicide.game import Game as RegicideGame
-from server.games.regicide.utils import load_data
 from server.handlers.base import BaseRequestHandler
 
 
@@ -58,7 +56,6 @@ class RoomHandler(BaseRequestHandler):
         # FIXME: ensure we know current user that sent request
         user_id = self.current_user.id if self.current_user else None
         await RegicideGameAdapter(room.id).update(user_id, turn)
-        self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
 
 
 class RoomPlayersHandler(BaseRequestHandler):

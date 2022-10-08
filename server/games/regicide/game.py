@@ -170,6 +170,7 @@ class Game:
         # next player could play card
         game.state = GameState.PLAYING_CARDS
         game.toggle_next_player_turn()
+        game.turn += 1
 
     @staticmethod
     def get_game_state(game: "Game") -> dict:

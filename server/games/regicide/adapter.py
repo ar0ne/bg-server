@@ -1,9 +1,9 @@
 """Regicide game adapter"""
-from typing import Any, Dict, List
+from typing import List
 
-from games.regicide.dto import GameData
-from games.regicide.models import GameState, CardCombo
 from server.app.models import GameTurn
+from server.games.regicide.dto import GameData, FlatCard
+from server.games.regicide.models import Card
 from server.games.base import AbstractGame, Id
 from server.games.regicide.game import Game
 from server.games.regicide.utils import dump_data, load_data
@@ -21,8 +21,10 @@ class RegicideGameAdapter(AbstractGame):
         game = Game.start_new_game(players)
         await self._save_game_state(game)
 
-    async def update(self, player_id: Id, data: CardCombo) -> None:
+    async def update(self, player_id: Id, data: List[FlatCard]) -> None:
         """Update game state"""
+        # transform from flat cards to Card objects
+        data = list(map(lambda c: Card(c[0], c[1]), data))
         last_game_data = await self._get_latest_game_state()
         game = load_data(last_game_data)
         # player = game.find_player(player_id)
@@ -53,4 +55,4 @@ class RegicideGameAdapter(AbstractGame):
     async def _save_game_state(self, game: Game) -> None:
         """persist game state into db"""
         dump = dump_data(game)
-        await GameTurn.create(room_id=self.room_id, data=dump)
+        await GameTurn.create(room_id=self.room_id, turn=game.turn, data=dump)

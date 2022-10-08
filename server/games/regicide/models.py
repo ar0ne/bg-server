@@ -81,8 +81,10 @@ class Card:
         KING: 40,
     }
 
-    def __init__(self, rank: str, suit: Suit) -> None:
+    def __init__(self, rank: str, suit: Union[Suit, str]) -> None:
         """Init Card"""
+        if isinstance(suit, str):
+            suit = Suit(suit)
         self.suit = suit
         self.rank = rank
 
