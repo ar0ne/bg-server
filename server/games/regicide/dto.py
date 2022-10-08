@@ -6,8 +6,6 @@ from typing import List, Tuple
 FlatCard = Tuple[str, str]
 
 
-
-
 @dataclass(frozen=True)
 class GameData:
     """Represents internal game state data"""

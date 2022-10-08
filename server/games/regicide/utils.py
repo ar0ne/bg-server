@@ -12,28 +12,28 @@ def load_data(data: GameData) -> Game:
     game = Game(list(map(lambda p: p[0], data.players)))
     game.players = [
         Player(player_id, [
-            Card(Suit(card[1]), card[0])
+            Card(card[0], Suit(card[1]))
             for card in hand
         ])
         for player_id, hand in data.players
     ]
     game.played_combos = [
         [
-            Card(Suit(card[1]), card[0])
+            Card(card[0], Suit(card[1]))
             for card in combo
         ]
         for combo in data.played_combos
     ]
     game.discard_deck = Deck([
-        Card(Suit(suit), rank)
+        Card(rank, Suit(suit))
         for rank, suit in data.discard_deck
     ])
     game.tavern_deck = Deck([
-        Card(Suit(suit), rank)
+        Card(rank, Suit(suit))
         for rank, suit in data.tavern_deck
     ])
     game.enemy_deck = Deck([
-        Card(Suit(suit), rank)
+        Card(rank, Suit(suit))
         for rank, suit in data.enemy_deck
     ])
     # fmt: on

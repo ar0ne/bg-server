@@ -81,7 +81,7 @@ class Card:
         KING: 40,
     }
 
-    def __init__(self, suit: Suit, rank: str) -> None:
+    def __init__(self, rank: str, suit: Suit) -> None:
         """Init Card"""
         self.suit = suit
         self.rank = rank
@@ -133,6 +133,14 @@ class Card:
     def __str__(self) -> str:
         """To string"""
         return f"{self.suit.value} {self.rank}"
+
+    def __eq__(self, other) -> bool:
+        """True if object are equal"""
+        if isinstance(other, Card):
+            return (self.rank, self.suit.value) == (other.rank, other.suit.value)
+        if isinstance(other, tuple) or isinstance(other, list):
+            return (self.rank, self.suit.value) == (other[0], other[1])
+        return NotImplemented
 
 
 class Deck:
