@@ -24,7 +24,7 @@ define("db_user", default="", help="database user")
 define("db_password", default="", help="database password")
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
-
+API_URL_PREFIX = "/api/v1"
 
 class Application(tornado.web.Application):
     """Application"""
@@ -36,6 +36,8 @@ class Application(tornado.web.Application):
             (r"/auth/sign-up/?", AuthSignUpHandler),
             (r"/auth/login/?", AuthLoginHandler),
             (r"/auth/logout/?", AuthLogoutHandler),
+
+            # FIXME: mot API
             (r"/games/(\w+)/rooms/?", GameRoomHandler),
             (r"/games/(\w+)/?", GameHandler),
             (r"/games/?", GameHandler),
@@ -43,8 +45,10 @@ class Application(tornado.web.Application):
             (r"/rooms/([a-zA-Z0-9_.-]+)/?", RoomHandler),
             (r"/rooms/?", RoomHandler),
             (r"/players/([a-zA-Z0-9_.-]+)/?", PlayerHandler),
-            (r"/", MainHandler),
         ]
+        handlers = [(API_URL_PREFIX + url, handler) for (url, handler) in handlers]
+        handlers.append((r"/", MainHandler))
+
         settings = dict(
             cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
             debug=options.debug,
