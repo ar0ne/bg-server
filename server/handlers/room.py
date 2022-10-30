@@ -3,6 +3,7 @@ from typing import Optional
 
 import tornado
 
+from app.serializers import RoomSerializer, RoomListSerializer
 from server.app.models import Game, Player, Room
 from server.constants import GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
@@ -12,22 +13,16 @@ from server.handlers.base import BaseRequestHandler
 class RoomHandler(BaseRequestHandler):
     """Room request handler"""
 
-    @tornado.web.authenticated
     async def get(self, room_id: Optional[str] = None) -> None:
         if not room_id:
-            self.redirect(self.get_argument("next", "/"))
-            return
-        room = await Room.filter(id=room_id).select_related("admin").first() if room_id else None
-        players = await room.participants.all()
-        game = await room.game.get()
-        data = dict(room=room, players=players, game=game)
-        if room.status == GameRoomStatus.CREATED.value:
-            room.status = GameRoomStatus(room.status).name  # hack to display beautified status
-            await self.render("room.html", **data)
+            # FIXME: add limit
+            # FIXME: filter open to join pages only
+            serializer = await RoomListSerializer.from_queryset(Room.all())
+            self.write(serializer.json())
         else:
-            user = self.current_user
-            data["data"] = await RegicideGameAdapter(room.id).poll(user.id)  # TODO: game observers
-            await self.render("playground.html", **data)
+            room = await Room.filter(id=room_id).select_related("admin").first() if room_id else None
+            serializer = await RoomSerializer.from_tortoise_orm(room)
+            self.write(serializer.json())
 
     @tornado.web.authenticated
     async def post(self, room_id: str) -> None:

@@ -5,8 +5,15 @@ from server.app.utils import JsonDecoderMixin
 from server.constants import COOKIE_USER_KEY
 
 
-class BaseRequestHandler(JsonDecoderMixin, tornado.web.RequestHandler):
+class BaseRequestHandler(tornado.web.RequestHandler):
     """Base request handler"""
+
+    def set_default_headers(self):
+        # enable CORS
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header("Access-Control-Allow-Methods", "PUT, DELETE, OPTIONS")
+        self.set_header("Content-Type", "application/json")
 
     async def prepare(self):
         # get_current_user cannot be a coroutine, so set

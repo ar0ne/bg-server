@@ -4,7 +4,7 @@ import axios from "axios";
 
 
 // FIXME: hardcoded url
-const API_URL = 'http://localhost:8080/api/v1/rooms';
+const API_URL = 'http://localhost:8888/api/v1/rooms';
 
 class RoomService {
     getAllPublicRooms() {

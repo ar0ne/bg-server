@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // FIXME: hardocded url
-const API_URL = "http://localhost:8000/api/v1/auth";
+const API_URL = "http://localhost:8888/api/v1/auth";
 const TOKEN_KEY = "user"
 
 class AuthService {
