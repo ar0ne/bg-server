@@ -1,5 +1,5 @@
-from server.app.models import Room, Game
-from server.constants import GameRoomStatus, REGICIDE
+from server.resources.models import Room, Game
+from server.constants import REGICIDE
 from server.handlers.base import BaseRequestHandler
 
 

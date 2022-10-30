@@ -1,7 +1,7 @@
 import tornado
 
-from server.app.models import Player
-from server.app.utils import JsonDecoderMixin
+from server.resources.models import Player
+from server.resources.utils import JsonDecoderMixin
 from server.constants import COOKIE_USER_KEY
 
 

@@ -1,9 +1,10 @@
 """DB models"""
 import json
 
-from tortoise import Model, fields
+from tortoise import Model, fields, Tortoise
+from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 
-from server.app.utils import CustomJSONEncoder
+from server.resources.utils import CustomJSONEncoder
 from server.constants import REGICIDE, GameRoomStatus
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
@@ -19,6 +20,12 @@ class Player(Model):
     nickname = fields.CharField(unique=True, max_length=60)
     password = fields.TextField()
 
+    class PydanticMeta:
+        exclude = [
+            "date_joined",
+            "password"
+        ]
+
 
 class Game(Model):
     """Game model"""
@@ -30,13 +37,27 @@ class Game(Model):
 class Room(Model):
     """Room model"""
 
-    admin = fields.ForeignKeyField("models.Player", related_name="admin_rooms")
+    admin: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField("models.Player", related_name="admin_rooms")
     date_closed = fields.DatetimeField(null=True)
     date_created = fields.DatetimeField(auto_now_add=True)
-    game = fields.ForeignKeyField("models.Game", related_name="rooms")
+    game: fields.ForeignKeyRelation["Game"] = fields.ForeignKeyField("models.Game", related_name="rooms")
     id = fields.UUIDField(pk=True)
-    participants = fields.ManyToManyField("models.Player", related_name="")
+    participants: fields.ManyToManyRelation[Player] = fields.ManyToManyField("models.Player", related_name="")
     status = fields.SmallIntField()
+
+    def room_state(self) -> str:
+        """get room state"""
+        CREATED = "created"
+        PLAYING_CARDS = "playing_cards"
+        DISCARDING_CARDS = "discarding_cards"
+        LOST = "lost"
+        WON = "won"
+        MAP = {1: CREATED, 2: PLAYING_CARDS, 3: DISCARDING_CARDS, 4: LOST, 5: WON}
+        return MAP[self.status]
+
+    class PydanticMeta:
+        exclude = ["gameturns", "status"]
+        computed = ["room_state"]
 
 
 class GameTurn(Model):
@@ -65,3 +86,12 @@ async def init_fake_data():
     )
     room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value)
     await room.participants.add(foo)
+
+
+
+Tortoise.init_models(["server.resources.models"], "models")
+
+PlayerSerializer = pydantic_model_creator(Player)
+PlayerListSerializer = pydantic_queryset_creator(Player)
+RoomSerializer = pydantic_model_creator(Room)
+RoomListSerializer = pydantic_queryset_creator(Room)

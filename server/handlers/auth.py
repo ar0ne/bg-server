@@ -2,7 +2,7 @@
 import bcrypt
 import tornado
 
-from server.app.models import Player
+from server.resources.models import Player
 from server.constants import COOKIE_USER_KEY
 from server.handlers.base import BaseRequestHandler
 

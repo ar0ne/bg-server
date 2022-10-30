@@ -2,7 +2,7 @@
 
 import tornado
 
-from server.app.models import Game
+from server.resources.models import Game
 from server.handlers.base import BaseRequestHandler
 
 

@@ -3,12 +3,10 @@ from typing import Optional
 
 import tornado
 
-from app.serializers import RoomSerializer, RoomListSerializer
-from server.app.models import Game, Player, Room
+from server.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 from server.constants import GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
 from server.handlers.base import BaseRequestHandler
-
 
 class RoomHandler(BaseRequestHandler):
     """Room request handler"""

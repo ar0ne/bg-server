@@ -1,7 +1,7 @@
 """Regicide game adapter"""
 from typing import List
 
-from server.app.models import GameTurn
+from server.resources.models import GameTurn
 from server.games.regicide.dto import GameData, FlatCard
 from server.games.regicide.models import Card
 from server.games.base import AbstractGame, Id
