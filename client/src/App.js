@@ -7,35 +7,37 @@ import {
 } from "react-router-dom";
 
 // import Game from './regicide';
-import HomePage from "./home";
-import GamesPage from "./games";
-import PlayersPage from "./players"
+import HomePage from "./components/home";
+import GamesPage from "./components//games";
+import PlayersPage from "./components/players";
 
 
 export default function App() {
     return (
-        <Router>
-            <div>
-                <ul>
-                    <li>
-                        <Link to="/">Home</Link>
-                    </li>
-                    <li>
-                        <Link to="/players">Players</Link>
-                    </li>
-                    <li>
-                        <Link to="/games">Games</Link>
-                    </li>
-                </ul>
+//        <AuthProvider>
+            <Router>
+                <div>
+                    <ul>
+                        <li>
+                            <Link to="/">Home</Link>
+                        </li>
+                        <li>
+                            <Link to="/players">Players</Link>
+                        </li>
+                        <li>
+                            <Link to="/games">Games</Link>
+                        </li>
+                    </ul>
 
-                <hr />
+                    <hr />
 
-                <Routes>
-                    <Route exact path="/" element={ <HomePage />}/>
-                    <Route path="/players" element={<PlayersPage />}/>
-                    <Route path="/games" element={<GamesPage />}/>
-                </Routes>
-            </div>
-        </Router>
+                    <Routes>
+                        <Route exact path="/" element={ <HomePage />}/>
+                        <Route path="/players" element={<PlayersPage />}/>
+                        <Route path="/games" element={<GamesPage />}/>
+                    </Routes>
+                </div>
+            </Router>
+//        </AuthProvider>
     );
 }

@@ -8,7 +8,6 @@ import tornado.web
 from tornado.options import define, options, parse_command_line, parse_config_file
 from tortoise import Tortoise
 
-from server.app.models import init_fake_data
 from server.handlers.auth import AuthLoginHandler, AuthLogoutHandler, AuthSignUpHandler
 from server.handlers.game import GameHandler
 from server.handlers.index import MainHandler
@@ -82,6 +81,8 @@ async def main() -> None:
     parse_config_file(CONFIG_FILE_PATH)
 
     await init_database()
+
+    # from server.app.models import init_fake_data
     # await init_fake_data()  # FIXME: remove it later
 
     app = Application(None)
