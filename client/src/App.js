@@ -1,15 +1,16 @@
 import React from "react";
 import {
     BrowserRouter as Router,
+    Link,
     Routes,
     Route,
-    Link
 } from "react-router-dom";
 
-// import Game from './regicide';
 import HomePage from "./components/home";
-import GamesPage from "./components//games";
+import GameListPage from "./components/games/games";
+import GameDetailsPage from "./components/games/game_details";
 import PlayersPage from "./components/players";
+import LobbyPage from "./components/lobby";
 
 
 export default function App() {
@@ -22,6 +23,9 @@ export default function App() {
                             <Link to="/">Home</Link>
                         </li>
                         <li>
+                            <Link to="/lobby">Lobby</Link>
+                        </li>
+                        <li>
                             <Link to="/players">Players</Link>
                         </li>
                         <li>
@@ -32,9 +36,20 @@ export default function App() {
                     <hr />
 
                     <Routes>
-                        <Route exact path="/" element={ <HomePage />}/>
-                        <Route path="/players" element={<PlayersPage />}/>
-                        <Route path="/games" element={<GamesPage />}/>
+                        <Route exact path="/" element={ <HomePage />} />
+                        <Route path="/lobby" element={ <LobbyPage />} />
+                        <Route path="/players" element={ <PlayersPage /> } />
+                        <Route path="/games" element={ <GameListPage /> } >
+                            <Route path=":name" element={ <GameDetailsPage /> } />
+                        </Route>
+                        <Route
+                          path="*"
+                          element={
+                            <main style={{ padding: "1rem" }}>
+                              <p>There's nothing here!</p>
+                            </main>
+                          }
+                        />
                     </Routes>
                 </div>
             </Router>

@@ -33,6 +33,14 @@ class Game(Model):
     id = fields.UUIDField(pk=True)
     name = fields.CharField(unique=True, max_length=50)
 
+    # description
+    # image
+
+    class PydanticMeta:
+        exclude = (
+            "rooms",
+        )
+
 
 class Room(Model):
     """Room model"""
@@ -95,3 +103,5 @@ PlayerSerializer = pydantic_model_creator(Player)
 PlayerListSerializer = pydantic_queryset_creator(Player)
 RoomSerializer = pydantic_model_creator(Room)
 RoomListSerializer = pydantic_queryset_creator(Room)
+GameSerializer = pydantic_model_creator(Game)
+GameListSerializer = pydantic_queryset_creator(Game)
