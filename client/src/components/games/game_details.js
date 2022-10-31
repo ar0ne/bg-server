@@ -1,17 +1,7 @@
 // Game Details page component
-
-// Game Page component
 import { Component } from "react";
-import {
-    Navigate,
-    useParams
-} from "react-router-dom";
 import GameService from "../../services/game.service";
-
-
-function withParams(Component) {
-  return props => <Component {...props} params={useParams()} />;
-}
+import { withRouter } from "../common/with-router";
 
 
 class GameDetailsPage extends Component {
@@ -42,7 +32,7 @@ class GameDetailsPage extends Component {
     }
 
     componentDidMount() {
-        const { name } = this.props.params;
+        const { name } = this.props.router.params;
         GameService.getDetails(name).then(
             response => {
                 this.setState({
@@ -56,10 +46,9 @@ class GameDetailsPage extends Component {
                     error.message ||
                     error.toString()
                 );
-//                <Navigate to="/" />
             }
         )
     }
 }
 
-export default withParams(GameDetailsPage);
+export default withRouter(GameDetailsPage);

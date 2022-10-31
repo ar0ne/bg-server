@@ -1,0 +1,2 @@
+// Create new game component
+
