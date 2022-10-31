@@ -56,9 +56,9 @@ class Login extends Component {
         this.form.validateAll();
 
         if (this.checkBtn.context._errors.length === 0) {
-            AuthService.login(this.state.username, this.state.password).then(
+            AuthService.logIn(this.state.username, this.state.password).then(
                 () => {
-                    this.props.router.navigate("/profile");
+                    this.props.router.navigate("/lobby");
                     window.location.reload();
                 },
                 error => {

@@ -1,6 +1,6 @@
 
 
-export default function PlayersPage() {
+export default function PlayerProfilePage() {
     return (
         <div>
             <h1>Players page</h1>

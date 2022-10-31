@@ -5,7 +5,7 @@ import RoomService from "../services/room.service";
 
 function PublicRooms(props) {
     const rooms = props.rooms;
-    const roomItems = rooms.map((room) => <li>{room.id}</li>);
+    const roomItems = rooms.map((room) => <li key={room.id}>{room.id}</li>);
     return (
         <ul>{roomItems}</ul>
     );

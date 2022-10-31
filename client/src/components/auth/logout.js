@@ -1,9 +1,9 @@
 // Log Out component
+import AuthService from "../../services/auth.service";
 
 function LogOut() {
-    return (
-        <div>
-            <h1>Log Out</h1>
-        </div>
-    )
+    AuthService.logOut();
+    window.location.href = "/";
 }
+
+export default LogOut;

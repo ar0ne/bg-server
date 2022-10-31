@@ -5,24 +5,25 @@ const API_URL = "http://localhost:8888/api/v1/auth";
 const TOKEN_KEY = "user"
 
 class AuthService {
-    login(username, password) {
+    logIn(username, password) {
         return axios.post(API_URL + "/login", {
             "name": username,
             password
         })
         .then(response => {
-            if (response.data.accessToken) {
+            if (response.data.token) {
+                console.log("Saved token");
                 localStorage.setItem(TOKEN_KEY, JSON.stringify(response.data));
             }
             return response.data;
         })
     }
 
-    logout() {
+    logOut() {
         localStorage.removeItem(TOKEN_KEY);
     }
 
-    signup(username, email, password) {
+    signUp(username, email, password) {
         return axios.post(API_URL + "/sign-up", {
             username,
             email,

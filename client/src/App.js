@@ -9,14 +9,34 @@ import {
 import HomePage from "./components/home";
 import GameListPage from "./components/games/games";
 import GameDetailsPage from "./components/games/game_details";
-import PlayersPage from "./components/players";
+import PlayerProfilePage from "./components/player";
 import LobbyPage from "./components/lobby";
 import Login from "./components/auth/login";
+import Logout from "./components/auth/logout";
+import SignUp from "./components/auth/signup";
+import AuthService from "./services/auth.service";
 
 
-export default function App() {
-    return (
-//        <AuthProvider>
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            currentUser: undefined,
+        }
+    }
+
+    componentDidMount() {
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            this.setState({
+                currentUser: user,
+            })
+        }
+    }
+
+    render() {
+        const { currentUser } = this.state;
+        return (
             <Router>
                 <div>
                     <ul>
@@ -27,11 +47,38 @@ export default function App() {
                             <Link to="/lobby">Lobby</Link>
                         </li>
                         <li>
-                            <Link to="/players">Players</Link>
-                        </li>
-                        <li>
                             <Link to="/games">Games</Link>
                         </li>
+
+                        {currentUser && (
+                          <li>
+                            <Link to="/player">
+                              My profile
+                            </Link>
+                          </li>
+                        )}
+                        {currentUser && (
+                          <li>
+                            <Link to="/logout">
+                              Log Out
+                            </Link>
+                          </li>
+                        )}
+                        {!currentUser && (
+                            <li>
+                                <Link to={"/login"}>
+                                    Log In
+                                </Link>
+                            </li>
+                        )}
+                        {!currentUser && (
+                           <li>
+                                <Link to={"/signup"}>
+                                    Sign Up
+                                </Link>
+                           </li>
+                        )}
+
                     </ul>
 
                     <hr />
@@ -39,8 +86,10 @@ export default function App() {
                     <Routes>
                         <Route exact path="/" element={ <HomePage /> } />
                         <Route path="/login" element={ <Login /> } />
+                        <Route path="/signup" element={ <SignUp /> } />
+                        <Route path="/logout" element={ <Logout /> } />
                         <Route path="/lobby" element={ <LobbyPage /> } />
-                        <Route path="/players" element={ <PlayersPage /> } />
+                        <Route path="/player" element={ <PlayerProfilePage /> } />
                         <Route path="/games" element={ <GameListPage /> } >
                             <Route path=":name" element={ <GameDetailsPage /> } />
                         </Route>
@@ -55,6 +104,10 @@ export default function App() {
                     </Routes>
                 </div>
             </Router>
-//        </AuthProvider>
-    );
+        );
+    };
 }
+
+export default App;
+
+

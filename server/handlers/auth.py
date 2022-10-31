@@ -42,7 +42,7 @@ class AuthLoginHandler(BaseRequestHandler):
         player = await Player.filter(name=username).first()
         if not player:
             self.set_status(400)
-            self.write({"error": "Incorrect user or password!"})
+            self.write({"message": "Incorrect user or password!"})
             return
         password_equal = await tornado.ioloop.IOLoop.current().run_in_executor(
             None,
@@ -54,7 +54,7 @@ class AuthLoginHandler(BaseRequestHandler):
             self.write({"token": await get_jwt_token(str(player.id))})
         else:
             self.set_status(400)
-            self.write({"error": "Incorrect user or password!"})
+            self.write({"message": "Incorrect user or password!"})
 
 
 class AuthLogoutHandler(BaseRequestHandler):
