@@ -1,4 +1,6 @@
 aerich~=0.7.0
-bcrypt==4.0.0
-tornado==6.2
-tortoise-orm==0.19.2
+bcrypt~=4.0.0
+tornado~=6.2
+tornado-middleware~=1.2.3
+tortoise-orm~=0.19.2
+PyJWT~=2.6.0

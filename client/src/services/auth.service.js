@@ -5,9 +5,10 @@ const API_URL = "http://localhost:8888/api/v1/auth";
 const TOKEN_KEY = "user"
 
 class AuthService {
-    login(user, password) {
+    login(username, password) {
         return axios.post(API_URL + "/login", {
-            username, password
+            "name": username,
+            password
         })
         .then(response => {
             if (response.data.accessToken) {

@@ -37,8 +37,6 @@ export default class GameListPage extends Component {
         const { games } = this.state;
         return (
             <div>
-                <h3>Create Game</h3>
-                <div>Create game form</div>
                 <h3>Available Game</h3>
                 <GameList games={games} />
             </div>

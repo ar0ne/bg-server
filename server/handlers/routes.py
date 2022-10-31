@@ -12,7 +12,8 @@ from server.handlers.room import GameRoomHandler, RoomHandler, RoomPlayersHandle
 
 API_URL_PREFIX = "/api/v1"
 
-def create_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
+
+def get_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
     """Create app route mapping"""
     routes = [
         (r"/auth/sign-up/?", AuthSignUpHandler),

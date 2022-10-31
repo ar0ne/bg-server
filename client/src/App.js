@@ -11,6 +11,7 @@ import GameListPage from "./components/games/games";
 import GameDetailsPage from "./components/games/game_details";
 import PlayersPage from "./components/players";
 import LobbyPage from "./components/lobby";
+import Login from "./components/auth/login";
 
 
 export default function App() {
@@ -36,8 +37,9 @@ export default function App() {
                     <hr />
 
                     <Routes>
-                        <Route exact path="/" element={ <HomePage />} />
-                        <Route path="/lobby" element={ <LobbyPage />} />
+                        <Route exact path="/" element={ <HomePage /> } />
+                        <Route path="/login" element={ <Login /> } />
+                        <Route path="/lobby" element={ <LobbyPage /> } />
                         <Route path="/players" element={ <PlayersPage /> } />
                         <Route path="/games" element={ <GameListPage /> } >
                             <Route path=":name" element={ <GameDetailsPage /> } />

@@ -2,6 +2,7 @@
 import bcrypt
 import tornado
 
+from resources.jwt import get_jwt_token
 from server.resources.models import Player
 from server.constants import COOKIE_USER_KEY
 from server.handlers.base import BaseRequestHandler
@@ -35,27 +36,25 @@ class AuthSignUpHandler(BaseRequestHandler):
 
 class AuthLoginHandler(BaseRequestHandler):
     """Login handler"""
-    def get(self):
-        """render login page"""
-        self.render("login.html", error=None)
 
     async def post(self):
-        email = self.get_argument("email")
-        player = await Player.filter(email=email).first()
+        username, password = self.request.arguments["name"], self.request.arguments["password"]
+        player = await Player.filter(name=username).first()
         if not player:
-            await self.render("login.html", error="email not found")
+            self.set_status(400)
+            self.write({"error": "Incorrect user or password!"})
             return
         password_equal = await tornado.ioloop.IOLoop.current().run_in_executor(
             None,
             bcrypt.checkpw,
-            tornado.escape.utf8(self.get_argument("password")),
+            tornado.escape.utf8(password),
             tornado.escape.utf8(player.password),
         )
         if password_equal:
-            self.set_secure_cookie(COOKIE_USER_KEY, str(player.id))
-            self.redirect(self.get_argument("next", "/"))
+            self.write({"token": await get_jwt_token(str(player.id))})
         else:
-            await self.render("login.html", error="incorrect user or password")
+            self.set_status(400)
+            self.write({"error": "Incorrect user or password!"})
 
 
 class AuthLogoutHandler(BaseRequestHandler):
