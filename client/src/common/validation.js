@@ -1,6 +1,6 @@
-// Common
+// Validation
 
-const required = value => {
+const requiredField = value => {
     if (!value) {
         return (
             <div>
@@ -10,4 +10,4 @@ const required = value => {
     }
 }
 
-export default required;
+export default requiredField;

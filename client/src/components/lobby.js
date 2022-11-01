@@ -24,8 +24,6 @@ export default class LobbyPage extends Component {
         const { rooms } = this.state;
         return (
             <div>
-                <h3>Create Game</h3>
-                <div>Create game form</div>
                 <h3>Join Game</h3>
                 <PublicRooms rooms={rooms} />
             </div>

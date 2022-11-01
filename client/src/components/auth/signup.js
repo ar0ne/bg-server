@@ -5,8 +5,7 @@ import AuthService from "../../services/auth.service";
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
-import required from "./utils";
-
+import requiredField from "../../common/validation";
 import { withRouter } from "../../common/with-router";
 
 
@@ -101,7 +100,7 @@ class SignUp extends Component {
                             name="username"
                             value={this.state.username}
                             onChange={this.onChangeUsername}
-                            validations={[required]}
+                            validations={[requiredField]}
                         />
                     </div>
                     <div>
@@ -111,7 +110,7 @@ class SignUp extends Component {
                             name="email"
                             value={this.state.email}
                             onChange={this.onChangeEmail}
-                            validations={[required]}
+                            validations={[requiredField]}
                         />
                     </div>
                     <div>
@@ -121,7 +120,7 @@ class SignUp extends Component {
                             name="password"
                             value={this.state.password}
                             onChange={this.onChangePassword}
-                            validations={[required]}
+                            validations={[requiredField]}
                         />
                     </div>
                     <div>
