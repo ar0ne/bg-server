@@ -15,7 +15,7 @@ import Login from "./components/auth/login";
 import Logout from "./components/auth/logout";
 import SignUp from "./components/auth/signup";
 import AuthService from "./services/auth.service";
-import EventBus from "./components/common/EventBus";
+import EventBus from "./common/EventBus";
 
 
 class App extends React.Component {

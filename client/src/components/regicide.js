@@ -26,9 +26,7 @@ function CardCombo (props) {
 
 class DiscardPile extends React.Component {
     render() {
-
         const { size } = this.props;
-
         return (
             <div>
                 <h1>Discard deck</h1>
@@ -70,9 +68,7 @@ class GameBanner extends React.Component {
 
 class TavernDeck extends React.Component {
     render() {
-
         const { size } = this.props;
-
         return (
             <div>
                 <h1>Tavern deck</h1>

@@ -10,11 +10,10 @@ function GameList(props) {
         return (<p>No Available games!</p>);
     }
     const gameItems = games.map((game) => (
-        <div>
+        <div key={game.id}>
             <nav>
                 <NavLink
                     to={`/games/${game.name}`}
-                    key={game.id}
                 >
                 {game.name}
                 </NavLink>
@@ -56,7 +55,10 @@ export default class GameListPage extends Component {
             error => {
                 console.log("unable to fetch games");
                 console.log(
-                    (error.response && error.response.data) ||
+                    (error.response &&
+                    error.response.data &&
+                    error.response.data.error
+                    && error.response.data.error.message) ||
                     error.message ||
                     error.toString()
                 );

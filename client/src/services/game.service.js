@@ -1,16 +1,23 @@
 // Game service
 import axios from "axios";
 
+import authHeader from "./auth-header";
+
 
 // FIXME: hardcoded url
-const API_URL = 'http://localhost:8888/api/v1/games';
+const API_URL = 'http://localhost:8888/api/v1/games/';
 
 class GameService {
     getAll() {
-        return axios.get(API_URL + "/");
+        return axios.get(API_URL);
     }
     getDetails(name) {
-        return axios.get(API_URL + "/" + name);
+        return axios.get(API_URL + name);
+    }
+    createRoom(game_id) {
+        return axios.post(API_URL+ game_id + "/rooms", null, {
+            headers: authHeader()
+        })
     }
 }
 

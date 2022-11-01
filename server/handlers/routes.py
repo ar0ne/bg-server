@@ -18,15 +18,14 @@ def get_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
     routes = [
         (r"/auth/sign-up/?", AuthSignUpHandler),
         (r"/auth/login/?", AuthLoginHandler),
-
-        # FIXME: mot API
-        (r"/games/(\w+)/rooms/?", GameRoomHandler),
-        (r"/games/(\w+)/?", GameHandler),
+        (r"/games/([a-zA-Z0-9_.-]+)/rooms/?", GameRoomHandler),
+        (r"/games/([a-zA-Z0-9_.-]+)/?", GameHandler),
         (r"/games/?", GameHandler),
-        (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
         (r"/rooms/([a-zA-Z0-9_.-]+)/?", RoomHandler),
         (r"/rooms/?", RoomHandler),
         (r"/players/([a-zA-Z0-9_.-]+)/?", PlayerHandler),
+
+        # (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
     ]
     routes = [(API_URL_PREFIX + url, handler) for (url, handler) in routes]
     routes.append((r"/", MainHandler))

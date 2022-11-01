@@ -7,7 +7,7 @@ import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
 import required from "./utils";
 
-import { withRouter } from "../common/with-router";
+import { withRouter } from "../../common/with-router";
 
 
 class Login extends Component {

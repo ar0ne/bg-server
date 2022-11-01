@@ -1,7 +1,8 @@
 // Game Details page component
 import { Component } from "react";
 import GameService from "../../services/game.service";
-import { withRouter } from "../common/with-router";
+import { withRouter } from "../../common/with-router";
+import GameRoom from "./room";
 
 
 class GameDetailsPage extends Component {
@@ -25,8 +26,7 @@ class GameDetailsPage extends Component {
                 <h3>Welcome to {game.name} page</h3>
                 <p>Description: {game.description}</p>
 
-                <h3>Create Game</h3>
-                <div>Create game form</div>
+                <GameRoom game_id={game.id} />
             </div>
         )
     }
@@ -42,7 +42,10 @@ class GameDetailsPage extends Component {
             error => {
                 console.log("unable to fetch games");
                 console.log(
-                    (error.response && error.response.data && error.response.data.error && error.response.data.error.message) ||
+                    (error.response &&
+                    error.response.data &&
+                    error.response.data.error &&
+                    error.response.data.error.message) ||
                     error.message ||
                     error.toString()
                 );

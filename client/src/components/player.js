@@ -2,9 +2,8 @@
 import { Component } from "react";
 import UserService from "../services/user.service";
 import AuthService from "../services/auth.service";
-import EventBus from "./common/EventBus";
-
-import { withRouter } from "./common/with-router";
+import EventBus from "../common/EventBus";
+import { withRouter } from "../common/with-router";
 
 class PlayerProfilePage extends Component {
     constructor(props) {

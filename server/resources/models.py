@@ -1,5 +1,7 @@
 """DB models"""
+import enum
 import json
+from typing import Optional
 
 from tortoise import Model, fields, Tortoise
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
@@ -8,6 +10,32 @@ from server.resources.utils import CustomJSONEncoder
 from server.constants import REGICIDE, GameRoomStatus
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
+
+
+class RoomState(enum.Enum):
+    CREATED = (0, "created")
+    STARTED = (1, "playing_cards")
+    FINISHED = (2, "finished")
+    ABANDONED = (3, "abandoned")
+    CANCELLED = (4, "cancelled")
+
+    def __init__(self, state: int, label: str) -> None:
+        """Init room state enum"""
+        self.state = state
+        self.label = label
+
+    @classmethod
+    def from_value(cls, value: int) -> Optional["RoomState"]:
+        """
+        Return enum object if value exists.
+
+        >>> RoomState.ABANDONED is not RoomState.from_value(4)
+        >>> RoomState.ABANDONED is RoomState.from_value(3)
+        """
+        for _, v in RoomState.__members__.items():
+            if v.value[0] == value:
+                return v
+        return None
 
 
 class Player(Model):
@@ -54,13 +82,10 @@ class Room(Model):
 
     def room_state(self) -> str:
         """get room state"""
-        CREATED = "created"
-        PLAYING_CARDS = "playing_cards"
-        DISCARDING_CARDS = "discarding_cards"
-        LOST = "lost"
-        WON = "won"
-        MAP = {1: CREATED, 2: PLAYING_CARDS, 3: DISCARDING_CARDS, 4: LOST, 5: WON}
-        return MAP[self.status]
+        room_state_enum = RoomState.from_value(self.status)
+        if not room_state_enum:
+            return ""
+        return room_state_enum.value[1]
 
     class PydanticMeta:
         exclude = ["gameturns", "status"]

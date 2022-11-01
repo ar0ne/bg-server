@@ -35,8 +35,6 @@ class Application(tornado.web.Application):
         settings = dict(
             debug=options.debug,
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            login_url="/auth/login/",
             default_handler_class=ErrorHandler,
             default_handler_args=dict(status_code=404)
         )
