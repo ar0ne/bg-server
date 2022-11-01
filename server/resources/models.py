@@ -95,7 +95,6 @@ async def init_fake_data():
     await room.participants.add(foo)
 
 
-
 Tortoise.init_models(["server.resources.models"], "models")
 
 PlayerSerializer = pydantic_model_creator(Player)

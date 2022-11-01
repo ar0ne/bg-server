@@ -8,7 +8,7 @@ import {
 
 import HomePage from "./components/home";
 import GameListPage from "./components/games/games";
-import GameDetailsPage from "./components/games/game_details";
+import GameDetailsPage from "./components/games/details";
 import PlayerProfilePage from "./components/player";
 import LobbyPage from "./components/lobby";
 import Login from "./components/auth/login";

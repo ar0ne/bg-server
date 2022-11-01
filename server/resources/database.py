@@ -22,5 +22,6 @@ async def init_database() -> None:
     # Generate the schema
     await Tortoise.generate_schemas()
 
-    # from server.app.models import init_fake_data
-    # await init_fake_data()  # FIXME: remove it later
+    # FIXME: remove it later
+    # from server.resources.models import init_fake_data
+    # await init_fake_data()

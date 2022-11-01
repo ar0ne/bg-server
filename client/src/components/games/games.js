@@ -6,6 +6,9 @@ import GameService from "../../services/game.service";
 
 function GameList(props) {
     const games = props.games;
+    if (!(games && games.length)) {
+        return (<p>No Available games!</p>);
+    }
     const gameItems = games.map((game) => (
         <div>
             <nav>
@@ -20,7 +23,7 @@ function GameList(props) {
         </div>
     ));
     return (
-        <ul>{gameItems}</ul>
+        <div>{gameItems}</div>
     );
 }
 
