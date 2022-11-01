@@ -21,10 +21,9 @@ class Player(Model):
     password = fields.CharField(max_length=120)
 
     class PydanticMeta:
-        exclude = [
-            "date_joined",
-            "password"
-        ]
+        exclude = (
+            "password",
+        )
 
 
 class Game(Model):

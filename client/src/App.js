@@ -15,6 +15,7 @@ import Login from "./components/auth/login";
 import Logout from "./components/auth/logout";
 import SignUp from "./components/auth/signup";
 import AuthService from "./services/auth.service";
+import EventBus from "./components/common/EventBus";
 
 
 class App extends React.Component {
@@ -32,6 +33,15 @@ class App extends React.Component {
                 currentUser: user,
             })
         }
+
+        EventBus.on("logout", () => {
+          AuthService.logOut();
+        });
+
+    }
+
+    componentWillUnmount() {
+        EventBus.remove("logout");
     }
 
     render() {

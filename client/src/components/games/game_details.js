@@ -42,7 +42,7 @@ class GameDetailsPage extends Component {
             error => {
                 console.log("unable to fetch games");
                 console.log(
-                    (error.response && error.response.data) ||
+                    (error.response && error.response.data && error.response.data.error && error.response.data.error.message) ||
                     error.message ||
                     error.toString()
                 );

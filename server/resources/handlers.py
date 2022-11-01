@@ -2,7 +2,7 @@ import tornado
 from tornado.escape import json_decode
 
 from server.resources.errors import ErrorHandler
-from server.resources.jwt import JWTAuthMiddleware
+from server.resources.auth import JWTAuthMiddleware
 
 
 class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHandler):
@@ -28,6 +28,6 @@ class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHan
         # Set up response dictionary.
         self.response = dict()
 
-    async def options(self) -> None:
+    async def options(self, *args, **kwargs) -> None:
         """Handle OPTIONS method"""
         pass

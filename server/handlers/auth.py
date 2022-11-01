@@ -4,7 +4,7 @@ import tornado
 from tortoise.expressions import Q
 
 from resources.errors import APIError
-from server.resources.jwt import get_jwt_token
+from server.resources.auth import get_jwt_token
 from server.resources.models import Player
 from server.resources.handlers import BaseRequestHandler
 
@@ -36,6 +36,7 @@ class AuthSignUpHandler(BaseRequestHandler):
         )
         self.set_status(204)
 
+
 class AuthLoginHandler(BaseRequestHandler):
     """Login handler"""
 
@@ -43,17 +44,18 @@ class AuthLoginHandler(BaseRequestHandler):
         username, password = self.request.arguments["name"], self.request.arguments["password"]
         player = await Player.filter(name=username).first()
         if not player:
-            self.set_status(400)
-            self.write({"message": "Incorrect user or password!"})
-            return
+            raise APIError(status_code=400, reason="Incorrect user or password.")
         password_equal = await tornado.ioloop.IOLoop.current().run_in_executor(
             None,
             bcrypt.checkpw,
             tornado.escape.utf8(password),
             tornado.escape.utf8(player.password),
         )
-        if password_equal:
-            self.write({"token": await get_jwt_token(str(player.id))})
-        else:
-            self.set_status(400)
-            self.write({"message": "Incorrect user or password!"})
+        if not password_equal:
+            raise APIError(status_code=400, reason="Incorrect user or password.")
+
+        user_id = str(player.id)
+        self.write({
+            "user_id": user_id,
+            "token": await get_jwt_token(user_id),
+        })

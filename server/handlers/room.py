@@ -8,6 +8,7 @@ from server.constants import GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
 from resources.handlers import BaseRequestHandler
 
+
 class RoomHandler(BaseRequestHandler):
     """Room request handler"""
 

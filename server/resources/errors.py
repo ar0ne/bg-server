@@ -1,5 +1,7 @@
 """Error handlers"""
 import json
+from typing import Optional
+
 import tornado
 import traceback
 
@@ -18,7 +20,12 @@ class ErrorHandler(tornado.web.RequestHandler):
     """
     Default handler gonna to be used in case of 404 error
     """
-    def write_error(self, status_code, **kwargs):
+
+    def initialize(self, status_code: Optional[int] = None) -> None:
+        """Override initialize"""
+        self.status_code = status_code
+
+    def write_error(self, status_code: int, **kwargs) -> None:
 
         if self.settings.get("serve_traceback") and "exc_info" in kwargs:
             # in debug mode, try to send a traceback

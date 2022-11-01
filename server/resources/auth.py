@@ -1,10 +1,11 @@
-from tornado.httpclient import HTTPError
+import jwt
+
 from tornado.options import options
 from tornado_middleware import MiddlewareHandler
 
 from datetime import datetime, timedelta
-import jwt
 
+from server.resources.errors import APIError
 from server.resources.models import Player
 
 
@@ -41,10 +42,10 @@ class JWTAuthMiddleware(MiddlewareHandler):
 def login_required(func):
     """Decorator to verify user is logged in"""
 
-    def wrapper(request):
-        if not request.user:
-            raise HTTPError(401, "Login required")
-        return func(request)
+    def wrapper(self, *args, **kwargs):
+        if not self.request.user:
+            raise APIError(status_code=401, reason="Login required")
+        return func(self, *args, **kwargs)
 
     return wrapper
 
