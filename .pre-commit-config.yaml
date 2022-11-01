@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: ^client/
+      - id: trailing-whitespace
+        exclude: ^client/
+      - id: name-tests-test
+        exclude: ^client/
+      - id: requirements-txt-fixer
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: 'v5.10.1'
+    hooks:
+      - id: isort
+        exclude: ^(client/|setup.py)
+        args: ["-m3", "-w100"]
+  - repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+      - id: black
+        exclude: ^(client/|setup.py)|migrations
+        args: [--config=./pyproject.toml]
