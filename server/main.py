@@ -9,6 +9,7 @@ from tornado.options import define, options, parse_command_line, parse_config_fi
 
 from resources.database import init_database
 from handlers.routes import get_routes
+from resources.errors import ErrorHandler
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
@@ -24,6 +25,7 @@ define("JWT_EXP_DELTA_SECONDS", default=3000, help="JWT expiration time in secon
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
 
+
 class Application(tornado.web.Application):
     """Application"""
 
@@ -34,11 +36,12 @@ class Application(tornado.web.Application):
             debug=options.debug,
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            login_url="/auth/login/"
+            login_url="/auth/login/",
+            default_handler_class=ErrorHandler,
+            default_handler_args=dict(status_code=404)
         )
         routes = get_routes()
         super().__init__(routes, **settings)
-
 
 
 async def main() -> None:

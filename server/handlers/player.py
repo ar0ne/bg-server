@@ -2,7 +2,7 @@
 import tornado
 
 from server.resources.models import Player
-from server.handlers.base import BaseRequestHandler
+from resources.handlers import BaseRequestHandler
 
 
 class PlayerHandler(BaseRequestHandler):

@@ -12,7 +12,6 @@ class AuthService {
         })
         .then(response => {
             if (response.data.token) {
-                console.log("Saved token");
                 localStorage.setItem(TOKEN_KEY, JSON.stringify(response.data));
             }
             return response.data;

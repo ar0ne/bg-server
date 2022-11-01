@@ -1,38 +1,40 @@
 """Auth handlers"""
 import bcrypt
 import tornado
+from tortoise.expressions import Q
 
-from resources.jwt import get_jwt_token
+from resources.errors import APIError
+from server.resources.jwt import get_jwt_token
 from server.resources.models import Player
-from server.constants import COOKIE_USER_KEY
-from server.handlers.base import BaseRequestHandler
+from server.resources.handlers import BaseRequestHandler
 
 
 class AuthSignUpHandler(BaseRequestHandler):
     """Sign Up handler"""
-    async def get(self) -> None:
-        """render sign up page"""
-        await self.render("sign_up.html")
 
     async def post(self) -> None:
-        email = self.get_argument("email")
-        # validation ?
-        if await Player.exists(email=email):
-            raise tornado.web.HTTPError(400, "player with email %s already registered" % email)
+        data = self.request.arguments
+        username, email, password = data["username"], data["email"], data["password"]
+
+        # FIXME: add better validation
+        if not (username and email and password):
+            raise APIError(status_code=400, reason="Invalid data")
+
+        if await Player.exists(Q(email=email) | Q(name=username)):
+            raise APIError(status_code=400, reason="Player with this email or name already registered.")
 
         hashed_password = await tornado.ioloop.IOLoop.current().run_in_executor(
             None,
             bcrypt.hashpw,
-            tornado.escape.utf8(self.get_argument("password")),
+            tornado.escape.utf8(password),
             bcrypt.gensalt(),
         )
         await Player.create(
             email=email,
-            nickname=self.get_argument("nickname"),
+            name=username,
             password=tornado.escape.to_unicode(hashed_password),
         )
-        self.redirect(self.get_argument("next", "/"))
-
+        self.set_status(204)
 
 class AuthLoginHandler(BaseRequestHandler):
     """Login handler"""
@@ -55,11 +57,3 @@ class AuthLoginHandler(BaseRequestHandler):
         else:
             self.set_status(400)
             self.write({"message": "Incorrect user or password!"})
-
-
-class AuthLogoutHandler(BaseRequestHandler):
-    """Log Out handler"""
-    def get(self):
-        self.clear_cookie(COOKIE_USER_KEY)
-        self.redirect(self.get_argument("next", "/"))
-

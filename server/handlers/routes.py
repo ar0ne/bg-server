@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import tornado
 
-from server.handlers.auth import AuthLoginHandler, AuthLogoutHandler, AuthSignUpHandler
+from server.handlers.auth import AuthLoginHandler, AuthSignUpHandler
 from server.handlers.game import GameHandler
 from server.handlers.index import MainHandler
 from server.handlers.player import PlayerHandler
@@ -18,7 +18,6 @@ def get_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
     routes = [
         (r"/auth/sign-up/?", AuthSignUpHandler),
         (r"/auth/login/?", AuthLoginHandler),
-        (r"/auth/logout/?", AuthLogoutHandler),
 
         # FIXME: mot API
         (r"/games/(\w+)/rooms/?", GameRoomHandler),

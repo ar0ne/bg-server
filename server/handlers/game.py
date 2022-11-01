@@ -1,9 +1,7 @@
 """Game handler"""
 
-import tornado
-
 from server.resources.models import Game, GameListSerializer, GameSerializer
-from server.handlers.base import BaseRequestHandler
+from resources.handlers import BaseRequestHandler
 
 
 class GameHandler(BaseRequestHandler):

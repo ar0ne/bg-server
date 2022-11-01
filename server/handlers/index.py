@@ -1,6 +1,6 @@
 from server.resources.models import Room, Game
 from server.constants import REGICIDE
-from server.handlers.base import BaseRequestHandler
+from resources.handlers import BaseRequestHandler
 
 
 class MainHandler(BaseRequestHandler):

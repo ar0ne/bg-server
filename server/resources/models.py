@@ -14,11 +14,11 @@ class Player(Model):
     """Player model"""
 
     date_joined = fields.DatetimeField(auto_now_add=True)
-    email = fields.TextField(email=True)
+    email = fields.CharField(email=True, unique=True, max_length=50)
     id = fields.UUIDField(pk=True)
-    name = fields.TextField(null=True)
-    nickname = fields.CharField(unique=True, max_length=60)
-    password = fields.TextField()
+    name = fields.CharField(unique=True, max_length=60)
+    nickname = fields.CharField(unique=True, null=True, max_length=60)
+    password = fields.CharField(max_length=120)
 
     class PydanticMeta:
         exclude = [

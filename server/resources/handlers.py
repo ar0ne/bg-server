@@ -1,10 +1,11 @@
 import tornado
 from tornado.escape import json_decode
 
-from resources.jwt import JWTAuthMiddleware
+from server.resources.errors import ErrorHandler
+from server.resources.jwt import JWTAuthMiddleware
 
 
-class BaseRequestHandler(JWTAuthMiddleware, tornado.web.RequestHandler):
+class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHandler):
     """Base request handler"""
 
     def set_default_headers(self) -> None:

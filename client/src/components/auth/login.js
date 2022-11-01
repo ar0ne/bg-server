@@ -5,18 +5,10 @@ import AuthService from "../../services/auth.service";
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
+import required from "./utils";
 
 import { withRouter } from "../common/with-router";
 
-const required = value => {
-    if (!value) {
-        return (
-            <div>
-                This field is required!
-            </div>
-        )
-    }
-}
 
 class Login extends Component {
 
@@ -65,7 +57,8 @@ class Login extends Component {
                     const resMessage =
                         (error.response &&
                          error.response.data &&
-                         error.response.data.message) ||
+                         error.response.data.error &&
+                         error.response.data.error.message) ||
                          error.message ||
                          error.toString();
 
