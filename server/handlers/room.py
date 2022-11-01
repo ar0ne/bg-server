@@ -10,6 +10,20 @@ from server.games.regicide.adapter import RegicideGameAdapter
 from server.resources.handlers import BaseRequestHandler
 
 
+class GameRoomHandler(BaseRequestHandler):
+    """Game room handler"""
+
+    @login_required
+    async def post(self, game_id: str) -> None:
+        """Create game room"""
+        game = await Game.get(id=game_id)
+        admin = self.request.user
+        room = await Room.create(admin=admin, game=game, status=GameRoomStatus.CREATED.value)
+        await room.participants.add(admin)
+        serializer = await RoomSerializer.from_tortoise_orm(room)
+        self.write(serializer.json())
+
+
 class RoomHandler(BaseRequestHandler):
     """Room request handler"""
 
@@ -84,18 +98,3 @@ class RoomPlayersHandler(BaseRequestHandler):
     #         raise Exception  # FIXME
     #     await room.participants.remove(player)
     #     self.redirect(f"/rooms/{room_id}")
-
-
-class GameRoomHandler(BaseRequestHandler):
-    """Game room handler"""
-
-    @login_required
-    async def post(self, game_id: str) -> None:
-        """Create game room"""
-        game = await Game.get(id=game_id)
-
-        admin = self.request.user
-        room = await Room.create(admin=admin, game=game, status=GameRoomStatus.CREATED.value)
-        await room.participants.add(admin)
-        serializer = await RoomSerializer.from_tortoise_orm(room)
-        self.write(serializer.json())

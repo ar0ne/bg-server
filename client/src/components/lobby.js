@@ -5,6 +5,9 @@ import RoomService from "../services/room.service";
 
 function PublicRooms(props) {
     const rooms = props.rooms;
+    if (!(rooms && rooms.length)) {
+        return <p>No Available rooms</p>
+    }
     const roomItems = rooms.map((room) => <li key={room.id}>{room.id}</li>);
     return (
         <ul>{roomItems}</ul>
