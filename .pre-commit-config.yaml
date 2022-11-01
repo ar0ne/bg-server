@@ -6,8 +6,6 @@ repos:
         exclude: ^client/
       - id: trailing-whitespace
         exclude: ^client/
-      - id: name-tests-test
-        exclude: ^client/
       - id: requirements-txt-fixer
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: 'v5.10.1'

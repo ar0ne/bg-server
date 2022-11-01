@@ -1,6 +1,7 @@
-from server.resources.models import Room, Game
-from server.constants import REGICIDE
 from resources.handlers import BaseRequestHandler
+
+from server.constants import REGICIDE
+from server.resources.models import Game, Room
 
 
 class MainHandler(BaseRequestHandler):
@@ -13,4 +14,3 @@ class MainHandler(BaseRequestHandler):
         # FIXME: we have only single game atm
         data = dict(rooms=rooms, game_id=game_id)
         await self.render("index.html", **data)
-

@@ -3,11 +3,11 @@ import enum
 import json
 from typing import Optional
 
-from tortoise import Model, fields, Tortoise
+from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 
-from server.resources.utils import CustomJSONEncoder
 from server.constants import REGICIDE, GameRoomStatus
+from server.resources.utils import CustomJSONEncoder
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
 
@@ -49,9 +49,7 @@ class Player(Model):
     password = fields.CharField(max_length=120)
 
     class PydanticMeta:
-        exclude = (
-            "password",
-        )
+        exclude = ("password",)
 
 
 class Game(Model):
@@ -64,20 +62,24 @@ class Game(Model):
     # image
 
     class PydanticMeta:
-        exclude = (
-            "rooms",
-        )
+        exclude = ("rooms",)
 
 
 class Room(Model):
     """Room model"""
 
-    admin: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField("models.Player", related_name="admin_rooms")
+    admin: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="admin_rooms"
+    )
     date_closed = fields.DatetimeField(null=True)
     date_created = fields.DatetimeField(auto_now_add=True)
-    game: fields.ForeignKeyRelation["Game"] = fields.ForeignKeyField("models.Game", related_name="rooms")
+    game: fields.ForeignKeyRelation["Game"] = fields.ForeignKeyField(
+        "models.Game", related_name="rooms"
+    )
     id = fields.UUIDField(pk=True)
-    participants: fields.ManyToManyRelation[Player] = fields.ManyToManyField("models.Player", related_name="")
+    participants: fields.ManyToManyRelation[Player] = fields.ManyToManyField(
+        "models.Player", related_name=""
+    )
     status = fields.SmallIntField()
 
     def room_state(self) -> str:

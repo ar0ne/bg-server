@@ -1,12 +1,12 @@
 """Auth handlers"""
 import bcrypt
 import tornado
+from resources.errors import APIError
 from tortoise.expressions import Q
 
-from resources.errors import APIError
 from server.resources.auth import get_jwt_token
-from server.resources.models import Player
 from server.resources.handlers import BaseRequestHandler
+from server.resources.models import Player
 
 
 class AuthSignUpHandler(BaseRequestHandler):
@@ -21,7 +21,9 @@ class AuthSignUpHandler(BaseRequestHandler):
             raise APIError(status_code=400, reason="Invalid data")
 
         if await Player.exists(Q(email=email) | Q(name=username)):
-            raise APIError(status_code=400, reason="Player with this email or name already registered.")
+            raise APIError(
+                status_code=400, reason="Player with this email or name already registered."
+            )
 
         hashed_password = await tornado.ioloop.IOLoop.current().run_in_executor(
             None,
@@ -55,7 +57,9 @@ class AuthLoginHandler(BaseRequestHandler):
             raise APIError(status_code=400, reason="Incorrect user or password.")
 
         user_id = str(player.id)
-        self.write({
-            "user_id": user_id,
-            "token": await get_jwt_token(user_id),
-        })
+        self.write(
+            {
+                "user_id": user_id,
+                "token": await get_jwt_token(user_id),
+            }
+        )

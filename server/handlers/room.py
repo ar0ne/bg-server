@@ -3,11 +3,11 @@ from typing import Optional
 
 import tornado
 
-from server.resources.auth import login_required
-from server.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 from server.constants import GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
+from server.resources.auth import login_required
 from server.resources.handlers import BaseRequestHandler
+from server.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 
 
 class GameRoomHandler(BaseRequestHandler):
@@ -34,7 +34,9 @@ class RoomHandler(BaseRequestHandler):
             serializer = await RoomListSerializer.from_queryset(Room.all())
             self.write(serializer.json())
         else:
-            room = await Room.filter(id=room_id).select_related("admin").first() if room_id else None
+            room = (
+                await Room.filter(id=room_id).select_related("admin").first() if room_id else None
+            )
             serializer = await RoomSerializer.from_tortoise_orm(room)
             self.write(serializer.json())
 

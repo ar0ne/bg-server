@@ -1,12 +1,12 @@
 """Regicide game adapter"""
 from typing import List
 
-from server.resources.models import GameTurn
-from server.games.regicide.dto import GameData, FlatCard
-from server.games.regicide.models import Card
 from server.games.base import AbstractGame, Id
+from server.games.regicide.dto import FlatCard, GameData
 from server.games.regicide.game import Game
+from server.games.regicide.models import Card
 from server.games.regicide.utils import dump_data, load_data
+from server.resources.models import GameTurn
 
 
 class RegicideGameAdapter(AbstractGame):

@@ -1,7 +1,8 @@
 """Player handler"""
 from resources.auth import login_required
-from server.resources.models import Player, PlayerSerializer
 from resources.handlers import BaseRequestHandler
+
+from server.resources.models import Player, PlayerSerializer
 
 
 class PlayerHandler(BaseRequestHandler):

@@ -5,11 +5,10 @@ import asyncio
 import os
 
 import tornado.web
-from tornado.options import define, options, parse_command_line, parse_config_file
-
-from resources.database import init_database
 from handlers.routes import get_routes
+from resources.database import init_database
 from resources.errors import ErrorHandler
+from tornado.options import define, options, parse_command_line, parse_config_file
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, help="run in debug mode")
@@ -36,7 +35,7 @@ class Application(tornado.web.Application):
             debug=options.debug,
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             default_handler_class=ErrorHandler,
-            default_handler_args=dict(status_code=404)
+            default_handler_args=dict(status_code=404),
         )
         routes = get_routes()
         super().__init__(routes, **settings)

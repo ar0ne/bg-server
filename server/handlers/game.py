@@ -1,7 +1,8 @@
 """Game handler"""
 
-from server.resources.models import Game, GameListSerializer, GameSerializer
 from resources.handlers import BaseRequestHandler
+
+from server.resources.models import Game, GameListSerializer, GameSerializer
 
 
 class GameHandler(BaseRequestHandler):

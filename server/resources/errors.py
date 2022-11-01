@@ -1,18 +1,20 @@
 """Error handlers"""
 import json
+import traceback
 from typing import Optional
 
 import tornado
-import traceback
 
 
 class AppException(tornado.web.HTTPError):
     """Base App exception class"""
+
     pass
 
 
 class APIError(AppException):
     """Base API error"""
+
     pass
 
 
@@ -32,17 +34,25 @@ class ErrorHandler(tornado.web.RequestHandler):
             lines = []
             for line in traceback.format_exception(*kwargs["exc_info"]):
                 lines.append(line)
-            self.finish(json.dumps({
-                'error': {
-                    'code': status_code,
-                    'message': self._reason,
-                    'traceback': lines,
-                }
-            }))
+            self.finish(
+                json.dumps(
+                    {
+                        "error": {
+                            "code": status_code,
+                            "message": self._reason,
+                            "traceback": lines,
+                        }
+                    }
+                )
+            )
         else:
-            self.finish(json.dumps({
-                'error': {
-                    'code': status_code,
-                    'message': self._reason,
-                }
-            }))
+            self.finish(
+                json.dumps(
+                    {
+                        "error": {
+                            "code": status_code,
+                            "message": self._reason,
+                        }
+                    }
+                )
+            )

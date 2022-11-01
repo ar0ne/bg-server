@@ -3,6 +3,7 @@
 
 # TODO: provide error messages
 
+
 class Error(Exception):
     """Base error class"""
 

@@ -1,8 +1,8 @@
 import tornado
 from tornado.escape import json_decode
 
-from server.resources.errors import ErrorHandler
 from server.resources.auth import JWTAuthMiddleware
+from server.resources.errors import ErrorHandler
 
 
 class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHandler):
@@ -11,7 +11,10 @@ class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHan
     def set_default_headers(self) -> None:
         # enable CORS
         self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+        self.set_header(
+            "Access-Control-Allow-Headers",
+            "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+        )
         self.set_header("Access-Control-Allow-Methods", " POST, PUT, GET, OPTIONS")
         self.set_header("Content-Type", "application/json")
 
@@ -22,8 +25,8 @@ class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHan
                 json_body = json_decode(self.request.body)
                 self.request.arguments.update(json_body)
             except ValueError:
-                message = 'Unable to parse JSON.'
-                self.send_error(400, message=message) # Bad Request
+                message = "Unable to parse JSON."
+                self.send_error(400, message=message)  # Bad Request
 
         # Set up response dictionary.
         self.response = dict()

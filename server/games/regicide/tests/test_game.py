@@ -206,7 +206,15 @@ class TestGame(unittest.TestCase):
         load_data(game, dump)
 
         # player plays combo from 2x4, enemy has immune to hearts
-        game.play_cards(game.first_player, [game.first_player.hand[0], game.first_player.hand[1], game.first_player.hand[2], game.first_player.hand[3]])
+        game.play_cards(
+            game.first_player,
+            [
+                game.first_player.hand[0],
+                game.first_player.hand[1],
+                game.first_player.hand[2],
+                game.first_player.hand[3],
+            ],
+        )
 
         self.assertEqual(GameState.PLAYING_CARDS, game.state)
         self.assertEqual(7, game.turn)

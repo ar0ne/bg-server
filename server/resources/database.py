@@ -1,6 +1,6 @@
 """Setup database"""
-from tortoise import Tortoise
 from tornado.options import options
+from tortoise import Tortoise
 
 
 async def init_database() -> None:
@@ -17,7 +17,9 @@ async def init_database() -> None:
     if options.db_provider == "sqlite":
         # FIXME: fix for other db providers
         # await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["server.resources.models"]})
-        await Tortoise.init(db_url="sqlite://db.sqlite", modules={"models": ["server.resources.models"]})
+        await Tortoise.init(
+            db_url="sqlite://db.sqlite", modules={"models": ["server.resources.models"]}
+        )
 
     # Generate the schema
     await Tortoise.generate_schemas()
