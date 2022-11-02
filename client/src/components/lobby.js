@@ -1,14 +1,29 @@
 // Lobby Page component
 import { Component } from "react";
+import { Link } from "react-router-dom";
 import RoomService from "../services/room.service";
+import AuthService from "../services/auth.service";
 
 
 function PublicRooms(props) {
-    const rooms = props.rooms;
+    const { rooms, isLoggedIn} = props;
     if (!(rooms && rooms.length)) {
         return <p>No Available rooms</p>
     }
-    const roomItems = rooms.map((room) => <li key={room.id}>{room.id}</li>);
+    const roomItems = rooms.map((room) => {
+        const participants = room.participants.length;
+        const roomSize = room.size;
+        const info = `${room.game.name} [${room.room_state.toUpperCase()}] (${participants}/${roomSize})`;
+        const url = `/rooms/${room.id}`;
+        return (
+            <li key={room.id}>
+                <Link to={ url }>{ info }</Link>
+                <button
+                    disabled={ !props.isLoggedIn || participants === roomSize }
+                >Join</button>
+            </li>
+        )
+    });
     return (
         <ul>{roomItems}</ul>
     );
@@ -17,9 +32,9 @@ function PublicRooms(props) {
 export default class LobbyPage extends Component {
     constructor(props) {
         super(props);
-
         this.state = {
-            rooms: []
+            rooms: [],
+            isLoggedIn: false,
         }
     }
 
@@ -28,12 +43,18 @@ export default class LobbyPage extends Component {
         return (
             <div>
                 <h3>Join Game</h3>
-                <PublicRooms rooms={rooms} />
+                <PublicRooms rooms={rooms} isLoggedIn={this.state.isLoggedIn} />
             </div>
         )
     }
 
     componentDidMount() {
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            this.setState({
+                isLoggedIn: true
+            });
+        }
         RoomService.getAllPublicRooms().then(
             response => {
                 this.setState({

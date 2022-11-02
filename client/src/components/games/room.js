@@ -1,6 +1,7 @@
 // Create new game component
 import { Component } from "react";
 import GameService from "../../services/game.service";
+import AuthService from "../../services/auth.service";
 import { withRouter } from "../../common/with-router";
 
 class GameRoom extends Component {
@@ -9,6 +10,7 @@ class GameRoom extends Component {
 
         this.state = {
             isLoading: false,
+            isLoggedIn: false
         }
 
         this.createRoom = this.createRoom.bind(this);
@@ -16,7 +18,7 @@ class GameRoom extends Component {
 
     createRoom(e) {
         e.preventDefault();
-        console.log('Created');
+        console.log('Room created');
         this.setState({
             isLoading: true
         });
@@ -38,11 +40,22 @@ class GameRoom extends Component {
         });
     }
 
+    componentDidMount() {
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            this.setState({
+                isLoggedIn: true
+            })
+        }
+    }
+
     render() {
         return (
             <div>
-                <button onClick={this.createRoom}>
-                    New Game
+                <button
+                    disabled={!this.state.isLoggedIn}
+                    onClick={this.createRoom}
+                >New Game
                 </button>
             </div>
         )

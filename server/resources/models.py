@@ -80,7 +80,8 @@ class Room(Model):
     participants: fields.ManyToManyRelation[Player] = fields.ManyToManyField(
         "models.Player", related_name=""
     )
-    status = fields.SmallIntField()
+    status = fields.SmallIntField(default=0)
+    size = fields.SmallIntField(default=1)
 
     def room_state(self) -> str:
         """get room state"""
