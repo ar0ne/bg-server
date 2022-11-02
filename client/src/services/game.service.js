@@ -20,6 +20,16 @@ class GameService {
             headers: authHeader()
         })
     }
+    updateRoom(room_id) {
+        console.log("update room")
+    }
+    getRoom(room_id) {
+        return new Promise((resolve, reject) => {
+            return ("room": {
+                size: 2,
+            });
+        });
+    }
 }
 
 

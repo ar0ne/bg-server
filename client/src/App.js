@@ -9,6 +9,7 @@ import {
 import HomePage from "./components/home";
 import GameListPage from "./components/games/games";
 import GameDetailsPage from "./components/games/details";
+import RoomSetup from "./components/rooms/room-setup";
 import PlayerProfilePage from "./components/player";
 import LobbyPage from "./components/lobby";
 import Login from "./components/auth/login";
@@ -103,6 +104,7 @@ class App extends React.Component {
                         <Route path="/games" element={ <GameListPage /> } >
                             <Route path=":name" element={ <GameDetailsPage /> } />
                         </Route>
+                        <Route path="/rooms/:room_id" element={ <RoomSetup /> } />
                         <Route
                           path="*"
                           element={

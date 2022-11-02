@@ -2,7 +2,7 @@
 import { Component } from "react";
 import GameService from "../../services/game.service";
 import { withRouter } from "../../common/with-router";
-import GameRoom from "./room";
+import NewGame from "./new-game";
 
 
 class GameDetailsPage extends Component {
@@ -17,18 +17,6 @@ class GameDetailsPage extends Component {
                 "image": "",
             }
         }
-    }
-
-    render() {
-        const { game } = this.state;
-        return (
-            <div>
-                <h3>Welcome to {game.name} page</h3>
-                <p>Description: {game.description}</p>
-
-                <GameRoom game_id={game.id} />
-            </div>
-        )
     }
 
     componentDidMount() {
@@ -52,6 +40,19 @@ class GameDetailsPage extends Component {
             }
         )
     }
+
+    render() {
+        const { game } = this.state;
+        return (
+            <div>
+                <h3>Welcome to {game.name} page</h3>
+                <p>Description: {game.description}</p>
+
+                <NewGame game_id={game.id} />
+            </div>
+        )
+    }
+
 }
 
 export default withRouter(GameDetailsPage);
