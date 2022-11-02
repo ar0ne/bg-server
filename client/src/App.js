@@ -12,10 +12,10 @@ import GameDetailsPage from "./components/games/details";
 import PlayerProfilePage from "./components/player";
 import LobbyPage from "./components/lobby";
 import Login from "./components/auth/login";
-import Logout from "./components/auth/logout";
 import SignUp from "./components/auth/signup";
 import AuthService from "./services/auth.service";
 import EventBus from "./common/EventBus";
+import AuthVerify from "./common/auth-verify";
 
 
 class App extends React.Component {
@@ -33,11 +33,14 @@ class App extends React.Component {
                 currentUser: user,
             })
         }
-
         EventBus.on("logout", () => {
-          AuthService.logOut();
+            AuthService.logOut();
         });
+    }
 
+    logOut() {
+        AuthService.logOut();
+        window.location.href = "/login";
     }
 
     componentWillUnmount() {
@@ -69,9 +72,7 @@ class App extends React.Component {
                         )}
                         {currentUser && (
                           <li>
-                            <Link to="/logout">
-                              Log Out
-                            </Link>
+                            <a href="/logout" onClick={this.logOut} >Log Out</a>
                           </li>
                         )}
                         {!currentUser && (
@@ -97,7 +98,6 @@ class App extends React.Component {
                         <Route exact path="/" element={ <HomePage /> } />
                         <Route path="/login" element={ <Login /> } />
                         <Route path="/signup" element={ <SignUp /> } />
-                        <Route path="/logout" element={ <Logout /> } />
                         <Route path="/lobby" element={ <LobbyPage /> } />
                         <Route path="/player" element={ <PlayerProfilePage /> } />
                         <Route path="/games" element={ <GameListPage /> } >
@@ -112,6 +112,7 @@ class App extends React.Component {
                           }
                         />
                     </Routes>
+                    <AuthVerify logOut={ this.logOut }/>
                 </div>
             </Router>
         );

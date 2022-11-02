@@ -19,11 +19,9 @@ class PlayerProfilePage extends Component {
 
     componentDidMount() {
         const user = AuthService.getCurrentUser();
-        if (!(user && user.user_id)) {
-            EventBus.dispatch("logout");
-            // TODO: Why navigate doesn't work?
-            this.props.router.navigate("/");
-            window.location.reload();
+        if (!user) {
+            // let it render first and only then redirect
+            return setTimeout(() => this.props.router.navigate("/login", { replace: true }), 5);
         }
 
         UserService.getPublicDetails(user.user_id).then(
@@ -34,7 +32,10 @@ class PlayerProfilePage extends Component {
             error => {
                 console.log("unable to fetch user profile");
                 console.log(
-                    (error.response && error.response.data && error.response.data.error && error.response.data.error.message) ||
+                    (error.response &&
+                     error.response.data &&
+                     error.response.data.error &&
+                     error.response.data.error.message) ||
                     error.message ||
                     error.toString()
                 );

@@ -32,8 +32,7 @@ class JWTAuthMiddleware(MiddlewareHandler):
                 )
                 self.request.user = await Player.filter(id=payload["user_id"]).first()
             except (jwt.DecodeError, jwt.ExpiredSignatureError):
-                # raise HTTPError(401)
-                pass
+                raise APIError(401, "Unauthorized")
         await next()
 
 
