@@ -25,7 +25,6 @@ class GameRoom extends Component {
 
         GameService.createRoom(this.props.game_id).then(() => {
             console.log("room created");
-
         },
         error => {
             console.log("unable to create game room");
@@ -45,7 +44,7 @@ class GameRoom extends Component {
         if (user) {
             this.setState({
                 isLoggedIn: true
-            })
+            });
         }
     }
 

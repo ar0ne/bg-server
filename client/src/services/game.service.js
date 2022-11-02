@@ -15,6 +15,7 @@ class GameService {
         return axios.get(API_URL + name);
     }
     createRoom(game_id) {
+        // FIXME: do we want to setup room size at creation
         return axios.post(API_URL+ game_id + "/rooms", null, {
             headers: authHeader()
         })

@@ -57,6 +57,7 @@ class Game(Model):
 
     id = fields.UUIDField(pk=True)
     name = fields.CharField(unique=True, max_length=50)
+    size = fields.SmallIntField(default=1)
 
     # description
     # image
@@ -106,7 +107,7 @@ class GameTurn(Model):
 
 
 async def init_fake_data():
-    game = await Game.create(name=REGICIDE)
+    game = await Game.create(name=REGICIDE, size=2)
     foo = await Player.create(
         email="foo@f.oo",
         name="Foo",
@@ -119,7 +120,7 @@ async def init_fake_data():
         nickname="bar",
         password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
     )
-    room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value)
+    room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value, size=2)
     await room.participants.add(foo)
 
 
