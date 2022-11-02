@@ -1,9 +1,46 @@
 // Room Setup component
-
 import { Component } from "react";
-import GameService from "../../services/game.service";
+
 import AuthService from "../../services/auth.service";
+import RoomService from "../../services/room.service";
 import { withRouter } from "../../common/with-router";
+
+
+function RoomInfo (props) {
+    const { game } = props;
+    return (
+        <div>
+            <h3>Setup Game</h3>
+            <p>Game image: TBD</p>
+            <p>{game.name}</p>
+        </div>
+    );
+}
+
+
+function ParticipantList (props) {
+    const { isAdmin, participants } = props;
+    if (!(participants && participants.length)) {
+        return (<div>No participants</div>);
+    }
+    const participantItems = participants.map((participant) => (
+        <div key={participant.id}>
+            <p>Name: {participant.name}</p>
+            <p>Avatar: TBD</p>
+            <p>Nickname: {participant.nickname}</p>
+            {isAdmin && (
+                <pre>(table administrator)</pre>
+            )}
+        </div>
+    ));
+
+    return (
+        <div>
+            <h3>Players at this room</h3>
+            {participantItems}
+        </div>
+    );
+}
 
 class RoomSetup extends Component {
     constructor(props) {
@@ -12,13 +49,27 @@ class RoomSetup extends Component {
         this.state = {
             isLoading: false,
             isLoggedIn: false,
+            isAdmin: false,
+            isReadyToStart: false,
             room: {
-                size: 0,
+                admin: [],
+                date_created: "",
+                game: {
+                    id: "",
+                    max_size: 1,
+                    min_size: 1,
+                    name: "",
+                },
+                id: "",
+                room_state: "",
+                participants: [],
+                size: 1,
             },
         }
 
         this.updateRoom = this.updateRoom.bind(this);
         this.startGame = this.startGame.bind(this);
+        this.quitGame = this.quitGame.bind(this);
         this.increaseRoomSize = this.increaseRoomSize.bind(this);
         this.decreaseRoomSize = this.decreaseRoomSize.bind(this);
     }
@@ -29,7 +80,7 @@ class RoomSetup extends Component {
             isLoading: true
         });
 
-        GameService.updateRoom(this.props.room_id).then(() => {
+        RoomService.updateRoom(this.props.room_id).then(() => {
             console.log("room updated");
         },
         error => {
@@ -47,6 +98,10 @@ class RoomSetup extends Component {
 
     startGame() {
         console.log("start the game");
+    }
+
+    quitGame() {
+        console.log("quit the game");
     }
 
     increaseRoomSize() {
@@ -67,30 +122,47 @@ class RoomSetup extends Component {
         const user = AuthService.getCurrentUser();
         if (user) {
             this.setState({
-                isLoggedIn: true
+                isLoggedIn: true,
             });
         }
         const { room_id } = this.props.router.params;
-        const room = GameService.getRoom(room_id).then(response => {
+        RoomService.getRoom(room_id).then(response => {
+            let isAdmin = (user && user.user_id === response.data.admin.id);
             this.setState({
-                room: response.data
+                room: response.data,
+                isAdmin:  isAdmin,
             });
         })
     }
 
     render() {
+        const { isAdmin, room } = this.state;
         return (
             <div>
-                <h3>Room page</h3>
+                <RoomInfo game={room.game} />
                 <div>
-                    <p>Room size</p>
                     <button
-                        onClick={this.increaseRoomSize}
-                    >+</button>
+                        disabled={!this.state.isReadyToStart}
+                        onClick={this.startGame}
+                    >Start Game</button>
                     <button
-                        onClick={this.decreaseRoomSize}
-                    >-</button>
+                        onClick={this.quitGame}
+                    >Quit Game</button>
                 </div>
+
+                { isAdmin && (
+                    <div>
+                        <p>Room size</p>
+                        <button
+                            onClick={this.increaseRoomSize}
+                        >+</button>
+                        <button
+                            onClick={this.decreaseRoomSize}
+                        >-</button>
+                    </div>
+                )}
+
+                <ParticipantList participants={ room.participants } isAdmin={ isAdmin } />
 
             </div>
         )

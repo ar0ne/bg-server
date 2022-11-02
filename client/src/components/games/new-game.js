@@ -7,24 +7,23 @@ import { withRouter } from "../../common/with-router";
 class NewGame extends Component {
     constructor(props) {
         super(props);
-
         this.state = {
             isLoading: false,
             isLoggedIn: false
         }
-
-        this.createRoom = this.createRoom.bind(this);
+        this.createNewGame = this.createNewGame.bind(this);
     }
 
-    createRoom(e) {
+    createNewGame(e) {
         e.preventDefault();
         console.log('Room created');
         this.setState({
             isLoading: true
         });
 
-        GameService.createRoom(this.props.game_id).then(() => {
-            console.log("room created");
+        GameService.createNewGame(this.props.game_id).then(response => {
+            this.setState({ isLoading: false });
+            this.props.router.navigate(`/rooms/${response.data.id}`);
         },
         error => {
             console.log("unable to create game room");
@@ -53,7 +52,7 @@ class NewGame extends Component {
             <div>
                 <button
                     disabled={!this.state.isLoggedIn}
-                    onClick={this.createRoom}
+                    onClick={this.createNewGame}
                 >New Game
                 </button>
             </div>

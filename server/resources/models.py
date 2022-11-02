@@ -57,7 +57,8 @@ class Game(Model):
 
     id = fields.UUIDField(pk=True)
     name = fields.CharField(unique=True, max_length=50)
-    size = fields.SmallIntField(default=1)
+    min_size = fields.SmallIntField(default=1)
+    max_size = fields.SmallIntField(default=1)
 
     # description
     # image
@@ -82,7 +83,6 @@ class Room(Model):
         "models.Player", related_name=""
     )
     status = fields.SmallIntField(default=0)
-    size = fields.SmallIntField(default=1)
 
     def room_state(self) -> str:
         """get room state"""
@@ -91,9 +91,20 @@ class Room(Model):
             return ""
         return room_state_enum.value[1]
 
+    def size(self) -> int:
+        """Get room size"""
+        # FIXME: use .Count("*") if it's better
+        return len(self.participants)
+
     class PydanticMeta:
-        exclude = ["gameturns", "status"]
-        computed = ["room_state"]
+        exclude = (
+            "gameturns",
+            "status",
+        )
+        computed = (
+            "room_state",
+            "size",
+        )
 
 
 class GameTurn(Model):
@@ -107,7 +118,7 @@ class GameTurn(Model):
 
 
 async def init_fake_data():
-    game = await Game.create(name=REGICIDE, size=2)
+    game = await Game.create(name=REGICIDE, min_size=1, max_size=4)
     foo = await Player.create(
         email="foo@f.oo",
         name="Foo",

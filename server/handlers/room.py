@@ -18,12 +18,13 @@ class GameRoomHandler(BaseRequestHandler):
         """Create game room"""
         game = await Game.get(id=game_id)
         admin = self.request.user
-        room_size = self.request.arguments.get("size") or game.size
+        room_size = self.request.arguments.get("size") or game.min_size
         room = await Room.create(
             admin=admin, game=game, status=GameRoomStatus.CREATED.value, size=room_size
         )
         await room.participants.add(admin)
         serializer = await RoomSerializer.from_tortoise_orm(room)
+        self.set_status(201)
         self.write(serializer.json())
 
 
