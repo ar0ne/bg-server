@@ -7,12 +7,13 @@ import { withRouter } from "../../common/with-router";
 
 
 function RoomInfo (props) {
-    const { game } = props;
+    const { room } = props;
     return (
         <div>
             <h3>Setup Game</h3>
             <p>Game image: TBD</p>
-            <p>{game.name}</p>
+            <p>Name: {room.game.name}</p>
+            <p>State: {room.room_state}</p>
         </div>
     );
 }
@@ -27,6 +28,7 @@ function ParticipantList (props) {
         <div key={participant.id}>
             <p>Name: {participant.name}</p>
             <p>Avatar: TBD</p>
+            <p>ID : {participant.id}</p>
             <p>Nickname: {participant.nickname}</p>
             {isAdmin && (
                 <pre>(table administrator)</pre>
@@ -50,7 +52,8 @@ class RoomSetup extends Component {
             isLoading: false,
             isLoggedIn: false,
             isAdmin: false,
-            isReadyToStart: false,
+            isParticipant: false,
+            isCanJoin: false,
             room: {
                 admin: [],
                 date_created: "",
@@ -70,6 +73,7 @@ class RoomSetup extends Component {
         this.updateRoom = this.updateRoom.bind(this);
         this.startGame = this.startGame.bind(this);
         this.quitGame = this.quitGame.bind(this);
+        this.joinGame = this.joinGame.bind(this);
         this.increaseRoomSize = this.increaseRoomSize.bind(this);
         this.decreaseRoomSize = this.decreaseRoomSize.bind(this);
     }
@@ -104,6 +108,10 @@ class RoomSetup extends Component {
         console.log("quit the game");
     }
 
+    joinGame() {
+        console.log("joined the game");
+    }
+
     increaseRoomSize() {
         console.log("+")
         this.setState({
@@ -127,28 +135,44 @@ class RoomSetup extends Component {
         }
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            let isAdmin = (user && user.user_id === response.data.admin.id);
+            const data = response.data;
+            let isAdmin = (user && user.user_id === data.admin.id);
+            let isParticipant = !!(user && data.participants.find((p) => p.id === user.user_id));
+            let isCanJoin = (user && data.room_state === "created" && data.participants.length < data.size);
             this.setState({
                 room: response.data,
                 isAdmin:  isAdmin,
+                isParticipant: isParticipant,
+                isCanJoin: isCanJoin,
             });
         })
     }
 
     render() {
-        const { isAdmin, room } = this.state;
+        const { isAdmin, isLoggedIn, isParticipant, isCanJoin, room } = this.state;
         return (
             <div>
-                <RoomInfo game={room.game} />
-                <div>
-                    <button
-                        disabled={!this.state.isReadyToStart}
-                        onClick={this.startGame}
-                    >Start Game</button>
-                    <button
-                        onClick={this.quitGame}
-                    >Quit Game</button>
-                </div>
+                <RoomInfo room={room} />
+                { isLoggedIn && isParticipant && (
+                    <div>
+                        <button
+                            className={this.isAdmin ? "" : "hidden"}
+                            onClick={this.startGame}
+                        >Start Game</button>
+                        <button
+                            onClick={this.quitGame}
+                        >Quit Game</button>
+                    </div>
+                )}
+
+                { isLoggedIn && !isParticipant && isCanJoin && (
+                    <div>
+                        <button
+                            onClick={this.joinGame}
+                        >Join Game</button>
+                    </div>
+                )}
+
 
                 { isAdmin && (
                     <div>
