@@ -21,7 +21,6 @@ class RoomService {
     getRoom(room_id) {
         return axios.get(`${API_URL}/${room_id}`);
     }
-
     addParticipant(room_id, user_id) {
         return axios.post(`${API_URL}/${room_id}/players`, {
             user_id

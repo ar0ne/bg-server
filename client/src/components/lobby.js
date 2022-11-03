@@ -18,9 +18,6 @@ function PublicRooms(props) {
         return (
             <li key={room.id}>
                 <Link to={ url }>{ info }</Link>
-                <button
-                    disabled={ !isLoggedIn || participants === roomSize }
-                >Join</button>
             </li>
         )
     });

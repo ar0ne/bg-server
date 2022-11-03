@@ -54,26 +54,19 @@ class Room(Model):
     participants: fields.ManyToManyRelation[Player] = fields.ManyToManyField(
         "models.Player", related_name=""
     )
+    size = fields.SmallIntField(default=1)
     status = fields.SmallIntField(default=0)
 
     def room_state(self) -> str:
         """get room state"""
         return GameRoomStatus(self.status).name
 
-    def size(self) -> int:
-        """Get room size"""
-        # FIXME: use .Count("*") if it's better
-        return len(self.participants)
-
     class PydanticMeta:
         exclude = (
             "gameturns",
             "status",
         )
-        computed = (
-            "room_state",
-            "size",
-        )
+        computed = ("room_state",)
 
 
 class GameTurn(Model):

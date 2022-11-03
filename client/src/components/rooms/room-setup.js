@@ -14,6 +14,7 @@ function RoomInfo (props) {
             <p>Game image: TBD</p>
             <p>Name: {room.game.name}</p>
             <p>State: {room.room_state}</p>
+            <p>Room size is {room.size}</p>
         </div>
     );
 }
@@ -21,7 +22,6 @@ function RoomInfo (props) {
 function RoomSize (props) {
     return (
         <div>
-            <p>Room size is {props.size}</p>
             <button
                 onClick={props.increaseRoomSize}
             >+</button>
@@ -69,6 +69,7 @@ class RoomSetup extends Component {
             isAdmin: false,
             isParticipant: false,
             isCanJoin: false,
+            isCanStart: false,
             user_id: "",
             room: {
                 admin: [],
@@ -94,14 +95,22 @@ class RoomSetup extends Component {
         this.decreaseRoomSize = this.decreaseRoomSize.bind(this);
     }
 
-    updateRoom() {
+    updateRoom(data) {
         console.log('Room update');
         this.setState({
             isLoading: true
         });
 
-        RoomService.updateRoom(this.props.room_id).then(() => {
+        const body = {
+            size: data.size || this.state.room.size,
+            room_state: data.room_state || this.state.room.room_state,
+        }
+        RoomService.updateRoom(this.state.room.id, body).then(response => {
             console.log("room updated");
+            this.setState({
+                isLoading: false,
+                room: response.data,
+            });
         },
         error => {
             console.log("unable to update game room setup");
@@ -172,16 +181,13 @@ class RoomSetup extends Component {
 
     increaseRoomSize() {
         console.log("+")
-        this.setState({
-            ...this.state.room, size: this.state.room.size + 1
-        })
+        let data = {size: this.state.room.size + 1};
+        this.updateRoom(data);
     }
-
     decreaseRoomSize() {
         console.log("-")
-        this.setState({
-            ...this.state.room, size: this.state.room.size - 1
-        })
+        let data = {size: this.state.room.size - 1};
+        this.updateRoom(data);
     }
 
     componentDidMount() {
@@ -197,30 +203,30 @@ class RoomSetup extends Component {
             const data = response.data;
             let isAdmin = (user && user.user_id === data.admin.id);
             let isParticipant = !!(user && data.participants.find((p) => p.id === user.user_id));
-            let isCanJoin = (user && data.room_state === "created" && data.participants.length < data.size);
+            let isCanJoin = (user && data.room_state === "CREATED" && data.participants.length < data.size);
+            let isCanStart = (isAdmin && data.room_state === "CREATED" && data.participants.length === data.size)
             this.setState({
                 room: response.data,
-                isAdmin:  isAdmin,
-                isParticipant: isParticipant,
-                isCanJoin: isCanJoin,
+                isAdmin,
+                isParticipant,
+                isCanJoin,
+                isCanStart,
             });
         })
     }
 
     render() {
-        const { isAdmin, isLoggedIn, isParticipant, isCanJoin, room } = this.state;
+        const { isAdmin, isLoggedIn, isParticipant, isCanJoin, isCanStart, room } = this.state;
         return (
             <div>
                 <RoomInfo room={room} />
-                { isLoggedIn && isParticipant && (
+                { isCanStart && (
                     <div>
                         <button
                             className={this.isAdmin ? "" : "hidden"}
                             onClick={this.startGame}
                         >Start Game</button>
-                        <button
-                            onClick={this.quitGame}
-                        >Quit Game</button>
+
                     </div>
                 )}
 
@@ -235,7 +241,6 @@ class RoomSetup extends Component {
 
                 { isAdmin && (
                     <RoomSize
-                        size={room.size}
                         increaseRoomSize={this.increaseRoomSize}
                         decreaseRoomSize={this.decreaseRoomSize}
                     />

@@ -1,4 +1,5 @@
 """Room handlers"""
+from datetime import datetime
 from typing import Optional
 
 from resources.errors import APIError
@@ -63,14 +64,20 @@ class RoomHandler(BaseRequestHandler):
     #     await RegicideGameAdapter(room.id).setup(players_ids)
     #     self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
     #
-    # async def put(self, room_id: str) -> None:
-    #     """Player could make game turns"""
-    #     room = await Room.get(id=room_id).select_related("game")
-    #     data = tornado.escape.json_decode(self.request.body)
-    #     turn = data["data"]
-    #     # FIXME: ensure we know current user that sent request
-    #     user_id = self.current_user.id if self.current_user else None
-    #     await RegicideGameAdapter(room.id).update(user_id, turn)
+    @login_required
+    async def put(self, room_id: str) -> None:
+        """Player could make game turns"""
+        current_user = self.request.user
+        room = await Room.get(id=room_id).select_related("game")
+        if current_user.id != room.admin_id:
+            raise APIError(401, "Can't perform this action.")
+
+        data = self.request.arguments
+        room.status = GameRoomStatus[data["room_state"]].value
+        room.size = data["size"]
+        await room.save(update_fields=("status", "size"))
+        serializer = await RoomSerializer.from_tortoise_orm(room)
+        self.write(serializer.json())
 
 
 class RoomPlayersHandler(BaseRequestHandler):
@@ -79,16 +86,16 @@ class RoomPlayersHandler(BaseRequestHandler):
     @login_required
     async def post(self, room_id: str) -> None:
         """join room"""
-        player_id = self.get_argument("player_id")
-        player = self.current_user
-        if str(player.id) != player_id:
+        player_id = self.request.arguments.get("user_id")
+        current_user = self.request.user
+        if str(current_user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         room = await Room.get(id=room_id).prefetch_related("participants")
         player_already_joined = await room.participants.filter(id__in=player_id).exists()
         if not room or player_already_joined:
             raise APIError(400, "User already joined the room.")
-        await room.participants.add(player)
-        serializer = RoomSerializer.from_tortoise_orm(room)
+        await room.participants.add(current_user)
+        serializer = await RoomSerializer.from_tortoise_orm(room)
         self.write(serializer.json())
 
     @login_required
@@ -106,6 +113,7 @@ class RoomPlayersHandler(BaseRequestHandler):
         if not (room.admin is current_user and len(room.participants)):
             # cancel room if there are no participants
             room.status = GameRoomStatus.CANCELED.value
+            room.date_closed = datetime.now()
             await room.save(update_fields=("status",))
         serializer = await RoomSerializer.from_tortoise_orm(room)
         self.write(serializer.json())
