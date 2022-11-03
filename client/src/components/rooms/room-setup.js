@@ -18,9 +18,24 @@ function RoomInfo (props) {
     );
 }
 
+function RoomSize (props) {
+    return (
+        <div>
+            <p>Room size is {props.size}</p>
+            <button
+                onClick={props.increaseRoomSize}
+            >+</button>
+            <button
+                onClick={props.decreaseRoomSize}
+            >-</button>
+        </div>
+    )
+}
+
 
 function ParticipantList (props) {
-    const { isAdmin, participants } = props;
+    const { isAdmin, room } = props;
+    const participants = room.participants;
     if (!(participants && participants.length)) {
         return (<div>No participants</div>);
     }
@@ -54,6 +69,7 @@ class RoomSetup extends Component {
             isAdmin: false,
             isParticipant: false,
             isCanJoin: false,
+            user_id: "",
             room: {
                 admin: [],
                 date_created: "",
@@ -106,10 +122,52 @@ class RoomSetup extends Component {
 
     quitGame() {
         console.log("quit the game");
+        this.setState({
+            isLoading: true,
+        })
+        RoomService.removeParticipant(this.state.room.id, this.state.user_id)
+            .then(response => {
+                this.setState({
+                    room: response.data,
+                    isLoading: false,
+                });
+            },
+            error => {
+                console.log("unable to remove participant");
+                console.log(
+                    (error.response &&
+                     error.response.data &&
+                     error.response.data.error &&
+                     error.response.data.error.message) ||
+                    error.message ||
+                    error.toString()
+                );
+            });
     }
 
     joinGame() {
         console.log("joined the game");
+        this.setState({
+            isLoading: true,
+        })
+        RoomService.addParticipant(this.state.room.id, this.state.user_id)
+            .then(response => {
+                this.setState({
+                    room: response.data,
+                    isLoading: false,
+                });
+            },
+            error => {
+                console.log("unable to add participant");
+                console.log(
+                    (error.response &&
+                     error.response.data &&
+                     error.response.data.error &&
+                     error.response.data.error.message) ||
+                    error.message ||
+                    error.toString()
+                );
+            });
     }
 
     increaseRoomSize() {
@@ -130,6 +188,7 @@ class RoomSetup extends Component {
         const user = AuthService.getCurrentUser();
         if (user) {
             this.setState({
+                user_id: user.user_id,
                 isLoggedIn: true,
             });
         }
@@ -175,18 +234,14 @@ class RoomSetup extends Component {
 
 
                 { isAdmin && (
-                    <div>
-                        <p>Room size</p>
-                        <button
-                            onClick={this.increaseRoomSize}
-                        >+</button>
-                        <button
-                            onClick={this.decreaseRoomSize}
-                        >-</button>
-                    </div>
+                    <RoomSize
+                        size={room.size}
+                        increaseRoomSize={this.increaseRoomSize}
+                        decreaseRoomSize={this.decreaseRoomSize}
+                    />
                 )}
 
-                <ParticipantList participants={ room.participants } isAdmin={ isAdmin } />
+                <ParticipantList room={ room } isAdmin={ isAdmin } />
 
             </div>
         )

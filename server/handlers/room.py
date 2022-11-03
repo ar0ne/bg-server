@@ -1,7 +1,7 @@
 """Room handlers"""
 from typing import Optional
 
-import tornado
+from resources.errors import APIError
 
 from server.constants import GameRoomStatus
 from server.games.regicide.adapter import RegicideGameAdapter
@@ -76,31 +76,36 @@ class RoomHandler(BaseRequestHandler):
 class RoomPlayersHandler(BaseRequestHandler):
     """Room players handler"""
 
-    # @tornado.web.authenticated
-    # async def post(self, room_id: str) -> None:
-    #     """join room"""
-    #     player_id = self.get_argument("player_id")
-    #     player = self.current_user
-    #     if str(player.id) != player_id:
-    #         raise Exception  # FIXME
-    #     room = await Room.get(id=room_id).prefetch_related("participants")
-    #     player_already_joined = await room.participants.filter(id__in=player_id).exists()
-    #     if not room or player_already_joined:
-    #         raise Exception  # FIXME
-    #     await room.participants.add(player)
-    #     self.redirect(f"/rooms/{room_id}")
-    #
-    # @tornado.web.authenticated
-    # async def delete(self, room_id: str) -> None:
-    #     """Player could cancel own participation"""
-    #     # TODO: dry it!
-    #     player_id = self.get_argument("player_id")
-    #     player = self.current_user
-    #     if str(player.id) != player_id:
-    #         raise Exception  # FIXME
-    #     room = await Room.get(id=room_id).prefetch_related("participants")
-    #     player_joined = await room.participants.filter(id__in=player_id).exists()
-    #     if not (room and player_joined):
-    #         raise Exception  # FIXME
-    #     await room.participants.remove(player)
-    #     self.redirect(f"/rooms/{room_id}")
+    @login_required
+    async def post(self, room_id: str) -> None:
+        """join room"""
+        player_id = self.get_argument("player_id")
+        player = self.current_user
+        if str(player.id) != player_id:
+            raise APIError(401, "Can't perform this action.")
+        room = await Room.get(id=room_id).prefetch_related("participants")
+        player_already_joined = await room.participants.filter(id__in=player_id).exists()
+        if not room or player_already_joined:
+            raise APIError(400, "User already joined the room.")
+        await room.participants.add(player)
+        serializer = RoomSerializer.from_tortoise_orm(room)
+        self.write(serializer.json())
+
+    @login_required
+    async def delete(self, room_id: str, player_id: str) -> None:
+        """Player could cancel own participation"""
+        # TODO: dry it!
+        current_user = self.request.user
+        if str(current_user.id) != player_id:
+            raise APIError(401, "Can't perform this action.")
+        room = await Room.get(id=room_id).select_related("admin").prefetch_related("participants")
+        player_participate = any(filter(lambda p: p.id == current_user.id, room.participants))
+        if not (room and player_participate):
+            raise APIError(400, "User aren't participant of the room.")
+        await room.participants.remove(current_user)
+        if not (room.admin is current_user and len(room.participants)):
+            # cancel room if there are no participants
+            room.status = GameRoomStatus.CANCELED.value
+            await room.save(update_fields=("status",))
+        serializer = await RoomSerializer.from_tortoise_orm(room)
+        self.write(serializer.json())

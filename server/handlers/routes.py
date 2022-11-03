@@ -23,7 +23,8 @@ def get_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
         (r"/rooms/([a-zA-Z0-9_.-]+)/?", RoomHandler),
         (r"/rooms/?", RoomHandler),
         (r"/players/([a-zA-Z0-9_.-]+)/?", PlayerHandler),
-        # (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
+        (r"/rooms/([a-zA-Z0-9_.-]+)/players/([a-zA-Z0-9_.-]+)/?", RoomPlayersHandler),
+        (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
     ]
     routes = [(API_URL_PREFIX + url, handler) for (url, handler) in routes]
     routes.append((r"/", MainHandler))

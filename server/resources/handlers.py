@@ -15,7 +15,7 @@ class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHan
             "Access-Control-Allow-Headers",
             "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
         )
-        self.set_header("Access-Control-Allow-Methods", " POST, PUT, GET, OPTIONS")
+        self.set_header("Access-Control-Allow-Methods", " POST, PUT, GET, DELETE, OPTIONS")
         self.set_header("Content-Type", "application/json")
 
     async def prepare(self) -> None:

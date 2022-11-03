@@ -1,7 +1,5 @@
 """DB models"""
-import enum
 import json
-from typing import Optional
 
 from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
@@ -10,32 +8,6 @@ from server.constants import REGICIDE, GameRoomStatus
 from server.resources.utils import CustomJSONEncoder
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
-
-
-class RoomState(enum.Enum):
-    CREATED = (0, "created")
-    STARTED = (1, "playing_cards")
-    FINISHED = (2, "finished")
-    ABANDONED = (3, "abandoned")
-    CANCELLED = (4, "cancelled")
-
-    def __init__(self, state: int, label: str) -> None:
-        """Init room state enum"""
-        self.state = state
-        self.label = label
-
-    @classmethod
-    def from_value(cls, value: int) -> Optional["RoomState"]:
-        """
-        Return enum object if value exists.
-
-        >>> RoomState.ABANDONED is not RoomState.from_value(4)
-        >>> RoomState.ABANDONED is RoomState.from_value(3)
-        """
-        for _, v in RoomState.__members__.items():
-            if v.value[0] == value:
-                return v
-        return None
 
 
 class Player(Model):
@@ -86,10 +58,7 @@ class Room(Model):
 
     def room_state(self) -> str:
         """get room state"""
-        room_state_enum = RoomState.from_value(self.status)
-        if not room_state_enum:
-            return ""
-        return room_state_enum.value[1]
+        return GameRoomStatus(self.status).name
 
     def size(self) -> int:
         """Get room size"""

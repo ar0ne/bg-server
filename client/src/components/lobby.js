@@ -64,7 +64,10 @@ export default class LobbyPage extends Component {
             error => {
                 console.log("unable to fetch public rooms");
                 console.log(
-                    (error.response && error.response.data) ||
+                    (error.response &&
+                     error.response.data &&
+                     error.response.data.error &&
+                     error.response.data.error.message) ||
                     error.message ||
                     error.toString()
                 );
