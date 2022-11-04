@@ -5,7 +5,8 @@ from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 
 from server.constants import REGICIDE, GameRoomStatus
-from server.resources.utils import CustomJSONEncoder
+from server.games.base import AbstractGame
+from server.resources.utils import CustomJSONEncoder, lazy_import
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
 
@@ -34,6 +35,14 @@ class Game(Model):
 
     # description
     # image
+
+    # FIXME: cache it
+    def get_engine(self) -> AbstractGame:
+        """Get game engine class"""
+        # FIXME: used game.name instead model field and hardcoded path
+        game_name = self.name.lower()
+        module = lazy_import("adapter", f"server/games/{game_name}/adapter.py")
+        return getattr(module, "GameEngine")
 
     class PydanticMeta:
         exclude = ("rooms",)

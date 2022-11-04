@@ -1,14 +1,15 @@
 """Room handlers"""
+from dataclasses import asdict
 from datetime import datetime
 from typing import Optional
 
 from resources.errors import APIError
+from tornado.escape import json_decode
 
 from server.constants import GameRoomStatus
-from server.games.regicide.adapter import RegicideGameAdapter
 from server.resources.auth import login_required
 from server.resources.handlers import BaseRequestHandler
-from server.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
+from server.resources.models import Game, Room, RoomListSerializer, RoomSerializer
 
 
 class GameRoomHandler(BaseRequestHandler):
@@ -39,11 +40,14 @@ class RoomHandler(BaseRequestHandler):
             serializer = await RoomListSerializer.from_queryset(Room.all())
             self.write(serializer.json())
         else:
-            room = (
-                await Room.filter(id=room_id).select_related("admin").first() if room_id else None
-            )
+            room = await Room.get(id=room_id).select_related("game")
+            engine = room.game.get_engine()(room_id)
             serializer = await RoomSerializer.from_tortoise_orm(room)
-            self.write(serializer.json())
+            data = {
+                "room": json_decode(serializer.json()),
+                "data": asdict(await engine.poll()),
+            }
+            self.write(data)
 
     @login_required
     async def put(self, room_id: str) -> None:
@@ -56,7 +60,14 @@ class RoomHandler(BaseRequestHandler):
         # FIXME: add validation
         data = self.request.arguments
         if "room_state" in data:
-            room.status = GameRoomStatus[data["room_state"]].value
+            new_state = data["room_state"]
+            room.status = GameRoomStatus[new_state].value
+            if new_state == GameRoomStatus.STARTED.name:
+                players_ids = await room.participants.all().values_list("id", flat=True)
+                # new game event triggered
+                engine = room.game.get_engine()(room_id)
+                await engine.setup(players_ids)
+
         if "size" in data:
             room.size = data["size"]
         await room.save(update_fields=("status", "size"))

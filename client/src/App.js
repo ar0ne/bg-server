@@ -2,21 +2,22 @@ import React from "react";
 import {
     BrowserRouter as Router,
     Link,
-    Routes,
     Route,
+    Routes,
 } from "react-router-dom";
 
-import HomePage from "./components/home";
-import GameListPage from "./components/games/games";
+import AuthService from "./services/auth.service";
+import AuthVerify from "./common/auth-verify";
+import EventBus from "./common/EventBus";
 import GameDetailsPage from "./components/games/details";
-import RoomSetup from "./components/rooms/room-setup";
-import PlayerProfilePage from "./components/player";
+import GameListPage from "./components/games/games";
+import HomePage from "./components/home";
 import LobbyPage from "./components/lobby";
 import Login from "./components/auth/login";
+import PlayerProfilePage from "./components/player";
+import RoomSetup from "./components/rooms/room-setup";
+import RoomTable from "./components/rooms/room-table";
 import SignUp from "./components/auth/signup";
-import AuthService from "./services/auth.service";
-import EventBus from "./common/EventBus";
-import AuthVerify from "./common/auth-verify";
 
 
 class App extends React.Component {
@@ -104,7 +105,8 @@ class App extends React.Component {
                         <Route path="/games" element={ <GameListPage /> } >
                             <Route path=":name" element={ <GameDetailsPage /> } />
                         </Route>
-                        <Route path="/rooms/:room_id" element={ <RoomSetup /> } />
+                        <Route path="/rooms/:room_id" element={ <RoomTable /> } />
+                        <Route path="/rooms/:room_id/setup" element={ <RoomSetup /> } />
                         <Route
                           path="*"
                           element={

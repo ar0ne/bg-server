@@ -1,5 +1,5 @@
 """Regicide game adapter"""
-from typing import List
+from typing import List, Optional
 
 from server.games.base import AbstractGame, Id
 from server.games.regicide.dto import FlatCard, GameData
@@ -9,7 +9,7 @@ from server.games.regicide.utils import dump_data, load_data
 from server.resources.models import GameTurn
 
 
-class RegicideGameAdapter(AbstractGame):
+class GameEngine(AbstractGame):
     """Regicide game adapter"""
 
     def __init__(self, room_id: Id) -> None:
@@ -41,7 +41,7 @@ class RegicideGameAdapter(AbstractGame):
         # save changes
         await self._save_game_state(game)
 
-    async def poll(self, player: Id) -> GameData:
+    async def poll(self, player: Optional[Id] = None) -> GameData:
         """Poll the last turn data"""
         last_turn_data = await self._get_latest_game_state()
         # data should be for specific player only

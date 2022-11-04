@@ -21,7 +21,7 @@ class PlayerProfilePage extends Component {
         const user = AuthService.getCurrentUser();
         if (!user) {
             // let it render first and only then redirect
-            return setTimeout(() => this.props.router.navigate("/login", { replace: true }), 5);
+            return setTimeout(() => this.props.router.navigate("/login", { replace: true }), 1);
         }
 
         UserService.getPublicDetails(user.user_id).then(

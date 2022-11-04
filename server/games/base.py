@@ -1,7 +1,7 @@
 """Base game interface"""
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 Id = Union[str, uuid.UUID]
 
@@ -18,5 +18,5 @@ class AbstractGame(ABC):
         """update game state"""
 
     @abstractmethod
-    async def poll(self, player: Id) -> Dict[str, Any]:
+    async def poll(self, player: Optional[Id] = None) -> Dict[str, Any]:
         """poll game state"""

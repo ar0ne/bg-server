@@ -77,7 +77,9 @@ class RoomSetup extends Component {
             isSetupRoom: false,
             user_id: "",
             room: {
-                admin: [],
+                admin: {
+                    id: "",
+                },
                 date_created: "",
                 game: {
                     id: "",
@@ -102,9 +104,7 @@ class RoomSetup extends Component {
 
     changeRoomSize(newSize) {
         console.log('Room update');
-        this.setState({
-            isLoading: true
-        });
+        this.setState({ isLoading: true });
 
         RoomService.changeRoomSize(this.state.room.id, newSize).then(response => {
             console.log("room updated");
@@ -128,7 +128,7 @@ class RoomSetup extends Component {
 
     startGame() {
         console.log("start the game");
-        this.setState({isLoading: true});
+        this.setState({ isLoading: true });
         RoomService.startRoom(this.state.room.id)
             .then(response => {
                 this.setState({
