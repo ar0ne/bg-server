@@ -15,6 +15,7 @@ function RoomInfo (props) {
             <p>Name: {room.game.name}</p>
             <p>State: {room.room_state}</p>
             <p>Room size is {room.size}</p>
+            <p>Min/Max: ({room.game.min_size}/{room.game.max_size})</p>
         </div>
     );
 }
@@ -91,7 +92,7 @@ class RoomSetup extends Component {
             },
         }
 
-        this.updateRoom = this.updateRoom.bind(this);
+        this.changeRoomSize = this.changeRoomSize.bind(this);
         this.startGame = this.startGame.bind(this);
         this.quitGame = this.quitGame.bind(this);
         this.joinGame = this.joinGame.bind(this);
@@ -99,17 +100,13 @@ class RoomSetup extends Component {
         this.decreaseRoomSize = this.decreaseRoomSize.bind(this);
     }
 
-    updateRoom(data) {
+    changeRoomSize(newSize) {
         console.log('Room update');
         this.setState({
             isLoading: true
         });
 
-        const body = {
-            size: data.size || this.state.room.size,
-            room_state: data.room_state || this.state.room.room_state,
-        }
-        RoomService.updateRoom(this.state.room.id, body).then(response => {
+        RoomService.changeRoomSize(this.state.room.id, newSize).then(response => {
             console.log("room updated");
             this.setState({
                 isLoading: false,
@@ -131,6 +128,26 @@ class RoomSetup extends Component {
 
     startGame() {
         console.log("start the game");
+        this.setState({isLoading: true});
+        RoomService.startRoom(this.state.room.id)
+            .then(response => {
+                this.setState({
+                    isLoading: false,
+                    room: response.data
+                });
+                // TODO: redirect to game table
+            },
+            error => {
+                console.log("unable to remove participant");
+                console.log(
+                    (error.response &&
+                     error.response.data &&
+                     error.response.data.error &&
+                     error.response.data.error.message) ||
+                    error.message ||
+                    error.toString()
+                );
+            });
     }
 
     quitGame() {
@@ -185,13 +202,11 @@ class RoomSetup extends Component {
 
     increaseRoomSize() {
         console.log("+")
-        let data = {size: this.state.room.size + 1};
-        this.updateRoom(data);
+        this.changeRoomSize(this.state.room.size + 1);
     }
     decreaseRoomSize() {
         console.log("-")
-        let data = {size: this.state.room.size - 1};
-        this.updateRoom(data);
+        this.changeRoomSize(this.state.room.size - 1);
     }
 
     componentDidMount() {
@@ -204,14 +219,14 @@ class RoomSetup extends Component {
         }
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            const data = response.data;
-            let isAdmin = (user && user.user_id === data.admin.id);
-            let isParticipant = !!(user && data.participants.find((p) => p.id === user.user_id));
-            let isSetupRoom = data.room_state === "CREATED";
-            let isCanJoin = (user && isSetupRoom && data.participants.length < data.size);
-            let isCanStart = (isAdmin && isSetupRoom && data.participants.length === data.size)
+            const room = response.data;
+            let isAdmin = (user && user.user_id === room.admin.id);
+            let isParticipant = !!(user && room.participants.find((p) => p.id === user.user_id));
+            let isSetupRoom = room.room_state === "CREATED";
+            let isCanJoin = (user && isSetupRoom && room.participants.length < room.size);
+            let isCanStart = (isAdmin && isSetupRoom && room.participants.length === room.size)
             this.setState({
-                room: response.data,
+                room: room,
                 isAdmin,
                 isParticipant,
                 isCanJoin,
@@ -228,13 +243,13 @@ class RoomSetup extends Component {
         return (
             <div>
                 <RoomInfo room={room} />
+
                 { isCanStart && (
                     <div>
                         <button
-                            className={this.isAdmin ? "" : "hidden"}
+                            className={isAdmin ? "" : "hidden"}
                             onClick={this.startGame}
                         >Start Game</button>
-
                     </div>
                 )}
 
@@ -243,6 +258,14 @@ class RoomSetup extends Component {
                         <button
                             onClick={this.joinGame}
                         >Join Game</button>
+                    </div>
+                )}
+
+                { isLoggedIn && isParticipant && isSetupRoom && (
+                    <div>
+                        <button
+                            onClick={this.quitGame}
+                        >Quit Game</button>
                     </div>
                 )}
 

@@ -10,16 +10,22 @@ class RoomService {
     getAllPublicRooms() {
         return axios.get(API_URL);
     }
+    getRoom(room_id) {
+        return axios.get(`${API_URL}/${room_id}`);
+    }
+    changeRoomSize(room_id, size) {
+        return this.updateRoom(room_id, {size: size});
+    }
+    cancelRoom(room_id) {
+        return this.updateRoom(room_id, {room_state: "CANCELED"});
+    }
+    startRoom(room_id) {
+        return this.updateRoom(room_id, {room_state: "STARTED"});
+    }
     updateRoom(room_id, data) {
         return axios.put(`${API_URL}/${room_id}`, data, {
             headers: authHeader()
         });
-    }
-    cancelRoom(room_id) {
-
-    }
-    getRoom(room_id) {
-        return axios.get(`${API_URL}/${room_id}`);
     }
     addParticipant(room_id, user_id) {
         return axios.post(`${API_URL}/${room_id}/players`, {
@@ -33,7 +39,6 @@ class RoomService {
             headers: authHeader()
         });
     }
-
 }
 
 export default new RoomService();

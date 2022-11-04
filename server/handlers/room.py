@@ -45,25 +45,6 @@ class RoomHandler(BaseRequestHandler):
             serializer = await RoomSerializer.from_tortoise_orm(room)
             self.write(serializer.json())
 
-    # @tornado.web.authenticated
-    # async def post(self, room_id: str) -> None:
-    #     """Admin could update the status of the room to start the game"""
-    #     room = (
-    #         await Room.get(id=room_id)
-    #         .select_related("admin", "game")
-    #         .prefetch_related("participants")
-    #     )
-    #     if self.current_user != room.admin:
-    #         raise Exception  # FIXME
-    #     status = GameRoomStatus(int(self.get_argument("status")))
-    #     room.status = status.value
-    #     await room.save()
-    #     # TODO: server should notify all participants about this changes
-    #     # TODO: we have to resolve which game manager to use and how?
-    #     players_ids = await room.participants.all().values_list("id", flat=True)
-    #     await RegicideGameAdapter(room.id).setup(players_ids)
-    #     self.redirect(self.get_argument("next", f"/rooms/{room_id}"))
-    #
     @login_required
     async def put(self, room_id: str) -> None:
         """Player could make game turns"""
@@ -72,9 +53,12 @@ class RoomHandler(BaseRequestHandler):
         if current_user.id != room.admin_id:
             raise APIError(401, "Can't perform this action.")
 
+        # FIXME: add validation
         data = self.request.arguments
-        room.status = GameRoomStatus[data["room_state"]].value
-        room.size = data["size"]
+        if "room_state" in data:
+            room.status = GameRoomStatus[data["room_state"]].value
+        if "size" in data:
+            room.size = data["size"]
         await room.save(update_fields=("status", "size"))
         serializer = await RoomSerializer.from_tortoise_orm(room)
         self.write(serializer.json())
@@ -106,11 +90,12 @@ class RoomPlayersHandler(BaseRequestHandler):
         if str(current_user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         room = await Room.get(id=room_id).select_related("admin").prefetch_related("participants")
+        is_admin = current_user.id is room.admin.id
         player_participate = any(filter(lambda p: p.id == current_user.id, room.participants))
         if not (room and player_participate):
             raise APIError(400, "User aren't participant of the room.")
         await room.participants.remove(current_user)
-        if not (room.admin is current_user and len(room.participants)):
+        if is_admin and not len(room.participants):
             # cancel room if there are no participants
             room.status = GameRoomStatus.CANCELED.value
             room.date_closed = datetime.now()
