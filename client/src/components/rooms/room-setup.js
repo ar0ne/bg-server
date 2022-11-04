@@ -20,12 +20,15 @@ function RoomInfo (props) {
 }
 
 function RoomSize (props) {
+    const { min, max, size } = props;
     return (
         <div>
             <button
+                disabled={size === max}
                 onClick={props.increaseRoomSize}
             >+</button>
             <button
+                disabled={size === min}
                 onClick={props.decreaseRoomSize}
             >-</button>
         </div>
@@ -34,7 +37,7 @@ function RoomSize (props) {
 
 
 function ParticipantList (props) {
-    const { isAdmin, room } = props;
+    const { room } = props;
     const participants = room.participants;
     if (!(participants && participants.length)) {
         return (<div>No participants</div>);
@@ -45,7 +48,7 @@ function ParticipantList (props) {
             <p>Avatar: TBD</p>
             <p>ID : {participant.id}</p>
             <p>Nickname: {participant.nickname}</p>
-            {isAdmin && (
+            { participant.id === room.admin.id && (
                 <pre>(table administrator)</pre>
             )}
         </div>
@@ -70,6 +73,7 @@ class RoomSetup extends Component {
             isParticipant: false,
             isCanJoin: false,
             isCanStart: false,
+            isSetupRoom: false,
             user_id: "",
             room: {
                 admin: [],
@@ -203,20 +207,24 @@ class RoomSetup extends Component {
             const data = response.data;
             let isAdmin = (user && user.user_id === data.admin.id);
             let isParticipant = !!(user && data.participants.find((p) => p.id === user.user_id));
-            let isCanJoin = (user && data.room_state === "CREATED" && data.participants.length < data.size);
-            let isCanStart = (isAdmin && data.room_state === "CREATED" && data.participants.length === data.size)
+            let isSetupRoom = data.room_state === "CREATED";
+            let isCanJoin = (user && isSetupRoom && data.participants.length < data.size);
+            let isCanStart = (isAdmin && isSetupRoom && data.participants.length === data.size)
             this.setState({
                 room: response.data,
                 isAdmin,
                 isParticipant,
                 isCanJoin,
                 isCanStart,
+                isSetupRoom,
             });
         })
     }
 
     render() {
-        const { isAdmin, isLoggedIn, isParticipant, isCanJoin, isCanStart, room } = this.state;
+        const {
+            isAdmin, isLoggedIn, isParticipant, isCanJoin, isCanStart, isSetupRoom, room,
+         } = this.state;
         return (
             <div>
                 <RoomInfo room={room} />
@@ -239,8 +247,11 @@ class RoomSetup extends Component {
                 )}
 
 
-                { isAdmin && (
+                { isSetupRoom && isAdmin && (
                     <RoomSize
+                        size={this.state.room.size}
+                        min={this.state.room.game.min_size}
+                        max={this.state.room.game.max_size}
                         increaseRoomSize={this.increaseRoomSize}
                         decreaseRoomSize={this.decreaseRoomSize}
                     />
