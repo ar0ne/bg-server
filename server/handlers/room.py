@@ -45,7 +45,11 @@ class RoomHandler(BaseRequestHandler):
             response = {
                 "room": json_decode(serializer.json()),
             }
-            if room.status != GameRoomStatus.CREATED.value:
+            if room.status not in (
+                GameRoomStatus.CREATED.value,
+                GameRoomStatus.CANCELED.value,
+                GameRoomStatus.ABANDONED.value,
+            ):
                 engine = room.game.get_engine()(room_id)
                 response["data"] = asdict(await engine.poll())
             self.write(response)
@@ -102,12 +106,12 @@ class RoomPlayersHandler(BaseRequestHandler):
         if str(current_user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         room = await Room.get(id=room_id).select_related("admin").prefetch_related("participants")
-        is_admin = current_user.id is room.admin.id
+        is_admin = current_user.id == room.admin.id
         player_participate = any(filter(lambda p: p.id == current_user.id, room.participants))
         if not (room and player_participate):
             raise APIError(400, "User aren't participant of the room.")
         await room.participants.remove(current_user)
-        if is_admin and not len(room.participants):
+        if is_admin and not len(await room.participants.all()):
             # cancel room if there are no participants
             room.status = GameRoomStatus.CANCELED.value
             room.date_closed = datetime.now()

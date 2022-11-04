@@ -1,8 +1,8 @@
 // Game Details page component
 import { Component } from "react";
 import GameService from "../../services/game.service";
+import NewRoom from "../rooms/new-room";
 import { withRouter } from "../../common/with-router";
-import NewGame from "./new-game";
 
 
 class GameDetailsPage extends Component {
@@ -48,7 +48,7 @@ class GameDetailsPage extends Component {
                 <h3>Welcome to {game.name} page</h3>
                 <p>Description: {game.description}</p>
 
-                <NewGame game_id={game.id} />
+                <NewRoom game_id={game.id} />
             </div>
         )
     }
