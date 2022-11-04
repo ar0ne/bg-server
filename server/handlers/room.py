@@ -41,13 +41,14 @@ class RoomHandler(BaseRequestHandler):
             self.write(serializer.json())
         else:
             room = await Room.get(id=room_id).select_related("game")
-            engine = room.game.get_engine()(room_id)
             serializer = await RoomSerializer.from_tortoise_orm(room)
-            data = {
+            response = {
                 "room": json_decode(serializer.json()),
-                "data": asdict(await engine.poll()),
             }
-            self.write(data)
+            if room.status != GameRoomStatus.CREATED.value:
+                engine = room.game.get_engine()(room_id)
+                response["data"] = asdict(await engine.poll())
+            self.write(response)
 
     @login_required
     async def put(self, room_id: str) -> None:

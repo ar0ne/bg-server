@@ -33,10 +33,10 @@ class RoomTable extends Component {
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
             const { room, data } = response.data;
-            if (room.room_state == "CREATED") {
+            if (room.room_state === "CREATED") {
                 // redirect to Setup page
                 return setTimeout(() => this.props.router.navigate(`/rooms/${room_id}/setup`, { replace: true }), 1);
-            } else if (room.room_state == "STARTED") {
+            } else if (room.room_state === "STARTED") {
                 // get game turn ?
             }
 

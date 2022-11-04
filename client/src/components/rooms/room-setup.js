@@ -133,9 +133,9 @@ class RoomSetup extends Component {
             .then(response => {
                 this.setState({
                     isLoading: false,
-                    room: response.data
+                    room: response.data,
                 });
-                // TODO: redirect to game table
+                setTimeout(() => this.props.router.navigate(`/rooms/${this.state.room.id}`, { replace: true }), 1);
             },
             error => {
                 console.log("unable to remove participant");
@@ -158,8 +158,8 @@ class RoomSetup extends Component {
         RoomService.removeParticipant(this.state.room.id, this.state.user_id)
             .then(response => {
                 this.setState({
-                    room: response.data,
                     isLoading: false,
+                    room: response.data,
                 });
             },
             error => {
@@ -177,9 +177,7 @@ class RoomSetup extends Component {
 
     joinGame() {
         console.log("joined the game");
-        this.setState({
-            isLoading: true,
-        })
+        this.setState({ isLoading: true })
         RoomService.addParticipant(this.state.room.id, this.state.user_id)
             .then(response => {
                 this.setState({
@@ -219,7 +217,8 @@ class RoomSetup extends Component {
         }
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            const room = response.data;
+            // FIXME: only this endpoint currently returns {'room': ...}
+            const room = response.data.room;
             let isAdmin = (user && user.user_id === room.admin.id);
             let isParticipant = !!(user && room.participants.find((p) => p.id === user.user_id));
             let isSetupRoom = room.room_state === "CREATED";
