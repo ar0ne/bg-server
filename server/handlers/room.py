@@ -9,7 +9,7 @@ from tornado.escape import json_decode
 from server.constants import GameRoomStatus
 from server.resources.auth import login_required
 from server.resources.handlers import BaseRequestHandler
-from server.resources.models import Game, Room, RoomListSerializer, RoomSerializer
+from server.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 
 
 class GameRoomHandler(BaseRequestHandler):
@@ -33,6 +33,15 @@ class GameRoomHandler(BaseRequestHandler):
 class RoomHandler(BaseRequestHandler):
     """Room request handler"""
 
+    async def _get_room_player_id(self, room: Room, user: Optional[Player]) -> Optional[str]:
+        """Get user id if user participate in game room"""
+        if not user:
+            return None
+        players_ids = await room.participants.all().values_list("id", flat=True)
+        if user.id in players_ids:
+            return str(user.id)
+        return None
+
     async def get(self, room_id: Optional[str] = None) -> None:
         if not room_id:
             # FIXME: add limit
@@ -51,7 +60,8 @@ class RoomHandler(BaseRequestHandler):
                 GameRoomStatus.ABANDONED.value,
             ):
                 engine = room.game.get_engine()(room_id)
-                response["data"] = asdict(await engine.poll())
+                player_id = await self._get_room_player_id(room, self.request.user)
+                response["data"] = asdict(await engine.poll(player_id))
             self.write(response)
 
     @login_required

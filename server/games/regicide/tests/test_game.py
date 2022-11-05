@@ -1,7 +1,7 @@
 """Unit tests for game"""
 import unittest
 
-from server.games.regicide.dto import GameData
+from server.games.regicide.dto import GameState
 from server.games.regicide.game import Game
 from server.games.regicide.models import GameState
 from server.games.regicide.utils import load_data
@@ -56,7 +56,7 @@ class TestGame(unittest.TestCase):
 
     def test_play_cards_kill_enemy(self) -> None:
         """Tests playing cards and kill enemy"""
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("J", "♣"), ("J", "♥")],
             discard_deck=[("5", "♥")],
             first_player_id=self.user1_id,
@@ -90,7 +90,7 @@ class TestGame(unittest.TestCase):
 
     def test_play_diamond_card(self) -> None:
         """Tests playing diamond card and draw from tavern"""
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("J", "♣")],
             discard_deck=[("5", "♥")],
             first_player_id=self.user1_id,
@@ -124,7 +124,7 @@ class TestGame(unittest.TestCase):
 
     def test_play_cards__game_lost_due_to_empty_hand(self) -> None:
         """Tests playing card and no cards to defeat enemy"""
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("J", "♣")],
             discard_deck=[("5", "♥")],
             first_player_id=self.user1_id,
@@ -158,7 +158,7 @@ class TestGame(unittest.TestCase):
 
     def test_play_cards__won_game(self) -> None:
         """Tests playing card and won the game"""
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("J", "♥")],
             discard_deck=[("3", "♣")],
             first_player_id=self.user1_id,
@@ -189,7 +189,7 @@ class TestGame(unittest.TestCase):
 
     def test_play_cards__combo_from_twos(self) -> None:
         """Tests playing card combo from 2x4"""
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("K", "♥")],
             discard_deck=[("4", "♣")],
             first_player_id=self.user1_id,
@@ -228,7 +228,7 @@ class TestGame(unittest.TestCase):
 
     def test_play_cards__combo_with_ace(self) -> None:
         """Tests playing card combo from ace and card"""
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("Q", "♦")],
             discard_deck=[("4", "♣")],
             first_player_id=self.user1_id,
@@ -259,7 +259,7 @@ class TestGame(unittest.TestCase):
 
     def test_discard_cards(self) -> None:
         """Tests discarding cards"""
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("Q", "♦")],
             discard_deck=[("4", "♣")],
             first_player_id=self.user1_id,

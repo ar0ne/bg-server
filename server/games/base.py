@@ -14,9 +14,9 @@ class AbstractGame(ABC):
         """game setup"""
 
     @abstractmethod
-    async def update(self, player: Id, data: Dict[str, Any]) -> None:
+    async def update(self, player_id: Id, data: Dict[str, Any]) -> None:
         """update game state"""
 
     @abstractmethod
-    async def poll(self, player: Optional[Id] = None) -> Dict[str, Any]:
+    async def poll(self, player_id: Optional[Id] = None) -> Dict[str, Any]:
         """poll game state"""

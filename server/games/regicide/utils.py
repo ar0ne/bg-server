@@ -1,12 +1,17 @@
 """Game utilities"""
-from typing import List
+from typing import List, Optional
 
-from server.games.regicide.dto import FlatCard, GameData
+from server.games.regicide.dto import FlatCard, GameState, GameTurnData
 from server.games.regicide.game import Game, infinite_cycle
 from server.games.regicide.models import Card, CardHand, Deck, GameState, Player, Suit
 
 
-def load_data(data: GameData) -> Game:
+def to_flat_hand(hand: CardHand) -> List[FlatCard]:
+    """Flats card hand object"""
+    return [(card.rank, card.suit.value) for card in hand]  # type: ignore
+
+
+def load_data(data: GameState) -> Game:
     """Load data"""
     # fmt: off
     game = Game(list(map(lambda p: p[0], data.players)))
@@ -48,16 +53,10 @@ def load_data(data: GameData) -> Game:
     return game
 
 
-def dump_data(game: Game) -> GameData:
+def dump_data(game: Game) -> GameState:
     """Dump current game state"""
 
-    def to_flat_hand(hand: CardHand) -> List[FlatCard]:
-        """Flats card hand object"""
-        return [(card.rank, card.suit.value) for card in hand]  # type: ignore
-
-    # FIXME: on UI we don't need whole Taverna and Discard decks, only sizes
-
-    return GameData(
+    return GameState(
         enemy_deck=to_flat_hand(game.enemy_deck.cards),
         discard_deck=to_flat_hand(game.discard_deck.cards),
         first_player_id=game.first_player.id,
@@ -66,4 +65,22 @@ def dump_data(game: Game) -> GameData:
         state=game.state.value,  # type: ignore
         tavern_deck=to_flat_hand(game.tavern_deck.cards),
         turn=game.turn,
+    )
+
+
+def serialize_game_data(game: Game, player_id: Optional[str] = None) -> GameTurnData:
+    player = None
+    if player_id:
+        player = game.find_player(player_id)
+    top_enemy = game.enemy_deck.peek()
+    return GameTurnData(
+        enemy_deck_size=len(game.enemy_deck),
+        discard_size=len(game.discard_deck),
+        enemy=(top_enemy.rank, top_enemy.suit.value),
+        first_player_id=game.first_player.id,
+        played_combos=[to_flat_hand(combo) for combo in game.played_combos],
+        state=game.state.value,  # type: ignore
+        tavern_size=len(game.tavern_deck),
+        turn=game.turn,
+        hand=to_flat_hand(player.hand) if player else None,
     )

@@ -1,7 +1,7 @@
 """Tests utilities"""
 from unittest import TestCase
 
-from server.games.regicide.dto import GameData
+from server.games.regicide.dto import GameState
 from server.games.regicide.game import Game
 from server.games.regicide.models import Card, Deck, GameState, Suit
 from server.games.regicide.utils import dump_data, load_data
@@ -43,7 +43,7 @@ class TestUtilities(TestCase):
         """Tests loading game data"""
         user1_id = "user1_id"
         user2_id = "user2_id"
-        dump = GameData(
+        dump = GameState(
             enemy_deck=[("J", "♠")],
             discard_deck=[("9", "♦")],
             first_player_id=user2_id,

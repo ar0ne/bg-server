@@ -26,6 +26,15 @@ class RoomTable extends Component {
                 room_state: "",
             },
             data: {
+                enemy_deck_size: 0,
+                discard_size: 0,
+                enemy: [],
+                first_player_id: "",
+                state: "",
+                played_combos: [],
+                tavern_size: 0,
+                turn: 0,
+                hand: undefined,
             },
         }
     }
@@ -58,7 +67,7 @@ class RoomTable extends Component {
             <div>
                 <div>Table {room.game.name}</div>
                 <div>{ data.first_player_id }</div>
-                <Regicide data={data} />
+                <Regicide data={data} room={room} />
             </div>
         )
     }

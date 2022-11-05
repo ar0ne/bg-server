@@ -2,10 +2,10 @@
 from typing import List, Optional
 
 from server.games.base import AbstractGame, Id
-from server.games.regicide.dto import FlatCard, GameData
+from server.games.regicide.dto import FlatCard, GameState, GameTurnData
 from server.games.regicide.game import Game
 from server.games.regicide.models import Card
-from server.games.regicide.utils import dump_data, load_data
+from server.games.regicide.utils import dump_data, load_data, serialize_game_data
 from server.resources.models import GameTurn
 
 
@@ -41,16 +41,18 @@ class GameEngine(AbstractGame):
         # save changes
         await self._save_game_state(game)
 
-    async def poll(self, player: Optional[Id] = None) -> GameData:
+    async def poll(self, player_id: Optional[Id] = None) -> Optional[GameTurnData]:
         """Poll the last turn data"""
-        last_turn_data = await self._get_latest_game_state()
-        # data should be for specific player only
-        return last_turn_data or {}
+        last_turn_state = await self._get_latest_game_state()
+        if not last_turn_state:
+            return None
+        game = load_data(last_turn_state)
+        return serialize_game_data(game, player_id)
 
-    async def _get_latest_game_state(self) -> GameData:
+    async def _get_latest_game_state(self) -> GameState:
         """Get the latest game state from db"""
         turn = await GameTurn.filter(room_id=self.room_id).order_by("-turn").first()
-        return GameData(**turn.data)
+        return GameState(**turn.data)
 
     async def _save_game_state(self, game: Game) -> None:
         """persist game state into db"""
