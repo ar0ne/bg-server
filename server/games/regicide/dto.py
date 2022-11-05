@@ -21,7 +21,7 @@ class GameState:
 
 @dataclass(frozen=True)
 class GameTurnData:
-    """Represents internal game state data"""
+    """Represents game turn data"""
 
     enemy_deck_size: int
     discard_size: int

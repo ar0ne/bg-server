@@ -84,6 +84,11 @@ class Regicide extends Component {
 
     render() {
         const { data } = this.props;
+        if (!data) {
+            return (
+                <div>Game not found</div>
+            )
+        }
         return (
             <div>
                 <h4>Turn: {data.turn}</h4>

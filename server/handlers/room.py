@@ -53,6 +53,7 @@ class RoomHandler(BaseRequestHandler):
             serializer = await RoomSerializer.from_tortoise_orm(room)
             response = {
                 "room": json_decode(serializer.json()),
+                "data": None,
             }
             if room.status not in (
                 GameRoomStatus.CREATED.value,
@@ -61,7 +62,9 @@ class RoomHandler(BaseRequestHandler):
             ):
                 engine = room.game.get_engine()(room_id)
                 player_id = await self._get_room_player_id(room, self.request.user)
-                response["data"] = asdict(await engine.poll(player_id))
+                data = await engine.poll(player_id)
+                if data:
+                    response["data"] = asdict(data)
             self.write(response)
 
     @login_required

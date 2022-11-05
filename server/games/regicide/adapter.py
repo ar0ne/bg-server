@@ -49,9 +49,11 @@ class GameEngine(AbstractGame):
         game = load_data(last_turn_state)
         return serialize_game_data(game, player_id)
 
-    async def _get_latest_game_state(self) -> GameState:
+    async def _get_latest_game_state(self) -> Optional[GameState]:
         """Get the latest game state from db"""
         turn = await GameTurn.filter(room_id=self.room_id).order_by("-turn").first()
+        if not turn:
+            return None
         return GameState(**turn.data)
 
     async def _save_game_state(self, game: Game) -> None:

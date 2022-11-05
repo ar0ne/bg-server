@@ -66,7 +66,6 @@ class RoomTable extends Component {
         return (
             <div>
                 <div>Table {room.game.name}</div>
-                <div>{ data.first_player_id }</div>
                 <Regicide data={data} room={room} />
             </div>
         )

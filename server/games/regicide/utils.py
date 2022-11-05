@@ -68,7 +68,9 @@ def dump_data(game: Game) -> GameState:
     )
 
 
+# FIXME: better name
 def serialize_game_data(game: Game, player_id: Optional[str] = None) -> GameTurnData:
+    """Serialize public game turn data for player"""
     player = None
     if player_id:
         player = game.find_player(player_id)
