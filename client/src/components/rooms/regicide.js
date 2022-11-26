@@ -23,9 +23,8 @@ function PlayerHand (props) {
     )
 }
 
-function Deck (props) {
+function Deck(props) {
     const isEmpty = !(props.size);
-    const card = props.card;
 //    const isHidden = !props.show;  // do show top card
     return (
         <div>
@@ -33,15 +32,41 @@ function Deck (props) {
             { isEmpty && (
                 <p>Empty deck</p>
             )}
-            { card && (
-                <Card rank={card[0]} suit={card[1]} />
+            { !isEmpty && (
+                <p>...</p>
             )}
         </div>
     )
 }
 
-function PlayedCombos (props) {
+function EnemyDeck(props) {
+    const card = props.card;
+    // FIXME: we could let to configure difficulty later, for now just hardcode it
+    const rank = card[0];
+    const health_and_attack = {
+        "J": [20, 10],
+        "Q": [30, 15],
+        "K": [40, 20],
+    };
 
+    const [ health, attack ] = health_and_attack[rank];
+
+    return (
+        <div>
+            <Deck name={props.name} size={props.size} />
+            { card && (
+                <div>
+                    <Card rank={rank} suit={card[1]} />
+                    <p>Health: {health}</p>
+                    <p>Attack: {attack}</p>
+                </div>
+            )}
+
+        </div>
+    );
+}
+
+function PlayedCombos (props) {
     const combos = props.combos.map((combo) => {
         const comboCards = combo.map((card) => {
             return (
@@ -73,12 +98,10 @@ class Regicide extends Component {
     constructor(props) {
         super(props);
 
-        const { data, room } = props;
-
-//        this.state = {
-//            data: data,
-//            room: room,
-//        };
+        this.state = {
+            data: {},
+            room: {},
+        };
     }
 
 
@@ -92,7 +115,7 @@ class Regicide extends Component {
         return (
             <div>
                 <h4>Turn: {data.turn}</h4>
-                <Deck name="enemy" size={data.enemy_deck_size} card={data.enemy} />
+                <EnemyDeck name="enemy" size={data.enemy_deck_size} card={data.enemy} />
                 <Deck name="discard" size={data.discard_size} />
                 <Deck name="tavern" size={data.tavern_size} />
                 <PlayedCombos combos={data.played_combos} />

@@ -63,6 +63,12 @@ class RoomTable extends Component {
     render() {
         const { room, data } = this.state;
 
+        if (!room.room_state) {
+            return (
+                <div></div>
+            )
+        }
+
         return (
             <div>
                 <div>Table {room.game.name}</div>
