@@ -3,7 +3,6 @@ import { Component } from "react";
 
 
 function PlayerHand (props) {
-
     if (!props.hand) {
         return (<div></div>);
     }
@@ -15,7 +14,7 @@ function PlayerHand (props) {
 
     return (
         <div>
-            <h3>Player hand</h3>
+            <h3>Player ({props.player_id}) hand</h3>
             <div>
                 {hand}
             </div>
@@ -41,6 +40,11 @@ function Deck(props) {
 
 function EnemyDeck(props) {
     const card = props.card;
+    if (!card || !card.length) {
+        return (
+            <div></div>
+        )
+    }
     // FIXME: we could let to configure difficulty later, for now just hardcode it
     const rank = card[0];
     const health_and_attack = {
@@ -119,7 +123,7 @@ class Regicide extends Component {
                 <Deck name="discard" size={data.discard_size} />
                 <Deck name="tavern" size={data.tavern_size} />
                 <PlayedCombos combos={data.played_combos} />
-                <PlayerHand hand={data.hand} />
+                <PlayerHand hand={data.hand} player_id={data.player_id} />
             </div>
         );
     }

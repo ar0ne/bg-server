@@ -15,6 +15,11 @@ class RoomService {
             headers: authHeader()
         });
     }
+    getRoomData(room_id) {
+        return axios.get(`${API_URL}/${room_id}/data`, {
+            headers: authHeader()
+        });
+    }
     changeRoomSize(room_id, size) {
         return this.updateRoom(room_id, {size: size});
     }

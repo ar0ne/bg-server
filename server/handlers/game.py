@@ -6,7 +6,10 @@ from server.resources.models import Game, GameListSerializer, GameSerializer
 
 
 class GameHandler(BaseRequestHandler):
-    """Games handler"""
+    """
+    Games request handler.
+    Let get games list, and game details.
+    """
 
     async def get(self, game_name: str = "") -> None:
         """Get game or all games endpoint"""

@@ -27,6 +27,7 @@ class GameTurnData:
     discard_size: int
     enemy: FlatCard
     first_player_id: str
+    player_id: str
     played_combos: List[List[FlatCard]]
     state: str
     tavern_size: int

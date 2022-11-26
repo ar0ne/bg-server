@@ -12,8 +12,21 @@ from server.resources.handlers import BaseRequestHandler
 from server.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 
 
+async def get_room_player_id(room: Room, user: Optional[Player]) -> Optional[str]:
+    """Get user id if user participate in game room"""
+    if not user:
+        return None
+    players_ids = await room.participants.all().values_list("id", flat=True)
+    if user.id in players_ids:
+        return str(user.id)
+    return None
+
+
 class GameRoomHandler(BaseRequestHandler):
-    """Game room handler"""
+    """
+    Game room request handler.
+    Let create new game room.
+    """
 
     @login_required
     async def post(self, game_id: str) -> None:
@@ -31,16 +44,10 @@ class GameRoomHandler(BaseRequestHandler):
 
 
 class RoomHandler(BaseRequestHandler):
-    """Room request handler"""
-
-    async def _get_room_player_id(self, room: Room, user: Optional[Player]) -> Optional[str]:
-        """Get user id if user participate in game room"""
-        if not user:
-            return None
-        players_ids = await room.participants.all().values_list("id", flat=True)
-        if user.id in players_ids:
-            return str(user.id)
-        return None
+    """
+    Room request handler.
+    Let get all available game rooms, room details, setup room (and start game).
+    """
 
     async def get(self, room_id: Optional[str] = None) -> None:
         if not room_id:
@@ -51,21 +58,7 @@ class RoomHandler(BaseRequestHandler):
         else:
             room = await Room.get(id=room_id).select_related("game")
             serializer = await RoomSerializer.from_tortoise_orm(room)
-            response = {
-                "room": json_decode(serializer.json()),
-                "data": None,
-            }
-            if room.status not in (
-                GameRoomStatus.CREATED.value,
-                GameRoomStatus.CANCELED.value,
-                GameRoomStatus.ABANDONED.value,
-            ):
-                engine = room.game.get_engine()(room_id)
-                player_id = await self._get_room_player_id(room, self.request.user)
-                data = await engine.poll(player_id)
-                if data:
-                    response["data"] = asdict(data)
-            self.write(response)
+            self.write(serializer.json())
 
     @login_required
     async def put(self, room_id: str) -> None:
@@ -93,8 +86,26 @@ class RoomHandler(BaseRequestHandler):
         self.write(serializer.json())
 
 
+class RoomDataHandler(BaseRequestHandler):
+    """
+    Game Room data request handler.
+    Let receive latest game state
+    """
+
+    async def get(self, room_id: str) -> None:
+        """Get the latest game room state"""
+        room = await Room.get(id=room_id).select_related("game")
+        engine = room.game.get_engine()(room_id)
+        player_id = await get_room_player_id(room, self.request.user)
+        data = await engine.poll(player_id)
+        self.write(asdict(data))
+
+
 class RoomPlayersHandler(BaseRequestHandler):
-    """Room players handler"""
+    """
+    Room players request handler.
+    Let add and remove room participants.
+    """
 
     @login_required
     async def post(self, room_id: str) -> None:

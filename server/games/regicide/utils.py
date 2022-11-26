@@ -80,6 +80,7 @@ def serialize_game_data(game: Game, player_id: Optional[str] = None) -> GameTurn
         discard_size=len(game.discard_deck),
         enemy=(top_enemy.rank, top_enemy.suit.value),
         first_player_id=game.first_player.id,
+        player_id=player_id,
         played_combos=[to_flat_hand(combo) for combo in game.played_combos],
         state=game.state.value,  # type: ignore
         tavern_size=len(game.tavern_deck),

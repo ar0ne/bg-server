@@ -31,6 +31,7 @@ class RoomTable extends Component {
                 enemy: [],
                 first_player_id: "",
                 state: "",
+                player_id: "",
                 played_combos: [],
                 tavern_size: 0,
                 turn: 0,
@@ -43,19 +44,17 @@ class RoomTable extends Component {
         this.setState({isLoading: true});
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            const { room, data } = response.data;
+            const room  = response.data;
+            this.setState({room: room});
             if (room.room_state === "CREATED") {
                 // redirect to Setup page
                 return setTimeout(() => this.props.router.navigate(`/rooms/${room_id}/setup`, { replace: true }), 1);
             } else if (room.room_state === "STARTED") {
-                // get game turn ?
+                RoomService.getRoomData(room_id).then(response => {
+                    const data = response.data;
+                    this.setState({isLoading: false, data: data});
+                });
             }
-
-            this.setState({
-                isLoading: false,
-                room: room,
-                data: data,
-            });
         });
 
     }
@@ -68,10 +67,15 @@ class RoomTable extends Component {
                 <div></div>
             )
         }
+        if (room.room_state === "CANCELED") {
+            return (
+                <div>Game has been canceled</div>
+            )
+        }
 
         return (
             <div>
-                <div>Table {room.game.name}</div>
+                <div>Game Table: {room.game.name}</div>
                 <Regicide data={data} room={room} />
             </div>
         )
