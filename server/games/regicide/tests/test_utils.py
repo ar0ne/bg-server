@@ -1,7 +1,7 @@
 """Tests utilities"""
 from unittest import TestCase
 
-from server.games.regicide.dto import GameState
+from server.games.regicide.dto import GameStateDto
 from server.games.regicide.game import Game
 from server.games.regicide.models import Card, Deck, GameState, Suit
 from server.games.regicide.utils import dump_data, load_data
@@ -25,7 +25,7 @@ class TestUtilities(TestCase):
             [Card(suit=Suit.SPADES, rank=Card.THREE)],
         ]
         game.discard_deck = Deck([Card(suit=Suit.DIAMONDS, rank=Card.NINE)])
-        game.state = GameState.DISCARDING_CARDS
+        game.state = GameStateDto.DISCARDING_CARDS
         game.turn = 5
 
         dump = dump_data(game)
@@ -43,7 +43,7 @@ class TestUtilities(TestCase):
         """Tests loading game data"""
         user1_id = "user1_id"
         user2_id = "user2_id"
-        dump = GameState(
+        dump = GameStateDto(
             enemy_deck=[("J", "♠")],
             discard_deck=[("9", "♦")],
             first_player_id=user2_id,
@@ -61,7 +61,7 @@ class TestUtilities(TestCase):
         load_data(game, dump)
 
         self.assertEqual(20, game.turn)
-        self.assertEqual(GameState.DISCARDING_CARDS, game.state)
+        self.assertEqual(GameStateDto.DISCARDING_CARDS, game.state)
         self.assertEqual(user2_id, game.first_player.id)
         self.assertEqual(1, len(game.tavern_deck))
         self.assertEqual(Card.TWO, game.tavern_deck.cards[0].rank)

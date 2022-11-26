@@ -217,8 +217,7 @@ class RoomSetup extends Component {
         }
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            // FIXME: only this endpoint currently returns {'room': ...}
-            const room = response.data.room;
+            const room = response.data;
             let isAdmin = (user && user.user_id === room.admin.id);
             let isParticipant = !!(user && room.participants.find((p) => p.id === user.user_id));
             let isSetupRoom = room.room_state === "CREATED";

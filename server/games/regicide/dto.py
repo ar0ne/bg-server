@@ -6,7 +6,7 @@ FlatCard = Tuple[str, str]
 
 
 @dataclass(frozen=True)
-class GameState:
+class GameStateDto:
     """Represents internal game state data"""
 
     enemy_deck: List[FlatCard]
@@ -20,7 +20,7 @@ class GameState:
 
 
 @dataclass(frozen=True)
-class GameTurnData:
+class GameTurnDataDto:
     """Represents game turn data"""
 
     enemy_deck_size: int

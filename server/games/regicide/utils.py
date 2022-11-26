@@ -1,7 +1,7 @@
 """Game utilities"""
 from typing import List, Optional
 
-from server.games.regicide.dto import FlatCard, GameState, GameTurnData
+from server.games.regicide.dto import FlatCard, GameStateDto, GameTurnDataDto
 from server.games.regicide.game import Game, infinite_cycle
 from server.games.regicide.models import Card, CardHand, Deck, GameState, Player, Suit
 
@@ -11,7 +11,7 @@ def to_flat_hand(hand: CardHand) -> List[FlatCard]:
     return [(card.rank, card.suit.value) for card in hand]  # type: ignore
 
 
-def load_data(data: GameState) -> Game:
+def load_data(data: GameStateDto) -> Game:
     """Load data"""
     # fmt: off
     game = Game(list(map(lambda p: p[0], data.players)))
@@ -53,10 +53,10 @@ def load_data(data: GameState) -> Game:
     return game
 
 
-def dump_data(game: Game) -> GameState:
+def dump_data(game: Game) -> GameStateDto:
     """Dump current game state"""
 
-    return GameState(
+    return GameStateDto(
         enemy_deck=to_flat_hand(game.enemy_deck.cards),
         discard_deck=to_flat_hand(game.discard_deck.cards),
         first_player_id=game.first_player.id,
@@ -69,13 +69,13 @@ def dump_data(game: Game) -> GameState:
 
 
 # FIXME: better name
-def serialize_game_data(game: Game, player_id: Optional[str] = None) -> GameTurnData:
+def serialize_game_data(game: Game, player_id: Optional[str] = None) -> GameTurnDataDto:
     """Serialize public game turn data for player"""
     player = None
     if player_id:
         player = game.find_player(player_id)
     top_enemy = game.enemy_deck.peek()
-    return GameTurnData(
+    return GameTurnDataDto(
         enemy_deck_size=len(game.enemy_deck),
         discard_size=len(game.discard_deck),
         enemy=(top_enemy.rank, top_enemy.suit.value),
