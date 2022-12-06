@@ -98,6 +98,17 @@ function Card (props) {
     );
 }
 
+function GameState(props) {
+    let msg = "";
+    const {state, is_active_player} = props;
+    if (state === "playing_cards") {
+        msg = is_active_player ? "You should play cards or yield (TBA)." : "Your partner plays.";
+    }
+    return (
+        <div>{msg}</div>
+    )
+}
+
 class Regicide extends Component {
     constructor(props) {
         super(props);
@@ -116,9 +127,11 @@ class Regicide extends Component {
                 <div>Game not found</div>
             )
         }
+        const is_active_player = data.first_player_id === data.player_id;
         return (
             <div>
-                <h4>Turn: {data.turn}</h4>
+                <GameState state={data.state} is_active_player={is_active_player} />
+                <h5>Turn: {data.turn}</h5>
                 <EnemyDeck name="enemy" size={data.enemy_deck_size} card={data.enemy} />
                 <Deck name="discard" size={data.discard_size} />
                 <Deck name="tavern" size={data.tavern_size} />
