@@ -1,10 +1,10 @@
 """Tests utilities"""
 from unittest import TestCase
 
-from server.games.regicide.dto import GameStateDto
-from server.games.regicide.game import Game
-from server.games.regicide.models import Card, Deck, GameState, Suit
-from server.games.regicide.utils import dump_data, load_data
+from core.games.regicide.dto import GameStateDto
+from core.games.regicide.game import Game
+from core.games.regicide.models import Card, Deck, Suit
+from core.games.regicide.utils import dump_data, load_data
 
 
 class TestUtilities(TestCase):

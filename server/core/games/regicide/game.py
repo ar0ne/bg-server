@@ -4,14 +4,14 @@ import random
 from itertools import product
 from typing import Iterable, List, Optional
 
-from server.games.regicide.exceptions import (
+from ..regicide.exceptions import (
     CardBelongsToAnotherError,
     InvalidGameStateError,
     InvalidPairComboError,
     MaxComboSizeExceededError,
     TurnOrderViolationError
 )
-from server.games.regicide.models import Card, CardCombo, Deck, Enemy, GameState, Player, Suit
+from ..regicide.models import Card, CardCombo, Deck, Enemy, GameState, Player, Suit
 
 
 def infinite_cycle(iters: Iterable):

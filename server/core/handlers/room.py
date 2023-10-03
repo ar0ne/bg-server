@@ -3,13 +3,11 @@ from dataclasses import asdict
 from datetime import datetime
 from typing import Optional
 
-from resources.errors import APIError
-from tornado.escape import json_decode
-
-from server.constants import GameRoomStatus
-from server.resources.auth import login_required
-from server.resources.handlers import BaseRequestHandler
-from server.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
+from core.constants import GameRoomStatus
+from core.resources.auth import login_required
+from core.resources.errors import APIError
+from core.resources.handlers import BaseRequestHandler
+from core.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 
 
 async def get_room_player_id(room: Room, user: Optional[Player]) -> Optional[str]:

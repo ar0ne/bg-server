@@ -1,10 +1,9 @@
 """Unit tests for game"""
 import unittest
 
-from server.games.regicide.dto import GameStateDto
-from server.games.regicide.game import Game
-from server.games.regicide.models import GameState
-from server.games.regicide.utils import load_data
+from core.games.regicide.dto import GameStateDto
+from core.games.regicide.game import Game
+from core.games.regicide.utils import load_data
 
 
 class TestGame(unittest.TestCase):

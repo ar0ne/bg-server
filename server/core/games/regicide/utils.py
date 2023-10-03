@@ -1,9 +1,9 @@
 """Game utilities"""
 from typing import List, Optional
 
-from server.games.regicide.dto import FlatCard, GameStateDto, GameTurnDataDto
-from server.games.regicide.game import Game, infinite_cycle
-from server.games.regicide.models import Card, CardHand, Deck, GameState, Player, Suit
+from core.games.regicide.dto import FlatCard, GameStateDto, GameTurnDataDto
+from core.games.regicide.game import Game, infinite_cycle
+from core.games.regicide.models import Card, CardHand, Deck, GameState, Player, Suit
 
 
 def to_flat_hand(hand: CardHand) -> List[FlatCard]:

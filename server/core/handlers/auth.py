@@ -1,12 +1,11 @@
 """Auth handlers"""
 import bcrypt
 import tornado
-from resources.errors import APIError
+from core.resources.auth import get_jwt_token
+from core.resources.errors import APIError
+from core.resources.handlers import BaseRequestHandler
+from core.resources.models import Player
 from tortoise.expressions import Q
-
-from server.resources.auth import get_jwt_token
-from server.resources.handlers import BaseRequestHandler
-from server.resources.models import Player
 
 
 class AuthSignUpHandler(BaseRequestHandler):

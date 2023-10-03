@@ -2,12 +2,11 @@
 from typing import List, Tuple
 
 import tornado
-
-from server.handlers.auth import AuthLoginHandler, AuthSignUpHandler
-from server.handlers.game import GameHandler
-from server.handlers.index import MainHandler
-from server.handlers.player import PlayerHandler
-from server.handlers.room import GameRoomHandler, RoomDataHandler, RoomHandler, RoomPlayersHandler
+from core.handlers.auth import AuthLoginHandler, AuthSignUpHandler
+from core.handlers.game import GameHandler
+from core.handlers.index import MainHandler
+from core.handlers.player import PlayerHandler
+from core.handlers.room import GameRoomHandler, RoomDataHandler, RoomHandler, RoomPlayersHandler
 
 API_URL_PREFIX = "/api/v1"
 

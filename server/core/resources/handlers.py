@@ -1,8 +1,7 @@
 import tornado
+from core.resources.auth import JWTAuthMiddleware
+from core.resources.errors import ErrorHandler
 from tornado.escape import json_decode
-
-from server.resources.auth import JWTAuthMiddleware
-from server.resources.errors import ErrorHandler
 
 
 class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHandler):

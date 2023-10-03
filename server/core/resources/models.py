@@ -1,12 +1,11 @@
 """DB models"""
 import json
 
+from core.constants import REGICIDE, GameRoomStatus
+from core.games.base import AbstractGame
+from core.resources.utils import CustomJSONEncoder, lazy_import
 from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
-
-from server.constants import REGICIDE, GameRoomStatus
-from server.games.base import AbstractGame
-from server.resources.utils import CustomJSONEncoder, lazy_import
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
 
@@ -94,19 +93,19 @@ async def init_fake_data():
         email="foo@f.oo",
         name="Foo",
         nickname="foo",
-        password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
+        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
     )
     await Player.create(
         email="bar@b.ar",
         name="Bar",
         nickname="bar",
-        password="$2b$12$5LAFLk9LJlem6ZUH2KmZO.T81anazVEcqoMZjZ5ezzmS7b13JUQeS",
+        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
     )
     room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value, size=2)
     await room.participants.add(foo)
 
 
-Tortoise.init_models(["server.resources.models"], "models")
+Tortoise.init_models(["core.resources.models"], "models")
 
 PlayerSerializer = pydantic_model_creator(Player)
 PlayerListSerializer = pydantic_queryset_creator(Player)

@@ -18,7 +18,7 @@ async def init_database() -> None:
         # FIXME: fix for other db providers
         # await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["server.resources.models"]})
         await Tortoise.init(
-            db_url="sqlite://db.sqlite", modules={"models": ["server.resources.models"]}
+            db_url="sqlite://db.sqlite", modules={"models": ["core.resources.models"]}
         )
 
     # Generate the schema

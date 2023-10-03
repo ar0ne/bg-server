@@ -28,7 +28,6 @@ class ErrorHandler(tornado.web.RequestHandler):
         self.status_code = status_code
 
     def write_error(self, status_code: int, **kwargs) -> None:
-
         if self.settings.get("serve_traceback") and "exc_info" in kwargs:
             # in debug mode, try to send a traceback
             lines = []
