@@ -11,7 +11,7 @@ from ..regicide.exceptions import (
     MaxComboSizeExceededError,
     TurnOrderViolationError,
 )
-from ..regicide.models import Card, CardCombo, Deck, Enemy, GameState, Player, Suit
+from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, GameState, Player, Suit
 
 
 def infinite_cycle(iters: Iterable):
@@ -52,7 +52,7 @@ def is_enemy_defeated(enemy: Enemy, cards: List[CardCombo]) -> bool:
     return enemy.health <= get_total_damage_to_enemy(enemy, cards)
 
 
-def is_valid_duplicate_combo(rank: str, combo: CardCombo) -> bool:
+def is_valid_duplicate_combo(rank: CardRank, combo: CardCombo) -> bool:
     """True if it is valid combo from duplicated cards"""
     if not any(card.rank == rank for card in combo):
         return True
@@ -66,7 +66,8 @@ def is_valid_duplicate_combo(rank: str, combo: CardCombo) -> bool:
 class Game:
     """Regicide game class"""
 
-    DUPLICATED_COMBO_RANKS = (Card.TWO, Card.THREE, Card.FOUR, Card.FIVE)
+    DUPLICATED_COMBO_RANKS = (CardRank.TWO, CardRank.THREE, CardRank.FOUR, CardRank.FIVE)
+    ENEMY_RANKS = (CardRank.JACK, CardRank.QUEEN, CardRank.KING)
 
     def __init__(self, players_ids: List[str]) -> None:
         """Init game"""
@@ -117,7 +118,8 @@ class Game:
         game.played_combos = []
         # players draw X random cards on hands
         for player in game.players:
-            player.hand = game.tavern_deck.pop_many(player.hand_size)
+            hand = game.tavern_deck.pop_many(player.hand_size)
+            player.hand = hand
         # first player could play cards now
         game.state = GameState.PLAYING_CARDS
         game.turn = 1
@@ -228,7 +230,7 @@ class Game:
         combo_size = len(combo)
         if combo_size == 1:
             return
-        if any(card.rank == Card.ACE for card in combo):
+        if any(card.rank == CardRank.ACE for card in combo):
             if combo_size > 2:
                 raise MaxComboSizeExceededError
         else:
@@ -299,7 +301,7 @@ class Game:
 
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""
-        ranks = (*map(str, range(2, 11)), Card.ACE)
+        ranks = (*map(str, range(2, 11)), CardRank.ACE)
         combinations = product(ranks, Suit.list_values())
         players_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), combinations))
         random.shuffle(players_deck)
@@ -307,8 +309,7 @@ class Game:
 
     def _create_enemy_deck(self) -> None:
         """Create enemy cards deck"""
-        enemy_ranks = (Card.JACK, Card.QUEEN, Card.KING)
-        face_combs = product(enemy_ranks, Suit.list_values())
+        face_combs = product(self.ENEMY_RANKS, Suit.list_values())
         enemy_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))

@@ -8,7 +8,7 @@ from core.games.regicide.models import Card, CardHand, Deck, GameState, Player, 
 
 def to_flat_hand(hand: CardHand) -> List[FlatCard]:
     """Flats card hand object"""
-    return [(card.rank, card.suit.value) for card in hand]  # type: ignore
+    return [(card.rank.value, card.suit.value) for card in hand]  # type: ignore
 
 
 def load_data(data: GameStateDto) -> Game:

@@ -27,12 +27,13 @@ class GameEngine(AbstractGame):
         data = list(map(lambda c: Card(c[0], c[1]), data))
         last_game_data = await self._get_latest_game_state()
         game = load_data(last_game_data)
-        # player = game.find_player(player_id)
         player = game.first_player
-        # if not player:
-        #     raise Exception  # FIXME
+        if not player:
+            raise Exception  # FIXME
+        if player.id != player_id:
+            raise Exception  # FIXME
         if game.is_playing_cards_state:
-            Game.play_cards(game, player, data)
+            game.play_cards(player, data)
         elif game.is_discarding_cards_state:
             game.discard_cards(player, data)
         else:

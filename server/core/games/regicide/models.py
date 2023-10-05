@@ -9,6 +9,24 @@ CardCombo = List["Card"]
 CardHand = List["Card"]
 
 
+class CardRank(enum.Enum):
+    """Represents card rank"""
+
+    TWO = "2"
+    THREE = "3"
+    FOUR = "4"
+    FIVE = "5"
+    SIX = "6"
+    SEVEN = "7"
+    EIGHT = "8"
+    NINE = "9"
+    TEN = "10"
+    JACK = "J"
+    QUEEN = "Q"
+    KING = "K"
+    ACE = "A"
+
+
 class GameState(enum.Enum):
     """Represents current state of the game"""
 
@@ -54,39 +72,31 @@ class Player:
 class Card:
     """Card"""
 
-    TWO = "2"
-    THREE = "3"
-    FOUR = "4"
-    FIVE = "5"
-    SIX = "6"
-    SEVEN = "7"
-    EIGHT = "8"
-    NINE = "9"
-    TEN = "10"
-    JACK = "J"
-    QUEEN = "Q"
-    KING = "K"
-    ACE = "A"
-
     ATTACK = {
-        JACK: 10,
-        QUEEN: 15,
-        KING: 20,
-        ACE: 1,
+        CardRank.TWO: 2,
+        CardRank.THREE: 3,
+        CardRank.FOUR: 4,
+        CardRank.FIVE: 5,
+        CardRank.SIX: 6,
+        CardRank.SEVEN: 7,
+        CardRank.EIGHT: 8,
+        CardRank.NINE: 9,
+        CardRank.TEN: 10,
+        CardRank.JACK: 10,
+        CardRank.QUEEN: 15,
+        CardRank.KING: 20,
+        CardRank.ACE: 1,
     }
-    ATTACK.update({str(v): v for v in range(2, 11)})
     HEALTH = {
-        JACK: 20,
-        QUEEN: 30,
-        KING: 40,
+        CardRank.JACK: 20,
+        CardRank.QUEEN: 30,
+        CardRank.KING: 40,
     }
 
-    def __init__(self, rank: str, suit: Union[Suit, str]) -> None:
+    def __init__(self, rank: Union[str, CardRank], suit: Union[Suit, str]) -> None:
         """Init Card"""
-        if isinstance(suit, str):
-            suit = Suit(suit)
-        self.suit = suit
-        self.rank = rank
+        self.rank = CardRank(rank) if isinstance(rank, str) else rank
+        self.suit = Suit(suit) if isinstance(suit, str) else suit
 
     @property
     def health(self) -> int:

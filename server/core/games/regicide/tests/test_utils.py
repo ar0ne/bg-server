@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
-from core.games.regicide.models import Card, Deck, GameState, Suit
+from core.games.regicide.models import Card, CardRank, Deck, GameState, Suit
 from core.games.regicide.utils import dump_data, load_data
 
 
@@ -16,15 +16,15 @@ class TestUtilities(TestCase):
         user_id = "user_id"
         game = Game([user_id])
         player = game.first_player
-        card = Card(suit=Suit.HEARTS, rank=Card.FOUR)
+        card = Card(suit=Suit.HEARTS, rank=CardRank.FOUR)
         player.hand = [card]
-        game.enemy_deck = Deck([Card(suit=Suit.SPADES, rank=Card.JACK)])
-        game.tavern_deck = Deck([Card(suit=Suit.CLUBS, rank=Card.TWO)])
+        game.enemy_deck = Deck([Card(suit=Suit.SPADES, rank=CardRank.JACK)])
+        game.tavern_deck = Deck([Card(suit=Suit.CLUBS, rank=CardRank.TWO)])
         game.played_combos = [
-            [Card(suit=Suit.CLUBS, rank=Card.FIVE), Card(suit=Suit.HEARTS, rank=Card.ACE)],
-            [Card(suit=Suit.SPADES, rank=Card.THREE)],
+            [Card(suit=Suit.CLUBS, rank=CardRank.FIVE), Card(suit=Suit.HEARTS, rank=CardRank.ACE)],
+            [Card(suit=Suit.SPADES, rank=CardRank.THREE)],
         ]
-        game.discard_deck = Deck([Card(suit=Suit.DIAMONDS, rank=Card.NINE)])
+        game.discard_deck = Deck([Card(suit=Suit.DIAMONDS, rank=CardRank.NINE)])
         game.state = GameState.DISCARDING_CARDS
         game.turn = 5
 
@@ -32,12 +32,12 @@ class TestUtilities(TestCase):
 
         self.assertEqual([("J", "♠")], dump.enemy_deck)
         self.assertEqual([("2", "♣")], dump.tavern_deck)
-        self.assertEqual(user_id, dump.first_player_id)
+        self.assertEqual(dump.first_player_id, user_id)
         self.assertEqual([(user_id, [("4", "♥")])], dump.players)
         self.assertEqual([[("5", "♣"), ("A", "♥")], [("3", "♠")]], dump.played_combos)
         self.assertEqual([("9", "♦")], dump.discard_deck)
-        self.assertEqual(5, dump.turn)
-        self.assertEqual("discarding_cards", dump.state)
+        self.assertEqual(dump.turn, 5)
+        self.assertEqual(dump.state, GameState.DISCARDING_CARDS.value)
 
     def test_load_data(self) -> None:
         """Tests loading game data"""
@@ -62,21 +62,21 @@ class TestUtilities(TestCase):
         self.assertEqual(GameState.DISCARDING_CARDS, game.state)
         self.assertEqual(user2_id, game.first_player.id)
         self.assertEqual(1, len(game.tavern_deck))
-        self.assertEqual(Card.TWO, game.tavern_deck.cards[0].rank)
+        self.assertEqual(CardRank.TWO, game.tavern_deck.cards[0].rank)
         self.assertEqual(Suit.CLUBS, game.tavern_deck.cards[0].suit)
         self.assertEqual(2, len(game.players))
         self.assertEqual(1, len(game.enemy_deck))
-        self.assertEqual(Card.JACK, game.enemy_deck.cards[0].rank)
+        self.assertEqual(CardRank.JACK, game.enemy_deck.cards[0].rank)
         self.assertEqual(Suit.SPADES, game.enemy_deck.cards[0].suit)
         self.assertEqual(1, len(game.discard_deck))
-        self.assertEqual(Card.NINE, game.discard_deck.cards[0].rank)
+        self.assertEqual(CardRank.NINE, game.discard_deck.cards[0].rank)
         self.assertEqual(Suit.DIAMONDS, game.discard_deck.cards[0].suit)
         self.assertEqual(2, len(game.played_combos))
         self.assertEqual(Suit.CLUBS, game.played_combos[0][0].suit)
-        self.assertEqual(Card.FIVE, game.played_combos[0][0].rank)
+        self.assertEqual(CardRank.FIVE, game.played_combos[0][0].rank)
         self.assertEqual(Suit.HEARTS, game.played_combos[0][1].suit)
-        self.assertEqual(Card.ACE, game.played_combos[0][1].rank)
+        self.assertEqual(CardRank.ACE, game.played_combos[0][1].rank)
         self.assertEqual(Suit.SPADES, game.played_combos[1][0].suit)
-        self.assertEqual(Card.THREE, game.played_combos[1][0].rank)
+        self.assertEqual(CardRank.THREE, game.played_combos[1][0].rank)
 
         # TODO: check players' hands
