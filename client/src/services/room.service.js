@@ -76,6 +76,9 @@ class RoomService {
     isStarted(room) {
         return room && room.status === RoomStatus.STARTED;
     }
+    isCanceled(room) {
+        return room && room.status == RoomStatus.CANCELED;
+    }
 };
 
 export default new RoomService();

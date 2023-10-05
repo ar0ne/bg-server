@@ -109,13 +109,24 @@ function GameState(props) {
     )
 }
 
-class Regicide extends Component {
+class Game extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            data: {},
-            room: {},
+            data:  {
+                enemy_deck_size: 0,
+                discard_size: 0,
+                enemy: [],
+                first_player_id: "",
+                state: "",
+                player_id: "",
+                played_combos: [],
+                tavern_size: 0,
+                turn: 0,
+                hand: undefined,
+            },
+            room_id: "",
         };
     }
 
@@ -142,4 +153,4 @@ class Regicide extends Component {
     }
 }
 
-export default Regicide;
+export default Game;

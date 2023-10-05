@@ -1,19 +1,16 @@
 // Base room table component
-import { Component } from "react";
+import { Component, lazy, Suspense } from "react";
 
-//import AuthService from "../../services/auth.service";
 import RoomService from "../../services/room.service";
 import { withRouter } from "../../common/with-router";
 
-
-import Regicide from "./regicide";
 
 class RoomTable extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            isLoading: false,
+            isLoading: true,
             room: {
                 admin: {
                     id: "",
@@ -25,18 +22,7 @@ class RoomTable extends Component {
                 participants: [],
                 status: 0,
             },
-            data: {
-                enemy_deck_size: 0,
-                discard_size: 0,
-                enemy: [],
-                first_player_id: "",
-                state: "",
-                player_id: "",
-                played_combos: [],
-                tavern_size: 0,
-                turn: 0,
-                hand: undefined,
-            },
+            data: {}
         }
     }
 
@@ -45,7 +31,7 @@ class RoomTable extends Component {
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
             const room  = response.data;
-            this.setState({room: room});
+            this.setState({room: room, isLoading: false});
             if (RoomService.isCreated(room)) {
                 // redirect to Setup page
                 return setTimeout(
@@ -59,27 +45,32 @@ class RoomTable extends Component {
                 });
             }
         });
-
     }
 
-    render() {
-        const { room, data } = this.state;
 
-        if (!room.status) {
+
+    render() {
+        const { room, data, isLoading } = this.state;
+
+        if (!room || !room.status) {
             return (
                 <div></div>
             )
         }
-        if (room.status === 2) {
+        if (RoomService.isCanceled(room)) {
             return (
                 <div>Game has been canceled</div>
             )
         }
 
+        const Game = lazy(() => import("../../playgrounds/regicide.js"));
+
         return (
             <div>
                 <div>Game Table: {room.game.name}</div>
-                <Regicide data={data} room={room} />
+                <Suspense fallback={<div>Loading...</div>}>
+                    {isLoading ? "" : <Game room_id={room.id} data={data} />}
+                </Suspense>
             </div>
         )
     }
