@@ -1,7 +1,7 @@
 // Base room table component
 import { Component } from "react";
 
-import AuthService from "../../services/auth.service";
+//import AuthService from "../../services/auth.service";
 import RoomService from "../../services/room.service";
 import { withRouter } from "../../common/with-router";
 
@@ -23,7 +23,7 @@ class RoomTable extends Component {
                 },
                 id: "",
                 participants: [],
-                room_state: "",
+                status: 0,
             },
             data: {
                 enemy_deck_size: 0,
@@ -46,10 +46,13 @@ class RoomTable extends Component {
         RoomService.getRoom(room_id).then(response => {
             const room  = response.data;
             this.setState({room: room});
-            if (room.room_state === "CREATED") {
+            if (RoomService.isCreated(room)) {
                 // redirect to Setup page
-                return setTimeout(() => this.props.router.navigate(`/rooms/${room_id}/setup`, { replace: true }), 1);
-            } else if (room.room_state === "STARTED") {
+                return setTimeout(
+                    () => this.props.router.navigate(`/rooms/${room_id}/setup`, { replace: true }),
+                    1
+                );
+            } else if (RoomService.isStarted(room)) {
                 RoomService.getRoomData(room_id).then(response => {
                     const data = response.data;
                     this.setState({isLoading: false, data: data});
@@ -62,12 +65,12 @@ class RoomTable extends Component {
     render() {
         const { room, data } = this.state;
 
-        if (!room.room_state) {
+        if (!room.status) {
             return (
                 <div></div>
             )
         }
-        if (room.room_state === "CANCELED") {
+        if (room.status === 2) {
             return (
                 <div>Game has been canceled</div>
             )

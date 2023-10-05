@@ -6,6 +6,14 @@ import authHeader from "./auth-header";
 // FIXME: hardcoded url
 const API_URL = 'http://localhost:8888/api/v1/rooms';
 
+const RoomStatus = {
+    CREATED: 0,
+    STARTED: 1,
+    CANCELED: 2,
+    FINISHED: 3,
+    ABANDONED: 4,
+};
+
 class RoomService {
     getAllPublicRooms() {
         return axios.get(API_URL);
@@ -24,10 +32,10 @@ class RoomService {
         return this.updateRoom(room_id, {size: size});
     }
     cancelRoom(room_id) {
-        return this.updateRoom(room_id, {room_state: "CANCELED"});
+        return this.updateRoom(room_id, {status: this.RoomStatus.CANCELED});
     }
     startRoom(room_id) {
-        return this.updateRoom(room_id, {room_state: "STARTED"});
+        return this.updateRoom(room_id, {status: this.RoomStatus.STARTED});
     }
     updateRoom(room_id, data) {
         return axios.put(`${API_URL}/${room_id}`, data, {
@@ -46,6 +54,28 @@ class RoomService {
             headers: authHeader()
         });
     }
-}
+    getRoomStatus(room_status) {
+        switch(room_status) {
+            case RoomStatus.CREATED:
+                return "Created"
+            case RoomStatus.STARTED:
+                return "Started"
+            case RoomStatus.CANCELED:
+                return "Canceled"
+            case RoomStatus.FINISHED:
+                return "Finished"
+            case RoomStatus.ABANDONED:
+                return "Abandoned"
+            default:
+                return "Unknown"
+        }
+    }
+    isCreated(room) {
+        return room && room.status === RoomStatus.CREATED;
+    }
+    isStarted(room) {
+        return room && room.status === RoomStatus.STARTED;
+    }
+};
 
 export default new RoomService();

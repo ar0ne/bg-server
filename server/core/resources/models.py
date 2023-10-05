@@ -2,7 +2,7 @@
 import json
 
 from core.constants import REGICIDE, GameRoomStatus
-from core.games.base import AbstractGame
+from core.games.base import AbstractGame, Id
 from core.resources.utils import CustomJSONEncoder, lazy_import
 from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
@@ -40,7 +40,7 @@ class Game(Model):
         """Get game engine class"""
         # FIXME: used game.name instead model field and hardcoded path
         game_name = self.name.lower()
-        module = lazy_import("adapter", f"server/games/{game_name}/adapter.py")
+        module = lazy_import("adapter", f"core/games/{game_name}/adapter.py")
         return getattr(module, "GameEngine")
 
     class PydanticMeta:
@@ -53,38 +53,30 @@ class Room(Model):
     admin: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
         "models.Player", related_name="admin_rooms"
     )
-    date_closed = fields.DatetimeField(null=True)
-    date_created = fields.DatetimeField(auto_now_add=True)
+    closed = fields.DatetimeField(null=True)
+    created = fields.DatetimeField(auto_now_add=True)
     game: fields.ForeignKeyRelation["Game"] = fields.ForeignKeyField(
         "models.Game", related_name="rooms"
     )
-    id = fields.UUIDField(pk=True)
+    id: Id = fields.UUIDField(pk=True)
     participants: fields.ManyToManyRelation[Player] = fields.ManyToManyField(
         "models.Player", related_name=""
     )
-    size = fields.SmallIntField(default=1)
-    status = fields.SmallIntField(default=0)
-
-    def room_state(self) -> str:
-        """get room state"""
-        return GameRoomStatus(self.status).name
+    size: int = fields.SmallIntField(default=1)
+    status: int = fields.SmallIntField(default=0)
 
     class PydanticMeta:
-        exclude = (
-            "gameturns",
-            "status",
-        )
-        computed = ("room_state",)
+        exclude = ("gameturns",)
 
 
 class GameTurn(Model):
     """Temporary model to store game state"""
 
-    id = fields.UUIDField(pk=True)
-    turn = fields.SmallIntField(default=0)
-    room = fields.ForeignKeyField("models.Room")
     # FIXME: get rid of it
     data = fields.JSONField(encoder=JSON_ENCODER)
+    id: Id = fields.UUIDField(pk=True)
+    room: Room = fields.ForeignKeyField("models.Room")
+    turn: int = fields.SmallIntField(default=0)
 
 
 async def init_fake_data():

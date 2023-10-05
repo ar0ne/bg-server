@@ -16,7 +16,7 @@ async def init_database() -> None:
     )
     if options.db_provider == "sqlite":
         # FIXME: fix for other db providers
-        # await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["server.resources.models"]})
+        # await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["core.resources.models"]})
         await Tortoise.init(
             db_url="sqlite://db.sqlite", modules={"models": ["core.resources.models"]}
         )
@@ -25,5 +25,5 @@ async def init_database() -> None:
     await Tortoise.generate_schemas()
 
     # FIXME: remove it later
-    # from server.resources.models import init_fake_data
+    # from core.resources.models import init_fake_data
     # await init_fake_data()
