@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union
 
 Id = Union[str, uuid.UUID]
+Data = Dict[str, Any]
 
 
 class AbstractGame(ABC):
@@ -14,9 +15,9 @@ class AbstractGame(ABC):
         """game setup"""
 
     @abstractmethod
-    async def update(self, player_id: Id, data: Dict[str, Any]) -> None:
+    async def update(self, player_id: Id, data: Data) -> None:
         """update game state"""
 
     @abstractmethod
-    async def poll(self, player_id: Optional[Id] = None) -> Dict[str, Any]:
+    async def poll(self, player_id: Optional[Id] = None) -> Data | None:
         """poll game state"""

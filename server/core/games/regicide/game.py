@@ -4,6 +4,7 @@ import random
 from itertools import product
 from typing import Iterable, List, Optional
 
+from ..base import Id
 from ..regicide.exceptions import (
     CardBelongsToAnotherError,
     InvalidGameStateError,
@@ -107,7 +108,7 @@ class Game:
         return self.enemy_deck.peek()
 
     @staticmethod
-    def start_new_game(players_ids: List[str]) -> "Game":
+    def start_new_game(players_ids: List[Id]) -> "Game":
         """Create new game"""
         game = Game(players_ids)
         # create tavern and enemy decks

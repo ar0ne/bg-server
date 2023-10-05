@@ -161,7 +161,7 @@ class TestGame(unittest.TestCase):
             first_player_id=self.user1_id,
             players=[
                 (self.user2_id, []),
-                (self.user1_id, [("4", "♣"), ("Q", "♣"), ("9", "♣")]),
+                (self.user1_id, [("4", "♣"), ("9", "♣"), ("Q", "♣")]),
             ],
             played_combos=[],
             state=GameState.PLAYING_CARDS.value,  # type: ignore
@@ -171,9 +171,9 @@ class TestGame(unittest.TestCase):
         game = load_data(dump)
 
         # player plays card with damage enough to defeat the enemy and won the game
-        game.play_cards(game.first_player, [game.first_player.hand[1]])
+        game.play_cards(game.first_player, [game.first_player.hand[2]])
 
-        self.assertEqual(GameState.WON, game.state)
+        self.assertEqual(game.state, GameState.WON)
         self.assertEqual(6, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(0, len(game.enemy_deck))

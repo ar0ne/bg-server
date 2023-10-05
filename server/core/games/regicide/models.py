@@ -2,7 +2,7 @@
 import enum
 import json
 import random
-from typing import List, Optional, TypeVar, Union
+from typing import List, Optional, TypeVar
 
 Enemy = TypeVar("Enemy", bound="Card")
 CardCombo = List["Card"]
@@ -97,8 +97,10 @@ class Card:
         CardRank.QUEEN: 30,
         CardRank.KING: 40,
     }
+    # used for comparison
+    FACE_CARD_RANKS = {CardRank.JACK: 11, CardRank.QUEEN: 12, CardRank.KING: 13, CardRank.ACE: 14}
 
-    def __init__(self, rank: Union[str, CardRank], suit: Union[Suit, str]) -> None:
+    def __init__(self, rank: str | CardRank, suit: str | Suit) -> None:
         """Init Card"""
         self.rank = CardRank(rank) if isinstance(rank, str) else rank
         self.suit = Suit(suit) if isinstance(suit, str) else suit
@@ -149,7 +151,7 @@ class Card:
 
     def __str__(self) -> str:
         """To string"""
-        return f"{self.suit.value} {self.rank}"
+        return f"{self.suit.value} {self.rank.value}"
 
     def __eq__(self, other) -> bool:
         """True if object are equal"""
@@ -165,20 +167,21 @@ class Card:
             )
         return NotImplemented
 
-    def _rank_value(self, rank: Union[CardRank | int]) -> int:
-        if isinstance(rank, int):
-            rank = CardRank(rank)
-        ranks = {CardRank.JACK: 11, CardRank.QUEEN: 12, CardRank.KING: 13, CardRank.ACE: 14}
-        if rank in ranks:
-            return ranks[rank]
+    def _rank_value(self, rank: CardRank | int) -> int:
+        """"""
+        rank: CardRank = CardRank(rank) if isinstance(rank, int) else rank
+        if rank in self.FACE_CARD_RANKS:
+            return self.FACE_CARD_RANKS[rank]
         return int(rank.value)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
+        """Less than"""
         t1 = self._rank_value(self.rank), self.suit.value
         t2 = self._rank_value(other.rank), other.suit.value
         return t1 < t2
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
+        """Greater than"""
         t1 = self._rank_value(self.rank), self.suit.value
         t2 = self._rank_value(other.rank), other.suit.value
         return t1 > t2
@@ -210,7 +213,7 @@ class Deck:
         self.cards = self.cards[count:]
         return cards
 
-    def append(self, cards: Union[Card, CardCombo]) -> None:
+    def append(self, cards: Card | CardCombo) -> None:
         """Append single or several cards to the end of a deck"""
         if isinstance(cards, List):
             self.cards = self.cards + cards
