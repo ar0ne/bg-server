@@ -12,7 +12,7 @@ repos:
     hooks:
       - id: isort
         exclude: ^(client/|setup.py)
-        args: ["-m3", "-w100"]
+        args: ["-m3", "-w100", "--tc"]
   - repo: https://github.com/psf/black
     rev: 23.9.1
     hooks:

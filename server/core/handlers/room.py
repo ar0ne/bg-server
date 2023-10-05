@@ -23,7 +23,7 @@ async def get_room_player_id(room: Room, user: Optional[Player]) -> Optional[str
 class GameRoomHandler(BaseRequestHandler):
     """
     Game room request handler.
-    Let create new game room.
+    Allows to create new game room.
     """
 
     @login_required
@@ -44,7 +44,7 @@ class GameRoomHandler(BaseRequestHandler):
 class RoomHandler(BaseRequestHandler):
     """
     Room request handler.
-    Let get all available game rooms, room details, setup room (and start game).
+    Allows to get all available game rooms, room details, setup room (and start game).
     """
 
     async def get(self, room_id: Optional[str] = None) -> None:
@@ -87,7 +87,7 @@ class RoomHandler(BaseRequestHandler):
 class RoomDataHandler(BaseRequestHandler):
     """
     Game Room data request handler.
-    Let receive latest game state
+    Allows to receive latest game state.
     """
 
     async def get(self, room_id: str) -> None:

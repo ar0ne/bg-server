@@ -63,7 +63,7 @@ class RoomTable extends Component {
             )
         }
 
-        const Game = lazy(() => import("../../playgrounds/regicide.js"));
+        const Game = lazy(() => import(`../../playgrounds/${room.game.name.toLowerCase()}.js`));
 
         return (
             <div>

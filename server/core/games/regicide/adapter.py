@@ -34,7 +34,7 @@ class GameEngine(AbstractGame):
         if game.is_playing_cards_state:
             Game.play_cards(game, player, data)
         elif game.is_discarding_cards_state:
-            Game.discard_cards(game, player, data)
+            game.discard_cards(player, data)
         else:
             # game ended?
             raise Exception  # FIXME

@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
-from core.games.regicide.models import Card, Deck, Suit
+from core.games.regicide.models import Card, Deck, GameState, Suit
 from core.games.regicide.utils import dump_data, load_data
 
 
@@ -25,7 +25,7 @@ class TestUtilities(TestCase):
             [Card(suit=Suit.SPADES, rank=Card.THREE)],
         ]
         game.discard_deck = Deck([Card(suit=Suit.DIAMONDS, rank=Card.NINE)])
-        game.state = GameStateDto.DISCARDING_CARDS
+        game.state = GameState.DISCARDING_CARDS
         game.turn = 5
 
         dump = dump_data(game)
@@ -56,12 +56,10 @@ class TestUtilities(TestCase):
             tavern_deck=[("2", "♣")],
             turn=20,
         )
-        game = Game([user1_id, user2_id])
-
-        load_data(game, dump)
+        game = load_data(dump)
 
         self.assertEqual(20, game.turn)
-        self.assertEqual(GameStateDto.DISCARDING_CARDS, game.state)
+        self.assertEqual(GameState.DISCARDING_CARDS, game.state)
         self.assertEqual(user2_id, game.first_player.id)
         self.assertEqual(1, len(game.tavern_deck))
         self.assertEqual(Card.TWO, game.tavern_deck.cards[0].rank)

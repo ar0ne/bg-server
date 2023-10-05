@@ -71,6 +71,9 @@ function EnemyDeck(props) {
 }
 
 function PlayedCombos (props) {
+    if (!props || !props.combos) {
+        return
+    }
     const combos = props.combos.map((combo) => {
         const comboCards = combo.map((card) => {
             return (
@@ -129,7 +132,6 @@ class Game extends Component {
             room_id: "",
         };
     }
-
 
     render() {
         const { data } = this.props;
