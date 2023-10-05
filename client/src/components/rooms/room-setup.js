@@ -198,7 +198,7 @@ class RoomSetup extends Component {
         this.changeRoomSize(this.state.room.size - 1);
     }
     setRoom(room) {
-        let isAdmin = (this.state.user_id && this.user_id === room.admin.id);
+        let isAdmin = (this.state.user_id && this.state.user_id === room.admin.id);
         let isParticipant = !!(this.state.user_id && room.participants.find((p) => p.id === this.state.user_id));
         let isSetupRoom = RoomService.isCreated(room);
         let isCanJoin = (this.state.user_id && isSetupRoom && room.participants.length < room.size);

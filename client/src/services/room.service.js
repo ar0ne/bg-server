@@ -32,10 +32,10 @@ class RoomService {
         return this.updateRoom(room_id, {size: size});
     }
     cancelRoom(room_id) {
-        return this.updateRoom(room_id, {status: this.RoomStatus.CANCELED});
+        return this.updateRoom(room_id, {status: RoomStatus.CANCELED});
     }
     startRoom(room_id) {
-        return this.updateRoom(room_id, {status: this.RoomStatus.STARTED});
+        return this.updateRoom(room_id, {status: RoomStatus.STARTED});
     }
     updateRoom(room_id, data) {
         return axios.put(`${API_URL}/${room_id}`, data, {
