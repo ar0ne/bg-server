@@ -78,7 +78,7 @@ def serialize_game_data(game: Game, player_id: Optional[str] = None) -> GameTurn
     return GameTurnDataDto(
         enemy_deck_size=len(game.enemy_deck),
         discard_size=len(game.discard_deck),
-        enemy=(top_enemy.rank, top_enemy.suit.value),
+        enemy=(top_enemy.rank.value, top_enemy.suit.value),
         first_player_id=game.first_player.id,
         player_id=player_id,
         played_combos=[to_flat_hand(combo) for combo in game.played_combos],

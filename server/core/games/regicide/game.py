@@ -302,14 +302,14 @@ class Game:
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""
         ranks = (*map(str, range(2, 11)), CardRank.ACE)
-        combinations = product(ranks, Suit.list_values())
+        combinations = product(ranks, Suit.values())
         players_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), combinations))
         random.shuffle(players_deck)
         self.tavern_deck = Deck(players_deck)
 
     def _create_enemy_deck(self) -> None:
         """Create enemy cards deck"""
-        face_combs = product(self.ENEMY_RANKS, Suit.list_values())
+        face_combs = product(self.ENEMY_RANKS, Suit.values())
         enemy_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))

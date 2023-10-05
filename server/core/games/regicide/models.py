@@ -26,6 +26,11 @@ class CardRank(enum.Enum):
     KING = "K"
     ACE = "A"
 
+    @classmethod
+    def values(cls) -> List[str]:
+        """Generates list of suits values"""
+        return list(map(lambda c: c.value, cls))
+
 
 class GameState(enum.Enum):
     """Represents current state of the game"""
@@ -46,7 +51,7 @@ class Suit(enum.Enum):
     SPADES = "♠"
 
     @classmethod
-    def list_values(cls) -> List[str]:
+    def values(cls) -> List[str]:
         """Generates list of suits values"""
         return list(map(lambda c: c.value, cls))
 
@@ -57,7 +62,7 @@ class Player:
     def __init__(self, id: str, hand: Optional[CardHand] = None, hand_size: int = 7) -> None:
         """Init player"""
         self.id = id
-        self.hand: CardHand = hand if hand else []
+        self.hand: CardHand = sorted(hand) if hand else []
         self.hand_size = hand_size
 
     def remove_cards_from_hand(self, combo: CardCombo) -> None:
@@ -149,10 +154,34 @@ class Card:
     def __eq__(self, other) -> bool:
         """True if object are equal"""
         if isinstance(other, Card):
-            return (self.rank, self.suit.value) == (other.rank, other.suit.value)
+            return (self._rank_value(self.rank), self.suit.value) == (
+                self._rank_value(other.rank),
+                other.suit.value,
+            )
         if isinstance(other, tuple) or isinstance(other, list):
-            return (self.rank, self.suit.value) == (other[0], other[1])
+            return (self._rank_value(self.rank), self.suit.value) == (
+                self._rank_value(other[0]),
+                other[1],
+            )
         return NotImplemented
+
+    def _rank_value(self, rank: Union[CardRank | int]) -> int:
+        if isinstance(rank, int):
+            rank = CardRank(rank)
+        ranks = {CardRank.JACK: 11, CardRank.QUEEN: 12, CardRank.KING: 13, CardRank.ACE: 14}
+        if rank in ranks:
+            return ranks[rank]
+        return int(rank.value)
+
+    def __lt__(self, other):
+        t1 = self._rank_value(self.rank), self.suit.value
+        t2 = self._rank_value(other.rank), other.suit.value
+        return t1 < t2
+
+    def __gt__(self, other):
+        t1 = self._rank_value(self.rank), self.suit.value
+        t2 = self._rank_value(other.rank), other.suit.value
+        return t1 > t2
 
 
 class Deck:

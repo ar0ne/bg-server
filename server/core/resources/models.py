@@ -40,7 +40,7 @@ class Game(Model):
         """Get game engine class"""
         # FIXME: used game.name instead model field and hardcoded path
         game_name = self.name.lower()
-        module = lazy_import("adapter", f"core/games/{game_name}/adapter.py")
+        module = lazy_import("adapter", f"server/core/games/{game_name}/adapter.py")
         return getattr(module, "GameEngine")
 
     class PydanticMeta:
