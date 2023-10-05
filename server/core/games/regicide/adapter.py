@@ -2,7 +2,7 @@
 from dataclasses import asdict
 from typing import List
 
-from core.games.base import AbstractGame, Data, Id
+from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
 from core.games.regicide.models import Card
@@ -22,10 +22,10 @@ class GameEngine(AbstractGame):
         game = Game.start_new_game(players)
         await self._save_game_state(game)
 
-    async def update(self, player_id: Id, data: Data) -> None:
+    async def update(self, player_id: Id, turn: GameDataTurn) -> None:
         """Update game state"""
         # transform from flat cards to Card objects
-        data = list(map(lambda c: Card(c[0], c[1]), data))
+        data = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
         last_game_data = await self._get_latest_game_state()
         game = load_data(last_game_data)
         player = game.first_player
@@ -43,13 +43,18 @@ class GameEngine(AbstractGame):
         # save changes
         await self._save_game_state(game)
 
-    async def poll(self, player_id: Id | None = None) -> Data | None:
+    async def poll(self, player_id: Id | None = None) -> GameData | None:
         """Poll the last turn data"""
         last_turn_state = await self._get_latest_game_state()
         if not last_turn_state:
             return None
         game = load_data(last_turn_state)
         return asdict(serialize_game_data(game, player_id))
+
+    async def is_valid_turn(self, player_id: Id, turn: GameDataTurn) -> bool:
+        """True if it's valid game turn"""
+        # FIXME
+        return True
 
     async def _get_latest_game_state(self) -> GameStateDto | None:
         """Get the latest game state from db"""

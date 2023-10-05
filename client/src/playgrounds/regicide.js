@@ -74,14 +74,15 @@ function PlayedCombos (props) {
     if (!props || !props.combos) {
         return
     }
-    const combos = props.combos.map((combo) => {
+    const combos = props.combos.map((combo, idx) => {
         const comboCards = combo.map((card) => {
+            let key = card[0] + "_" + card[1];
             return (
-                <Card rank={card[0]} suit={card[1]} />
+                <Card key={key} rank={card[0]} suit={card[1]} />
             );
-        })
+        });
         return (
-            <div>{comboCards}</div>
+            <div key={idx}>{comboCards}</div>
         )
     });
 

@@ -6,7 +6,13 @@ from core.handlers.auth import AuthLoginHandler, AuthSignUpHandler
 from core.handlers.game import GameHandler
 from core.handlers.index import MainHandler
 from core.handlers.player import PlayerHandler
-from core.handlers.room import GameRoomHandler, RoomDataHandler, RoomHandler, RoomPlayersHandler
+from core.handlers.room import (
+    GameRoomHandler,
+    RoomDataHandler,
+    RoomGameTurnHandler,
+    RoomHandler,
+    RoomPlayersHandler,
+)
 
 API_URL_PREFIX = "/api/v1"
 
@@ -23,6 +29,7 @@ def get_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
         (r"/rooms/([a-zA-Z0-9_.-]+)/?", RoomHandler),
         (r"/rooms/?", RoomHandler),
         (r"/rooms/([a-zA-Z0-9_.-]+)/data/?", RoomDataHandler),
+        (r"/rooms/([a-zA-Z0-9_.-]+)/turn/?", RoomGameTurnHandler),
         (r"/rooms/([a-zA-Z0-9_.-]+)/players/([a-zA-Z0-9_.-]+)/?", RoomPlayersHandler),
         (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
     ]

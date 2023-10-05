@@ -1,8 +1,8 @@
 """Room handlers"""
-from dataclasses import asdict
 from datetime import datetime
 from typing import Optional
 
+import tornado
 from core.constants import GameRoomStatus
 from core.resources.auth import login_required
 from core.resources.errors import APIError
@@ -96,6 +96,30 @@ class RoomDataHandler(BaseRequestHandler):
         player_id = await get_room_player_id(room, self.request.user)
         engine = room.game.get_engine()(room_id)
         data = await engine.poll(player_id)
+        self.write(data)
+
+
+class RoomGameTurnHandler(BaseRequestHandler):
+    """
+    Game Turn data request handler.
+    Allows to make a game turn.
+    """
+
+    async def post(self, room_id: str) -> None:
+        """Create a game turn"""
+        turn = tornado.escape.json_decode(self.request.body)
+        if not turn:
+            raise APIError(400, "Validation error")
+        room = await Room.get(id=room_id).select_related("game")
+        player_id = await get_room_player_id(room, self.request.user)
+        if not player_id:
+            raise APIError(403, "Unauthorized action.")  # FIXME: auth decorator?
+        engine = room.game.get_engine()(room_id)
+        if not engine.is_valid_turn(player_id, turn):
+            raise APIError(400, "Invalid turn.")
+        await engine.update(player_id, turn)
+        # FIXME: notify all players (observers) => WS ?
+        data = await engine.poll(self.request.user)
         self.write(data)
 
 
