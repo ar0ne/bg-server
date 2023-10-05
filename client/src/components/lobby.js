@@ -13,7 +13,7 @@ function PublicRooms(props) {
     const roomItems = rooms.map((room) => {
         const participants = room.participants.length;
         const roomSize = room.size;
-        const info = `${room.game.name} [${RoomService.getRoomState(room.status)}] (${participants}/${roomSize})`;
+        const info = `${room.game.name} [${RoomService.getRoomStatus(room.status)}] (${participants}/${roomSize})`;
         const url = `/rooms/${room.id}`;
         return (
             <li key={room.id}>

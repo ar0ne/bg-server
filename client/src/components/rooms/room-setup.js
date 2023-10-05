@@ -13,7 +13,7 @@ function RoomInfo (props) {
             <h3>Setup Game</h3>
             <p>Game image: TBD</p>
             <p>Name: {room.game.name}</p>
-            <p>State: {room.room_state}</p>
+            <p>State: {RoomService.getRoomStatus(room)}</p>
             <p>Room size is {room.size}</p>
             <p>Min/Max: ({room.game.min_size}/{room.game.max_size})</p>
         </div>
@@ -66,7 +66,6 @@ function ParticipantList (props) {
 class RoomSetup extends Component {
     constructor(props) {
         super(props);
-
         this.state = {
             isLoading: false,
             isLoggedIn: false,
@@ -80,7 +79,7 @@ class RoomSetup extends Component {
                 admin: {
                     id: "",
                 },
-                date_created: "",
+                created: null,
                 game: {
                     id: "",
                     max_size: 1,
@@ -88,7 +87,7 @@ class RoomSetup extends Component {
                     name: "",
                 },
                 id: "",
-                room_state: "",
+                status: 0,
                 participants: [],
                 size: 1,
             },
@@ -108,10 +107,8 @@ class RoomSetup extends Component {
 
         RoomService.changeRoomSize(this.state.room.id, newSize).then(response => {
             console.log("room updated");
-            this.setState({
-                isLoading: false,
-                room: response.data,
-            });
+            this.setRoom(response.data);
+            this.setState({isLoading: false});
         },
         error => {
             console.log("unable to update game room setup");
@@ -131,10 +128,8 @@ class RoomSetup extends Component {
         this.setState({ isLoading: true });
         RoomService.startRoom(this.state.room.id)
             .then(response => {
-                this.setState({
-                    isLoading: false,
-                    room: response.data,
-                });
+                this.setRoom(response.data);
+                this.setState({isLoading: false});
                 setTimeout(() => this.props.router.navigate(`/rooms/${this.state.room.id}`, { replace: true }), 1);
             },
             error => {
@@ -157,10 +152,8 @@ class RoomSetup extends Component {
         })
         RoomService.removeParticipant(this.state.room.id, this.state.user_id)
             .then(response => {
-                this.setState({
-                    isLoading: false,
-                    room: response.data,
-                });
+                this.setRoom(response.data);
+                this.setState({isLoading: false});
             },
             error => {
                 console.log("unable to remove participant");
@@ -180,10 +173,8 @@ class RoomSetup extends Component {
         this.setState({ isLoading: true })
         RoomService.addParticipant(this.state.room.id, this.state.user_id)
             .then(response => {
-                this.setState({
-                    room: response.data,
-                    isLoading: false,
-                });
+                this.setRoom(response.data);
+                this.setState({isLoading: false});
             },
             error => {
                 console.log("unable to add participant");
@@ -206,6 +197,21 @@ class RoomSetup extends Component {
         console.log("-")
         this.changeRoomSize(this.state.room.size - 1);
     }
+    setRoom(room) {
+        let isAdmin = (this.state.user_id && this.user_id === room.admin.id);
+        let isParticipant = !!(this.state.user_id && room.participants.find((p) => p.id === this.state.user_id));
+        let isSetupRoom = RoomService.isCreated(room);
+        let isCanJoin = (this.state.user_id && isSetupRoom && room.participants.length < room.size);
+        let isCanStart = (isAdmin && isSetupRoom && room.participants.length === room.size)
+        this.setState({
+            room: room,
+            isAdmin,
+            isParticipant,
+            isCanJoin,
+            isCanStart,
+            isSetupRoom,
+        });
+    }
 
     componentDidMount() {
         const user = AuthService.getCurrentUser();
@@ -217,20 +223,7 @@ class RoomSetup extends Component {
         }
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            const room = response.data;
-            let isAdmin = (user && user.user_id === room.admin.id);
-            let isParticipant = !!(user && room.participants.find((p) => p.id === user.user_id));
-            let isSetupRoom = room.room_state === "CREATED";
-            let isCanJoin = (user && isSetupRoom && room.participants.length < room.size);
-            let isCanStart = (isAdmin && isSetupRoom && room.participants.length === room.size)
-            this.setState({
-                room: room,
-                isAdmin,
-                isParticipant,
-                isCanJoin,
-                isCanStart,
-                isSetupRoom,
-            });
+            this.setRoom(response.data);
         })
     }
 
