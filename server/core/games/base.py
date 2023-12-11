@@ -26,3 +26,12 @@ class AbstractGame(ABC):
     @abstractmethod
     async def is_valid_turn(self, player_id: Id, turn: GameDataTurn) -> bool:
         """True if it's valid game turn"""
+
+
+class GameDataSerializer(ABC):
+    """Abstract game data serializer"""
+
+    @classmethod
+    @abstractmethod
+    def serialize(cls, game: AbstractGame, player_id: str | None = None) -> Any:
+        """Serialize game state to turn data dto object"""

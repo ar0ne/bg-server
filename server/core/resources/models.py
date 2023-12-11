@@ -1,7 +1,8 @@
 """DB models"""
 import json
+import os
 
-from core.constants import REGICIDE, GameRoomStatus
+from core.constants import REGICIDE, TICTACTOE, GameRoomStatus
 from core.games.base import AbstractGame, Id
 from core.resources.utils import CustomJSONEncoder, lazy_import
 from tortoise import Model, Tortoise, fields
@@ -38,9 +39,9 @@ class Game(Model):
     # FIXME: cache it
     def get_engine(self) -> AbstractGame:
         """Get game engine class"""
-        # FIXME: used game.name instead model field and hardcoded path
         game_name = self.name.lower()
-        module = lazy_import("adapter", f"server/core/games/{game_name}/adapter.py")
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        module = lazy_import("engine", f"{base_dir}/core/games/{game_name}/engine.py")
         return getattr(module, "GameEngine")
 
     class PydanticMeta:
@@ -80,21 +81,23 @@ class GameTurn(Model):
 
 
 async def init_fake_data():
-    game = await Game.create(name=REGICIDE, min_size=1, max_size=4)
-    foo = await Player.create(
-        email="foo@f.oo",
-        name="Foo",
-        nickname="foo",
-        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
-    )
-    await Player.create(
-        email="bar@b.ar",
-        name="Bar",
-        nickname="bar",
-        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
-    )
-    room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value, size=2)
-    await room.participants.add(foo)
+    """Init fake data"""
+    # game = await Game.create(name=REGICIDE, min_size=1, max_size=4)
+    # game = await Game.create(name=TICTACTOE, min_size=2, max_size=2)
+    # foo = await Player.create(
+    #     email="foo@f.oo",
+    #     name="Foo",
+    #     nickname="foo",
+    #     password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
+    # )
+    # await Player.create(
+    #     email="bar@b.ar",
+    #     name="Bar",
+    #     nickname="bar",
+    #     password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
+    # )
+    # room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value, size=2)
+    # await room.participants.add(foo)
 
 
 Tortoise.init_models(["core.resources.models"], "models")

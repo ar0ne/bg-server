@@ -17,4 +17,5 @@ class GameHandler(BaseRequestHandler):
         else:
             game = await Game.get(name=game_name)
             serializer = await GameSerializer.from_tortoise_orm(game)
+        # FIXME: do not return list, instead wrap it in {"data": <list>}
         self.write(serializer.json())

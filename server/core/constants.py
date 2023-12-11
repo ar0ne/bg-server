@@ -2,6 +2,7 @@
 import enum
 
 REGICIDE = "Regicide"
+TICTACTOE = "TicTacToe"
 COOKIE_USER_KEY = "user-cookie-key"
 
 

@@ -1,4 +1,4 @@
-"""Regicide game adapter"""
+"""Regicide game engine"""
 from dataclasses import asdict
 from typing import List
 
@@ -6,16 +6,18 @@ from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
 from core.games.regicide.models import Card
-from core.games.regicide.utils import dump_data, load_data, serialize_game_data
+from core.games.regicide.serializer import RegicideGameDataSerializer
+from core.games.regicide.utils import dump_data, load_data
 from core.resources.models import GameTurn
 
 
 class GameEngine(AbstractGame):
-    """Regicide game adapter"""
+    """Regicide game engine"""
 
     def __init__(self, room_id: Id) -> None:
         """Init adapter"""
         self.room_id = room_id
+        self.data_serializer = RegicideGameDataSerializer
 
     async def setup(self, players: List[Id]) -> None:
         """Setup new game"""
@@ -28,6 +30,7 @@ class GameEngine(AbstractGame):
         data = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
         last_game_data = await self._get_latest_game_state()
         game = load_data(last_game_data)
+        # FIXME: move it all to validation method
         player = game.first_player
         if not player:
             raise Exception  # FIXME
@@ -49,7 +52,7 @@ class GameEngine(AbstractGame):
         if not last_turn_state:
             return None
         game = load_data(last_turn_state)
-        return asdict(serialize_game_data(game, player_id))
+        return asdict(self.data_serializer.serialize(game, player_id))
 
     async def is_valid_turn(self, player_id: Id, turn: GameDataTurn) -> bool:
         """True if it's valid game turn"""
