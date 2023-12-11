@@ -169,10 +169,10 @@ class Card:
 
     def _rank_value(self, rank: CardRank | int) -> int:
         """"""
-        rank: CardRank = CardRank(rank) if isinstance(rank, int) else rank
-        if rank in self.FACE_CARD_RANKS:
-            return self.FACE_CARD_RANKS[rank]
-        return int(rank.value)
+        rank_: CardRank = CardRank(rank) if isinstance(rank, int) else rank
+        if rank_ in self.FACE_CARD_RANKS:
+            return self.FACE_CARD_RANKS[rank_]
+        return int(rank_.value)
 
     def __lt__(self, other) -> bool:
         """Less than"""

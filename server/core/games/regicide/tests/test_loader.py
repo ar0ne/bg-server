@@ -3,15 +3,20 @@ from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
+from core.games.regicide.internal import RegicideGameLoader
 from core.games.regicide.models import Card, CardRank, Deck, GameState, Suit
-from core.games.regicide.utils import dump_data, load_data
 
 
-class TestUtilities(TestCase):
-    """unit tests for utilities"""
+class TestGameLoader(TestCase):
+    """unit tests for game loader"""
 
-    def test_dump_data(self) -> None:
-        """Tests dumping game data"""
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Setup test class"""
+        cls.loader = RegicideGameLoader()
+
+    def test_upload_game_state(self) -> None:
+        """Tests dumping (upload) game state"""
 
         user_id = "user_id"
         game = Game([user_id])
@@ -28,7 +33,7 @@ class TestUtilities(TestCase):
         game.state = GameState.DISCARDING_CARDS
         game.turn = 5
 
-        dump = dump_data(game)
+        dump = self.loader.upload(game)
 
         self.assertEqual([("J", "♠")], dump.enemy_deck)
         self.assertEqual([("2", "♣")], dump.tavern_deck)
@@ -56,7 +61,7 @@ class TestUtilities(TestCase):
             tavern_deck=[("2", "♣")],
             turn=20,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
 
         self.assertEqual(20, game.turn)
         self.assertEqual(GameState.DISCARDING_CARDS, game.state)

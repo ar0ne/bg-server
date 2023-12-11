@@ -5,9 +5,8 @@ from typing import List
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
+from core.games.regicide.internal import RegicideGameDataSerializer, RegicideGameLoader
 from core.games.regicide.models import Card
-from core.games.regicide.serializer import RegicideGameDataSerializer
-from core.games.regicide.utils import dump_data, load_data
 from core.resources.models import GameTurn
 
 
@@ -18,6 +17,7 @@ class GameEngine(AbstractGame):
         """Init adapter"""
         self.room_id = room_id
         self.data_serializer = RegicideGameDataSerializer
+        self.loader = RegicideGameLoader
 
     async def setup(self, players: List[Id]) -> None:
         """Setup new game"""
@@ -29,7 +29,7 @@ class GameEngine(AbstractGame):
         # transform from flat cards to Card objects
         data = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
         last_game_data = await self._get_latest_game_state()
-        game = load_data(last_game_data)
+        game = self.loader.load(last_game_data)
         # FIXME: move it all to validation method
         player = game.first_player
         if not player:
@@ -51,7 +51,7 @@ class GameEngine(AbstractGame):
         last_turn_state = await self._get_latest_game_state()
         if not last_turn_state:
             return None
-        game = load_data(last_turn_state)
+        game = self.loader.load(last_turn_state)
         return asdict(self.data_serializer.serialize(game, player_id))
 
     async def is_valid_turn(self, player_id: Id, turn: GameDataTurn) -> bool:
@@ -68,5 +68,5 @@ class GameEngine(AbstractGame):
 
     async def _save_game_state(self, game: Game) -> None:
         """persist game state into db"""
-        dump = dump_data(game)
-        await GameTurn.create(room_id=self.room_id, turn=game.turn, data=dump)
+        game_state = self.loader.upload(game)
+        await GameTurn.create(room_id=self.room_id, turn=game.turn, data=game_state)

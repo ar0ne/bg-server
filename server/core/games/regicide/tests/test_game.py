@@ -1,19 +1,20 @@
 """Unit tests for game"""
-import unittest
+from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
+from core.games.regicide.internal import RegicideGameLoader
 from core.games.regicide.models import GameState
-from core.games.regicide.utils import load_data
 
 
-class TestGame(unittest.TestCase):
+class TestGame(TestCase):
     """Test cases for game"""
 
     def setUp(self) -> None:
         """Setup test cases"""
         self.user1_id = "user1"
         self.user2_id = "user2"
+        self.loader = RegicideGameLoader
 
     def test_create_game(self) -> None:
         """Tests creating new game object"""
@@ -68,7 +69,7 @@ class TestGame(unittest.TestCase):
             tavern_deck=[("2", "♣")],
             turn=4,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
 
         enemy = game.enemy_deck.peek()
 
@@ -104,7 +105,7 @@ class TestGame(unittest.TestCase):
             tavern_deck=[("2", "♣"), ("3", "♥"), ("4", "♥")],
             turn=4,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
@@ -137,7 +138,7 @@ class TestGame(unittest.TestCase):
             tavern_deck=[("2", "♣")],
             turn=4,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
@@ -168,7 +169,7 @@ class TestGame(unittest.TestCase):
             tavern_deck=[("2", "♣")],
             turn=6,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
 
         # player plays card with damage enough to defeat the enemy and won the game
         game.play_cards(game.first_player, [game.first_player.hand[2]])
@@ -198,7 +199,7 @@ class TestGame(unittest.TestCase):
             tavern_deck=[("3", "♣"), ("4", "♣")],
             turn=6,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
 
         # player plays combo from 2x4, enemy has immune to hearts
         game.play_cards(
@@ -236,7 +237,7 @@ class TestGame(unittest.TestCase):
             tavern_deck=[("4", "♣")],
             turn=6,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
 
         # player plays combo from ace and 5, game moves to discard cards state
         game.play_cards(game.first_player, [game.first_player.hand[0], game.first_player.hand[3]])
@@ -266,7 +267,7 @@ class TestGame(unittest.TestCase):
             tavern_deck=[("4", "♣")],
             turn=6,
         )
-        game = load_data(dump)
+        game = self.loader.load(dump)
         game.discard_cards(game.first_player, [game.players[1].hand[1]])
 
         self.assertEqual(GameState.PLAYING_CARDS, game.state)

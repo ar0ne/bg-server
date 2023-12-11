@@ -1,11 +1,13 @@
 """Base game interface"""
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 Id = Union[str, uuid.UUID]
 GameData = Dict[str, Any]
 GameDataTurn = Dict[str, Any]
+GameState = Any  # FIXME
+Game = Type["AbstractGame"]
 
 
 class AbstractGame(ABC):
@@ -33,5 +35,19 @@ class GameDataSerializer(ABC):
 
     @classmethod
     @abstractmethod
-    def serialize(cls, game: AbstractGame, player_id: str | None = None) -> Any:
+    def serialize(cls, game: AbstractGame, player_id: Id | None = None) -> Any:
         """Serialize game state to turn data dto object"""
+
+
+class GameLoader(ABC):
+    """Abstract game loader"""
+
+    @staticmethod
+    @abstractmethod
+    def load(state: Any) -> Game:
+        """Load data from state"""
+
+    @staticmethod
+    @abstractmethod
+    def upload(game: Game) -> GameState:
+        """Upload game state"""
