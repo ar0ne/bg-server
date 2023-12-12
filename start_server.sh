@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # for now just run app from root folder
-cd ..
+source server/venv/bin/activate
 
 python server/main.py

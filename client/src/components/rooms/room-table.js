@@ -40,7 +40,8 @@ class RoomTable extends Component {
                 );
             } else if (RoomService.isStarted(room)) {
                 RoomService.getRoomData(room_id).then(response => {
-                    const data = response.data;
+                    // {"data": {...}}
+                    const data = response.data.data;
                     this.setState({isLoading: false, data: data});
                 });
             }

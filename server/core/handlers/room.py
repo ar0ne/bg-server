@@ -96,10 +96,8 @@ class RoomDataHandler(BaseRequestHandler):
         player_id = await get_room_player_id(room, self.request.user)
         engine = room.game.get_engine()(room_id)
         data = await engine.poll(player_id)
-        if not data:
-            self.write("")
-        else:
-            self.write(data)
+        # wrap up in object -> {"data": {...}}
+        self.write(dict(data=data))
 
 
 class RoomGameTurnHandler(BaseRequestHandler):
