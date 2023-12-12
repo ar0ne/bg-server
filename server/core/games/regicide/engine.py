@@ -4,8 +4,8 @@ from typing import List
 
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.regicide.converters import (
-    RegicideGameStateConverter,
     RegicideGameStateDataConverter,
+    RegicideGameTurnDataConverter,
 )
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
@@ -20,8 +20,8 @@ class GameEngine(AbstractGame):
         """Init adapter"""
         self.room_id = room_id
         # FIXME: add some factory to avoid dependencies
-        self.game_data_converter = RegicideGameDataConverter
-        self.game_state_converter = RegicideGameStateConverter
+        self.game_data_converter = RegicideGameTurnDataConverter
+        self.game_state_converter = RegicideGameStateDataConverter
 
     async def setup(self, players: List[Id]) -> None:
         """Setup new game"""

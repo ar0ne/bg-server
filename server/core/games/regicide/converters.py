@@ -9,7 +9,7 @@ from core.games.regicide.utils import to_flat_hand
 from core.games.transform import GameStateDataConverter, GameTurnDataConverter
 
 
-class RegicideGameDataConverter(GameTurnDataConverter):
+class RegicideGameTurnDataConverter(GameTurnDataConverter):
     """Regicide game data serilizer"""
 
     @staticmethod
