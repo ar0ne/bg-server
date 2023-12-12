@@ -1,3 +1,6 @@
 #!/bin/bash
 
-python main.py
+# for now just run app from root folder
+cd ..
+
+python server/main.py

@@ -13,13 +13,7 @@ from ..regicide.exceptions import (
     TurnOrderViolationError,
 )
 from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, GameState, Player, Suit
-
-
-def infinite_cycle(iters: Iterable):
-    """Infinite loop generator"""
-    while True:
-        for it in iters:
-            yield it
+from ..utils import infinite_cycle
 
 
 def cards_belong_to_player(player: Player, combo: CardCombo) -> bool:
@@ -81,14 +75,8 @@ class Game:
         self.discard_deck = Deck()
         self.tavern_deck = Deck()
         self.enemy_deck = Deck()
-
         # list of combos represents cards played against enemy before they went to discard pile
         self.played_combos: List[CardCombo] = []
-
-        # randomly peek first player
-        random.shuffle(self.players)
-        self.next_player_loop = infinite_cycle(self.players)
-        self.first_player = self.toggle_next_player_turn()
         # setup game state
         self.state = GameState.CREATED
 
@@ -117,6 +105,10 @@ class Game:
         # ensure we clear piles
         game.discard_deck.clear()
         game.played_combos = []
+        # randomly peek first player
+        random.shuffle(game.players)
+        game.next_player_loop = infinite_cycle(game.players)
+        game.first_player = game.toggle_next_player_turn()
         # players draw X random cards on hands
         for player in game.players:
             hand = game.tavern_deck.pop_many(player.hand_size)
@@ -173,6 +165,7 @@ class Game:
         self.toggle_next_player_turn()
         self.turn += 1
 
+    # FIXME: Is it useful?
     def get_game_state(self: "Game") -> dict:
         """Returns state of the game and all public information"""
         enemy = self.current_enemy

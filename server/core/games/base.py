@@ -7,14 +7,14 @@ Id = Union[str, uuid.UUID]
 GameData = Dict[str, Any]
 GameDataTurn = Dict[str, Any]
 GameState = Any  # FIXME
-Game = Type["AbstractGame"]
+Game = Any  # FIXME
 
 
 class AbstractGame(ABC):
     """Base game interface"""
 
     @abstractmethod
-    async def setup(self, players: List[Id]) -> None:
+    async def setup(self, player_ids: List[Id]) -> None:
         """game setup"""
 
     @abstractmethod
@@ -28,26 +28,3 @@ class AbstractGame(ABC):
     @abstractmethod
     async def is_valid_turn(self, player_id: Id, turn: GameDataTurn) -> bool:
         """True if it's valid game turn"""
-
-
-class GameDataSerializer(ABC):
-    """Abstract game data serializer"""
-
-    @classmethod
-    @abstractmethod
-    def serialize(cls, game: AbstractGame, player_id: Id | None = None) -> Any:
-        """Serialize game state to turn data dto object"""
-
-
-class GameLoader(ABC):
-    """Abstract game loader"""
-
-    @staticmethod
-    @abstractmethod
-    def load(state: Any) -> Game:
-        """Load data from state"""
-
-    @staticmethod
-    @abstractmethod
-    def upload(game: Game) -> GameState:
-        """Upload game state"""

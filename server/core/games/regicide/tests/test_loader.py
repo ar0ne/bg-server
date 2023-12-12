@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
-from core.games.regicide.internal import RegicideGameLoader
+from core.games.regicide.internal import RegicideGameStateLoader
 from core.games.regicide.models import Card, CardRank, Deck, GameState, Suit
 
 
@@ -13,7 +13,7 @@ class TestGameLoader(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Setup test class"""
-        cls.loader = RegicideGameLoader()
+        cls.loader = RegicideGameStateLoader()
 
     def test_upload_game_state(self) -> None:
         """Tests dumping (upload) game state"""

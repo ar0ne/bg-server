@@ -1,19 +1,21 @@
 """Game data serializer"""
 from abc import ABC, abstractmethod
 
-from core.games.base import GameData, GameDataSerializer, GameDataTurn, GameLoader, Id
+from core.games.base import GameData, GameDataTurn, Id
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto
 from core.games.regicide.game import Game, infinite_cycle
 from core.games.regicide.models import Card, CardHand, Deck, GameState, Player, Suit
 from core.games.regicide.utils import to_flat_hand
+from core.games.transform import GameStateDataConverter, GameTurnDataConverter
 
 
-class RegicideGameDataSerializer(GameDataSerializer):
+class RegicideGameDataConverter(GameTurnDataConverter):
     """Regicide game data serilizer"""
 
-    @classmethod
-    def serialize(cls, game: Game, player_id: str | None = None) -> GameTurnDataDto:  # type: ignore[override]
-        """Serialize public game turn data for player"""
+    @staticmethod
+    def dump(game: Game, **kwargs) -> GameTurnDataDto:  # type: ignore[override]
+        """Convert game turn data for player into the object"""
+        player_id: str | None = kwargs.get("player_id")
         player = None
         if player_id:
             player = game.find_player(player_id)
@@ -32,12 +34,12 @@ class RegicideGameDataSerializer(GameDataSerializer):
         )
 
 
-class RegicideGameLoader(GameLoader):
-    """Regicide game loader"""
+class RegicideGameStateDataConverter(GameStateDataConverter):
+    """Regicide game state converter"""
 
     @staticmethod
-    def load(data: GameStateDto) -> Game:  # type: ignore[override]
-        """Load data"""
+    def load(data: GameStateDto, **kwargs) -> Game:  # type: ignore[override]
+        """Load data from object to game instance"""
         # fmt: off
         game = Game(list(map(lambda p: p[0], data.players)))
         game.players = [
@@ -78,8 +80,8 @@ class RegicideGameLoader(GameLoader):
         return game
 
     @staticmethod
-    def upload(game: Game) -> GameStateDto:
-        """Dump current game state"""
+    def dump(game: Game, **kwargs) -> GameStateDto:
+        """Dump current game state into object"""
 
         return GameStateDto(
             enemy_deck=to_flat_hand(game.enemy_deck.cards),

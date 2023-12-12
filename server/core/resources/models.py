@@ -82,22 +82,22 @@ class GameTurn(Model):
 
 async def init_fake_data():
     """Init fake data"""
-    # game = await Game.create(name=REGICIDE, min_size=1, max_size=4)
-    # game = await Game.create(name=TICTACTOE, min_size=2, max_size=2)
-    # foo = await Player.create(
-    #     email="foo@f.oo",
-    #     name="Foo",
-    #     nickname="foo",
-    #     password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
-    # )
-    # await Player.create(
-    #     email="bar@b.ar",
-    #     name="Bar",
-    #     nickname="bar",
-    #     password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
-    # )
-    # room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value, size=2)
-    # await room.participants.add(foo)
+    game = await Game.create(name=REGICIDE, min_size=1, max_size=4)
+    game = await Game.create(name=TICTACTOE, min_size=2, max_size=2)
+    foo = await Player.create(
+        email="foo@f.oo",
+        name="Foo",
+        nickname="foo",
+        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
+    )
+    await Player.create(
+        email="bar@b.ar",
+        name="Bar",
+        nickname="bar",
+        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
+    )
+    room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value, size=2)
+    await room.participants.add(foo)
 
 
 Tortoise.init_models(["core.resources.models"], "models")

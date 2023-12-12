@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
-from core.games.regicide.internal import RegicideGameLoader
+from core.games.regicide.internal import RegicideGameStateLoader
 from core.games.regicide.models import GameState
 
 
@@ -14,7 +14,7 @@ class TestGame(TestCase):
         """Setup test cases"""
         self.user1_id = "user1"
         self.user2_id = "user2"
-        self.loader = RegicideGameLoader
+        self.loader = RegicideGameStateLoader
 
     def test_create_game(self) -> None:
         """Tests creating new game object"""
