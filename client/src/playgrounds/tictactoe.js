@@ -5,9 +5,13 @@ import { styles } from "../styles/tictactoe";
 
 function GameState(props) {
     let msg = "";
-    const {state, is_active_player} = props;
+    const {state, is_active_player, is_anonymous} = props;
     if (state === "in_progress") {
-        msg = is_active_player ? "Your turn." : "Your opponent turn.";
+        if (!is_anonymous) {
+            msg = is_active_player ? "Your turn." : "Your opponent turn.";
+        } else {
+            msg = "Game in progress."
+        }
     }
     return (
         <h5>{msg}</h5>
@@ -17,7 +21,7 @@ function GameState(props) {
 
 function Square({ value, onSquareClick }) {
     return (
-        <button className="square" onClick={onSquareClick} style={ styles.Square }>
+        <button className="square" onClick={onSquareClick} style={styles.Square}>
             {value}
         </button>
     );
@@ -37,6 +41,8 @@ function Board(props) {
         )
     }
 
+    const canClick = props.is_active_player;
+
     const board = props.board.map((line, line_idx) => {
         const row = line.map((val, sq_idx) => {
             let key = line_idx + "_" + sq_idx;
@@ -44,9 +50,10 @@ function Board(props) {
                 <Square 
                     key={key} 
                     value={val}
-                    onSquareClick={() => handeClick(line_idx, sq_idx)} 
+                    onSquareClick={canClick ? () => handeClick(line_idx, sq_idx): undefined} 
                 />
             )
+
         })
         return (
             <div className="board-row" key={line_idx}>
@@ -73,6 +80,7 @@ class Game extends Component {
             data: {
                 active_player_id: "",
                 players: "",
+                player_id: "",
                 board: [],
                 state: "",
                 turn: 0,
@@ -85,6 +93,7 @@ class Game extends Component {
         {
             "active_player_id": "uuid-2", 
             "players": ["uuid-1", "uuid-2"], 
+            "player_id": null,
             "board": [
                 ["uuid-1", null, null], 
                 [null, "uuid1", null], 
@@ -101,12 +110,20 @@ class Game extends Component {
             )
         }
 
-        const is_active_player = data.first_player_id === data.player_id;
+        const is_active_player = data.active_player_id === data.player_id;
+        const is_anonymous = !!!data.player_id;
 
         return (
             <div className="game" style={styles.Game}>
-                <GameState state={data.state} is_active_player={is_active_player} />
-                <Board board={data.board} />
+                <GameState 
+                    state={data.state} 
+                    is_active_player={is_active_player} 
+                    is_anonymous={is_anonymous} 
+                />
+                <Board 
+                    board={data.board} 
+                    is_active_player={is_active_player} 
+                />
             </div>
         )
     }

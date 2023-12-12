@@ -44,7 +44,7 @@ class GameEngine(AbstractGame):
         last_turn_state = await self._get_latest_game_state()
         if not last_turn_state:
             return None
-        return asdict(last_turn_state)
+        return dict(player_id=player_id, **asdict(last_turn_state))
 
     async def _get_latest_game_state(self) -> GameStateDto | None:
         """Get the latest game state from db"""
