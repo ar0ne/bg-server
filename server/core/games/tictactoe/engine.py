@@ -46,7 +46,7 @@ class GameEngine(AbstractGame):
             raise Exception  # FIXME
         if player.id != player_id:
             raise Exception  # FIXME
-        if game.state == Status.IN_PROGRESS:
+        if game.status == Status.IN_PROGRESS:
             game.make_turn(player, turn)
         else:
             raise Exception  # FIXME

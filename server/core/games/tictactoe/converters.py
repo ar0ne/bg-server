@@ -20,7 +20,7 @@ class TicTacToeGameTurnDataConverter(GameTurnDataConverter):
             active_player_id=game.active_player.id,
             # board=game.board,
             player_id=player_id or "",
-            state=game.state.value,
+            status=game.status.value,
             turn=game.turn,
         )
 
@@ -39,7 +39,7 @@ class TicTacToeGameStateDataConverter(GameStateDataConverter):
             pass
         game.board = Board(data.board)
         game.turn = data.turn
-        game.state = Status(data.state)
+        game.status = Status(data.status)
         return game
 
     @staticmethod
@@ -49,6 +49,6 @@ class TicTacToeGameStateDataConverter(GameStateDataConverter):
             active_player_id=game.active_player.id,
             players=[pl.id for pl in game.players],
             board=game.board.items,
-            state=game.state.value,
+            status=game.status.value,
             turn=game.turn,
         )

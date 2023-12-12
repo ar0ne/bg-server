@@ -4,10 +4,10 @@ import { styles } from "../styles/tictactoe";
 import RoomService from "../services/room.service";
 
 
-function GameState(props) {
+function GameStatus(props) {
     let msg = "";
-    const {state, is_active_player, is_anonymous} = props;
-    if (state === "in_progress") {
+    const {status, is_active_player, is_anonymous} = props;
+    if (status === "in_progress") {
         if (!is_anonymous) {
             msg = is_active_player ? "Your turn." : "Your opponent turn.";
         } else {
@@ -38,7 +38,7 @@ function Board(props) {
         )
     }
 
-    const canClick = props.is_active_player;
+    const canClick = props.is_active_player && props.status == "in_progress";
     const items = props.board;
     const size = Math.sqrt(items.length);
     const cross_player_id = props.cross_player_id;
@@ -90,7 +90,7 @@ class Game extends Component {
                 players: "",
                 player_id: "",
                 board: [],
-                state: "",
+                status: "",
                 turn: 0,
             }
         }
@@ -131,7 +131,7 @@ class Game extends Component {
                 null, "uuid1", null 
                 null, null, "uuid2"
             ], 
-            "state": "in_progress", 
+            "status": "in_progress", 
             "turn": 4
         }
         **/
@@ -148,13 +148,14 @@ class Game extends Component {
 
         return (
             <div className="game" style={styles.Game}>
-                <GameState 
-                    state={data.state} 
+                <GameStatus 
+                    status={data.status} 
                     is_active_player={is_active_player} 
                     is_anonymous={is_anonymous} 
                 />
                 <Board 
                     board={data.board} 
+                    status={data.status}
                     is_active_player={is_active_player}
                     onSquareClick={this.handeClick.bind(this)}
                     cross_player_id={cross_player_id}

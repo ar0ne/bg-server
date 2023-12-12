@@ -11,7 +11,7 @@ class GameStateDto:
     active_player_id: str
     players: List[str]
     board: List[str | None]
-    state: str
+    status: str
     turn: int
 
 
@@ -22,5 +22,5 @@ class GameTurnDataDto:
     active_player_id: str
     # cell_idx: int | None
     player_id: str
-    state: str
+    status: str
     turn: int

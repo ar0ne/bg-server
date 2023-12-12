@@ -34,7 +34,7 @@ class Game:
         assert len(player_ids), "No players found."
         self.players = [Player(p_id) for p_id in player_ids]
         self.turn = 0
-        self.state = Status.CREATED
+        self.status = Status.CREATED
         self.next_player_loop = infinite_cycle(self.players)
         self.board = None
 
@@ -42,7 +42,7 @@ class Game:
     def start_new_game(player_ids: List[Id]) -> "Game":
         """Start new game"""
         game = Game(player_ids)
-        game.state = Status.IN_PROGRESS
+        game.status = Status.IN_PROGRESS
         game.turn = 1
         # randomly peek first player
         random.shuffle(game.players)
@@ -64,9 +64,8 @@ class Game:
         # FIXME: check game state
         winner = calculate_winner(self.board)
         if winner:
-            self.state = Status.FINISHED
+            self.status = Status.FINISHED
             # FIXME: save winner ID ?
 
         self.toggle_next_player_turn()
-
         self.turn += 1
