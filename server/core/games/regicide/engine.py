@@ -55,6 +55,8 @@ class GameEngine(AbstractGame):
         last_turn_state = await self._get_latest_game_state()
         if not last_turn_state:
             return None
+        # we can't just return latest game state here, because players don't see the same
+        # so, we init game instance and dump it to hide other players hands
         game = self.game_state_converter.load(last_turn_state)
         game_turn = self.game_data_converter.dump(game, player_id=player_id)
         return asdict(game_turn)
