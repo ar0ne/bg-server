@@ -1,6 +1,7 @@
 // TicTacToe
 import { Component } from "react";
 import { styles } from "../styles/tictactoe";
+import RoomService from "../services/room.service";
 
 
 function GameState(props) {
@@ -29,10 +30,6 @@ function Square({ value, onSquareClick }) {
 
 function Board(props) {
 
-    function handeClick(row, col) {
-        console.log(row, col);
-    }
-
     // todo: highlight if game is finished in different colors depends on player
 
     if (!props || !props.board) {
@@ -42,33 +39,43 @@ function Board(props) {
     }
 
     const canClick = props.is_active_player;
+    const items = props.board;
+    const size = Math.sqrt(items.length);
+    const cross_player_id = props.cross_player_id;
 
-    const board = props.board.map((line, line_idx) => {
-        const row = line.map((val, sq_idx) => {
-            let key = line_idx + "_" + sq_idx;
-            return (
-                <Square 
-                    key={key} 
-                    value={val}
-                    onSquareClick={canClick ? () => handeClick(line_idx, sq_idx): undefined} 
-                />
-            )
+    const group = (items, n) => items.reduce((acc, x, i) => {
+        const idx = Math.floor(i / n);
+        acc[idx] = [...(acc[idx] || []), x];
+        return acc;
+      }, []);
 
-        })
-        return (
-            <div className="board-row" key={line_idx}>
-                {row}
-            </div>
-        )
-
-    });
+    const sign = (val) => {
+        if (!!!val) {
+            return;
+        }
+        return cross_player_id === val ? 'x' : 'o'
+    }
 
     return (
-        <div id="game-board">
-            {board}
+        <div className="game-board">
+            {group(items, size).map((row, row_idx) => (
+                <div className="board-row" key={row_idx}>
+                    {row.map((val, col_idx) => {
+                        let idx = row_idx * size + col_idx;
+                        return (
+                            <Square 
+                                key={idx} 
+                                value={sign(val)}
+                                onSquareClick={canClick ? () => props.onSquareClick(idx) : undefined} 
+                            />
+                        )
+                        })
+                    }
+                </div>
+            ))}
         </div>
-    )
-}
+    );
+};
 
 
 class Game extends Component {
@@ -76,6 +83,7 @@ class Game extends Component {
         super(props);
 
         this.state = {
+            isLoading: false,
             room_id: "",
             data: {
                 active_player_id: "",
@@ -88,6 +96,30 @@ class Game extends Component {
         }
     }
 
+    handeClick(idx) {
+        console.log(idx);
+        this.setState({ isLoading: true });
+
+        RoomService.createTurnData(
+            this.props.room_id, {cell: idx}
+        ).then(response => {
+            console.log(response);
+            this.setState({isLoading: false});
+        },
+        error => {
+            console.log("unable to make a turn");
+            console.log(
+                (error.response &&
+                error.response.data &&
+                error.response.data.error &&
+                error.response.data.error.message) ||
+                error.message ||
+                error.toString()
+            );
+        })
+    }
+
+
     render() {
         /**
         {
@@ -95,9 +127,9 @@ class Game extends Component {
             "players": ["uuid-1", "uuid-2"], 
             "player_id": null,
             "board": [
-                ["uuid-1", null, null], 
-                [null, "uuid1", null], 
-                [null, null, "uuid2"]
+                "uuid-1", null, null
+                null, "uuid1", null 
+                null, null, "uuid2"
             ], 
             "state": "in_progress", 
             "turn": 4
@@ -112,6 +144,7 @@ class Game extends Component {
 
         const is_active_player = data.active_player_id === data.player_id;
         const is_anonymous = !!!data.player_id;
+        const cross_player_id = data.players && data.players[0]
 
         return (
             <div className="game" style={styles.Game}>
@@ -122,7 +155,9 @@ class Game extends Component {
                 />
                 <Board 
                     board={data.board} 
-                    is_active_player={is_active_player} 
+                    is_active_player={is_active_player}
+                    onSquareClick={this.handeClick.bind(this)}
+                    cross_player_id={cross_player_id}
                 />
             </div>
         )

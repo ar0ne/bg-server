@@ -28,6 +28,11 @@ class RoomService {
             headers: authHeader()
         });
     }
+    createTurnData(room_id, data) {
+        return axios.post(`${API_URL}/${room_id}/turn`, data, {
+            headers: authHeader()
+        });
+    }
     changeRoomSize(room_id, size) {
         return this.updateRoom(room_id, {size: size});
     }
@@ -77,7 +82,7 @@ class RoomService {
         return room && room.status === RoomStatus.STARTED;
     }
     isCanceled(room) {
-        return room && room.status == RoomStatus.CANCELED;
+        return room && room.status === RoomStatus.CANCELED;
     }
 };
 

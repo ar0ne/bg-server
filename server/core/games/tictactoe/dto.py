@@ -9,9 +9,8 @@ class GameStateDto:
     """Represents internal game state data"""
 
     active_player_id: str
-    # [[None, <player-1-id>, <player-2-id>], [None, ...]]
     players: List[str]
-    board: List[List[str | None]]
+    board: List[str | None]
     state: str
     turn: int
 

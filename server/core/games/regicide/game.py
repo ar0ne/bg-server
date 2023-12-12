@@ -79,6 +79,7 @@ class Game:
         self.played_combos: List[CardCombo] = []
         # setup game state
         self.state = GameState.CREATED
+        self.next_player_loop = infinite_cycle(self.players)
 
     @property
     def is_playing_cards_state(self) -> bool:
@@ -107,7 +108,6 @@ class Game:
         game.played_combos = []
         # randomly peek first player
         random.shuffle(game.players)
-        game.next_player_loop = infinite_cycle(game.players)
         game.first_player = game.toggle_next_player_turn()
         # players draw X random cards on hands
         for player in game.players:

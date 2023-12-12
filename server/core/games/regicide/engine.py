@@ -10,7 +10,7 @@ from core.games.regicide.converters import (
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
 from core.games.regicide.models import Card
-from core.resources.models import GameTurn
+from core.resources.models import GameTurn, Player
 
 
 class GameEngine(AbstractGame):
@@ -50,11 +50,12 @@ class GameEngine(AbstractGame):
         # save changes
         await self._save_game_state(game)
 
-    async def poll(self, player_id: Id | None = None) -> GameData | None:
+    async def poll(self, player: Player | None = None) -> GameData | None:
         """Poll the last turn data"""
         last_turn_state = await self._get_latest_game_state()
         if not last_turn_state:
             return None
+        player_id = str(player.id) if player else None
         # we can't just return latest game state here, because players don't see the same
         # so, we init game instance and dump it to hide other players hands
         game = self.game_state_converter.load(last_turn_state)

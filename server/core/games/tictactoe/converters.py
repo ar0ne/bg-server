@@ -2,6 +2,7 @@
 
 from core.games.tictactoe.dto import GameStateDto, GameTurnDataDto
 from core.games.tictactoe.game import Game
+from core.games.tictactoe.models import Board, Status
 from core.games.transform import GameStateDataConverter, GameTurnDataConverter
 from core.games.utils import infinite_cycle
 
@@ -30,15 +31,15 @@ class TicTacToeGameStateDataConverter(GameStateDataConverter):
     @staticmethod
     def load(data: GameStateDto, **kwargs) -> Game:
         """Load game state to game instance"""
-        game = Game(list(map(lambda p: p[0], data.players)))
+        game = Game(data.players)
 
         # shift players' loop until first player from data
         game.next_player_loop = infinite_cycle(game.players)
         while game.toggle_next_player_turn().id != data.active_player_id:
             pass
-
+        game.board = Board(data.board)
         game.turn = data.turn
-        game.state = GameState(data.state)
+        game.state = Status(data.state)
         return game
 
     @staticmethod
