@@ -6,7 +6,7 @@ import AuthService from "../services/auth.service";
 
 
 function PublicRooms(props) {
-    const { rooms, isLoggedIn} = props;
+    const { rooms } = props;
     if (!(rooms && rooms.length)) {
         return <p>No Available rooms</p>
     }

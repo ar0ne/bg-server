@@ -19,8 +19,14 @@ const Square = {
     width: "34px",
 }
 
+const RedSquare = {
+    ...Square,
+    background: "red",
+}
+
 
 export const styles = {
     Game: Game,
     Square: Square,
+    RedSquare: RedSquare,
 }
