@@ -1,7 +1,7 @@
 """Base game interface"""
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Type, Union
 
 Id = Union[str, uuid.UUID]
 GameData = Dict[str, Any]
@@ -22,9 +22,5 @@ class AbstractGame(ABC):
         """update game state"""
 
     @abstractmethod
-    async def poll(self, player_id: Optional[Id] = None) -> GameData | None:
+    async def poll(self, player_id: Id | None = None) -> GameData | None:
         """poll game state"""
-
-    @abstractmethod
-    async def is_valid_turn(self, player_id: Id, turn: GameDataTurn) -> bool:
-        """True if it's valid game turn"""

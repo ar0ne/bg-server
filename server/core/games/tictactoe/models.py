@@ -3,17 +3,25 @@
 import enum
 from typing import List
 
+from core.games.base import Id
+
 
 class Player:
     """Player"""
 
-    def __init__(self, id: str) -> None:
+    def __init__(self, id: Id) -> None:
         """Init player object"""
-        self.id = id
+        self.id = str(id)
 
     def __str__(self) -> str:
         """to string"""
         return self.id
+
+    def __eq__(self, other) -> bool:
+        """True if object are equal"""
+        if isinstance(other, Player):
+            return self.id == other.id
+        return False
 
 
 class Status(enum.Enum):

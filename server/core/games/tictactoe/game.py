@@ -28,6 +28,24 @@ def get_winner_id(squares) -> Id | None:
     return None
 
 
+def validate_game_turn(game: "Game", player_id: Id, turn: dict) -> None:
+    """Assert player can make turn"""
+    if not game.is_game_in_progress:
+        raise InvalidGameStateError
+    if not player_id:
+        raise Exception  # FIXME
+    player = Player(player_id)
+    if player not in game.players:
+        raise Exception  # FIXME
+    if player != game.active_player:
+        raise TurnOrderViolationError
+    index = turn.get("index")
+    if index is None or 0 < index > len(game.board):
+        raise Exception  # FIXME
+    if game.board[index]:
+        raise Exception  # FIXME
+
+
 class Game:
     """TicTacToe Game class"""
 
@@ -58,33 +76,19 @@ class Game:
         self.active_player = next(self.next_player_loop)
         return self.active_player
 
-    def make_turn(self, player: Player, turn: dict) -> None:
+    def make_turn(self, turn: dict) -> None:
         """Player makes a turn"""
-        self._assert_can_make_turn(player, turn)
         index = turn["index"]
+        player = self.active_player
         self.board[index] = player.id
 
         winner_id = get_winner_id(self.board)
         if winner_id:
             self.status = Status.FINISHED
-            self.winner = player if winner_id == player.id else Player(winner_id)
+            self.winner = player
 
         self.toggle_next_player_turn()
         self.turn += 1
-
-    def _assert_can_make_turn(self, player: Player, turn: dict) -> None:
-        """Assert player can make turn"""
-        if not self.is_game_in_progress:
-            raise InvalidGameStateError
-        if player not in self.players:
-            raise Exception  # FIXME
-        if player is not self.active_player:
-            raise TurnOrderViolationError
-        index = turn.get("index")
-        if index is None or 0 < index > len(self.board):
-            raise Exception  # FIXME
-        if self.board[index]:
-            raise Exception  # FIXME
 
     @property
     def is_game_in_progress(self) -> bool:

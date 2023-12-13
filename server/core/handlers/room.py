@@ -10,16 +10,6 @@ from core.resources.handlers import BaseRequestHandler
 from core.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 
 
-async def get_room_player_id(room: Room, user: Optional[Player]) -> Optional[str]:
-    """Get user id if user participate in game room"""
-    if not user:
-        return None
-    players_ids = await room.participants.all().values_list("id", flat=True)
-    if user.id in players_ids:
-        return str(user.id)
-    return None
-
-
 class GameRoomHandler(BaseRequestHandler):
     """
     Game room request handler.
@@ -96,7 +86,9 @@ class RoomDataHandler(BaseRequestHandler):
         """Get the latest game room state"""
         room = await Room.get(id=room_id).select_related("game")
         engine = room.game.get_engine()(room_id)
-        data = await engine.poll(self.request.user)
+        # this is public endpoint, user could be missed
+        user_id = self.request.user.id if self.request.user else None
+        data = await engine.poll(user_id)
         # wrap up in object -> {"data": {...}}
         self.write(dict(data=data))
 
@@ -107,21 +99,18 @@ class RoomGameTurnHandler(BaseRequestHandler):
     Allows to make a game turn.
     """
 
+    @login_required
     async def post(self, room_id: str) -> None:
         """Create a game turn"""
+        user_id = self.request.user.id
         turn = tornado.escape.json_decode(self.request.body)
         if not turn:
             raise APIError(400, "Validation error")
         room = await Room.get(id=room_id).select_related("game")
-        player_id = await get_room_player_id(room, self.request.user)
-        if not player_id:
-            raise APIError(403, "Unauthorized action.")  # FIXME: auth decorator?
         engine = room.game.get_engine()(room_id)
-        if not engine.is_valid_turn(player_id, turn):
-            raise APIError(400, "Invalid turn.")
-        await engine.update(player_id, turn)
+        await engine.update(user_id, turn)
         # FIXME: notify all players (observers) => WS ?
-        data = await engine.poll(self.request.user)
+        data = await engine.poll(user_id)
         self.write(data)
 
 
