@@ -7,17 +7,17 @@ export const useWs = () => {
     const ws = useRef(null);
   
     useEffect(() => {
-      const socket = new WebSocket("ws://localhost:8888/api/v1/ws");
+        const socket = new WebSocket("ws://localhost:8888/api/v1/ws");
+    
+        socket.onopen = () => setIsReady(true);
+        socket.onclose = () => setIsReady(false);
+        socket.onmessage = (event) => setVal(event.data);
+    
+        ws.current = socket;
   
-      socket.onopen = () => setIsReady(true);
-      socket.onclose = () => setIsReady(false);
-      socket.onmessage = (event) => setVal(event.data);
-  
-      ws.current = socket;
-  
-      return () => {
-        socket.close();
-      }
+        return () => {
+            socket.close();
+        }
     }, [])
   
     // bind is needed to make sure `send` references correct `this`

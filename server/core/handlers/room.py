@@ -73,7 +73,8 @@ class RoomHandler(BaseRequestHandler):
             room.size = data["size"]
         await room.save(update_fields=("status", "size"))
         serializer = await RoomSerializer.from_tortoise_orm(room)
-        self.write(serializer.model_dump_json())
+        data = serializer.model_dump(mode="json")
+        self.write(dict(data=data))
 
 
 class RoomDataHandler(BaseRequestHandler):
@@ -108,10 +109,12 @@ class RoomGameTurnHandler(BaseRequestHandler):
             raise APIError(400, "Validation error")
         room = await Room.get(id=room_id).select_related("game")
         engine = room.game.get_engine()(room_id)
+        # update game state
         await engine.update(user_id, turn)
         # FIXME: notify all players (observers) => WS ?
         data = await engine.poll(user_id)
-        self.write(data)
+        # FIXME: check if game is over and update room status
+        self.write(dict(data=data))
 
 
 class RoomPlayersHandler(BaseRequestHandler):

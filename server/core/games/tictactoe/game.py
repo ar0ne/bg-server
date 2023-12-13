@@ -76,7 +76,7 @@ class Game:
         self.active_player = next(self.next_player_loop)
         return self.active_player
 
-    def make_turn(self, turn: dict) -> None:
+    def make_turn(self, player_id: str, turn: dict) -> None:
         """Player makes a turn"""
         index = turn["index"]
         player = self.active_player

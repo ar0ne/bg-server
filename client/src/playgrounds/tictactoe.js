@@ -60,8 +60,6 @@ function getWinnerIndexes(squares) {
 
 function Board(props) {
 
-    // todo: highlight if game is finished in different colors depends on player
-
     if (!props || !props.board) {
         return (
             <div>Can't draw a board.</div>
@@ -114,15 +112,15 @@ function Board(props) {
 
 
 function wsComponent(WrappedComponent) {
-    
     return function(props) {
-        useEffect(() => {
-            if (ready) {
-              send("test message")
-            }
-        }, [ready, send]);
-      
         const [ready, val, send] = useWs();
+
+        // useEffect(() => {
+        //     if (ready) {
+        //       send("test message")
+        //     }
+        // }, [ready, send]);
+
         return (
             <WrappedComponent {...props} wsVal={val} wsSend={send} wsReady={ready} />
         );
@@ -153,11 +151,13 @@ class Game extends Component {
     handeClick(idx) {
         this.setState({ isLoading: true });
 
+        // send http request, but wait for ws hook to make data refresh?
         RoomService.createTurnData(
             this.props.room_id, {index: idx}
         ).then(response => {
             console.log(response);
             this.setState({isLoading: false});
+            this.props.fetchRoomData();
         },
         error => {
             console.log("unable to make a turn");
@@ -172,25 +172,23 @@ class Game extends Component {
         })
     }
 
-    componentDidMount() {
-        
-    }
-
-
     render() {
         /**
         {
-            "active_player_id": "uuid-2", 
-            "players": ["uuid-1", "uuid-2"], 
-            "player_id": null,
-            "board": [
-                "uuid-1", null, null
-                null, "uuid1", null 
-                null, null, "uuid2"
-            ], 
-            "status": "in_progress", 
-            "turn": 4,
-            "winner_id": null
+            "data": 
+            {
+                "active_player_id": "uuid-2", 
+                "players": ["uuid-1", "uuid-2"], 
+                "player_id": null,
+                "board": [
+                    "uuid-1", null, null
+                    null, "uuid1", null 
+                    null, null, "uuid2"
+                ], 
+                "status": "in_progress", 
+                "turn": 4,
+                "winner_id": null
+            }
         }
         **/
         const { data, wsVal, wsSend } = this.props;
@@ -208,9 +206,11 @@ class Game extends Component {
 
         return (
             <div className="game" style={styles.Game}>
-                <button 
-                    onClick={() => wsSend("hello")}
-                >Webscoket : {wsVal} </button>
+
+                {/* <button 
+                    onClick={() => wsSend(Math.random())}
+                >Webscoket : {wsVal} </button> */}
+
                 <GameStatus 
                     status={data.status} 
                     is_active_player={is_active_player} 

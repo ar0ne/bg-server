@@ -24,6 +24,7 @@ class RoomTable extends Component {
             },
             data: {}
         }
+        this.fetchRoomData.bind(this);
     }
 
     componentDidMount() {
@@ -39,23 +40,26 @@ class RoomTable extends Component {
                     1
                 );
             } else if (RoomService.isStarted(room)) {
-                RoomService.getRoomData(room_id).then(response => {
-                    // {"data": {...}}
-                    const data = response.data.data;
-                    this.setState({isLoading: false, data: data});
-                });
+                this.fetchRoomData();
             }
         });
     }
 
-
+    fetchRoomData() {
+        // FIXME: maybe take it from websocket channel ?
+        const { room_id } = this.props.router.params;
+        RoomService.getRoomData(room_id).then(response => {
+            // {"data": {...}}
+            const data = response.data.data;
+            this.setState({data: data});
+        });
+    }
 
     render() {
         const { room, data, isLoading } = this.state;
-
         if (!room || !room.status) {
             return (
-                <div></div>
+                <div>Nothing is here.</div>
             )
         }
         if (RoomService.isCanceled(room)) {
@@ -70,7 +74,7 @@ class RoomTable extends Component {
             <div>
                 <div>Game Table: {room.game.name}</div>
                 <Suspense fallback={<div>Loading...</div>}>
-                    {isLoading ? "" : <Game room_id={room.id} data={data} />}
+                    {isLoading ? "" : <Game room_id={room.id} data={data} fetchRoomData={() => this.fetchRoomData()} />}
                 </Suspense>
             </div>
         )
