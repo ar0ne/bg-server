@@ -14,7 +14,7 @@ class GameStateDto:
     first_player_id: str
     players: List[Tuple[str, List[FlatCard]]]
     played_combos: List[List[FlatCard]]
-    state: str
+    status: str
     tavern_deck: List[FlatCard]
     turn: int
 
@@ -29,7 +29,7 @@ class GameTurnDataDto:
     first_player_id: str
     player_id: str
     played_combos: List[List[FlatCard]]
-    state: str
+    status: str
     tavern_size: int
     turn: int
     hand: Optional[List[FlatCard]] = None

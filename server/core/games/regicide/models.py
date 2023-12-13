@@ -32,14 +32,16 @@ class CardRank(enum.Enum):
         return list(map(lambda c: c.value, cls))
 
 
-class GameState(enum.Enum):
-    """Represents current state of the game"""
+class Status(enum.Enum):
+    """Represents current status of the game"""
 
     CREATED = "created"
     PLAYING_CARDS = "playing_cards"
     DISCARDING_CARDS = "discarding_cards"
-    LOST = "lost"
-    WON = "won"
+    LOST = "lost"  # FIXME: remove
+    WON = "won"  # FIXME: remove
+    FINISHED = "finished"
+    ABANDONED = "abandoned"
 
 
 class Suit(enum.Enum):

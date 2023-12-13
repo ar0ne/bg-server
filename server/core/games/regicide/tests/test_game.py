@@ -1,20 +1,21 @@
 """Unit tests for game"""
 from unittest import TestCase
 
+from core.games.regicide.converters import RegicideGameStateDataConverter
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
-from core.games.regicide.internal import RegicideGameStateLoader
-from core.games.regicide.models import GameState
+from core.games.regicide.models import Status
 
 
 class TestGame(TestCase):
     """Test cases for game"""
 
-    def setUp(self) -> None:
+    @classmethod
+    def setUpClass(cls) -> None:
         """Setup test cases"""
-        self.user1_id = "user1"
-        self.user2_id = "user2"
-        self.loader = RegicideGameStateLoader
+        cls.user1_id = "user1"
+        cls.user2_id = "user2"
+        cls.game_state_converter = RegicideGameStateDataConverter()
 
     def test_create_game(self) -> None:
         """Tests creating new game object"""
@@ -22,29 +23,25 @@ class TestGame(TestCase):
         with self.assertRaises(AssertionError):
             Game([])
 
-        user_id = "user1"
+        game = Game([self.user1_id])
 
-        game = Game([user_id])
-
-        self.assertEqual(user_id, game.first_player.id)
+        self.assertIsNone(game.first_player)
         self.assertEqual(1, len(game.players))
         self.assertEqual(0, game.turn)
         self.assertEqual(0, len(game.discard_deck))
         self.assertEqual(0, len(game.tavern_deck))
         self.assertEqual(0, len(game.enemy_deck))
         self.assertEqual(0, len(game.played_combos))
-        self.assertEqual(GameState.CREATED, game.state)
+        self.assertEqual(Status.CREATED, game.status)
 
     def test_start_new_game(self) -> None:
         """Tests starting new game"""
 
-        user1_id = "user1"
-        user2_id = "user2"
         hand_size = 7
 
-        game = Game.start_new_game([user1_id, user2_id])
+        game = Game.start_new_game([self.user1_id, self.user2_id])
 
-        self.assertEqual(GameState.PLAYING_CARDS, game.state)
+        self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(1, game.turn)
         self.assertEqual(2, len(game.players))
         self.assertTrue(game.first_player in game.players)
@@ -65,19 +62,20 @@ class TestGame(TestCase):
                 (self.user2_id, [("2", "♥")]),
             ],
             played_combos=[[("10", "♣")], [("6", "♠")]],
-            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            status=Status.PLAYING_CARDS.value,  # type: ignore
             tavern_deck=[("2", "♣")],
             turn=4,
         )
-        game = self.loader.load(dump)
+        game = self.game_state_converter.load(dump)
 
         enemy = game.enemy_deck.peek()
 
         # Player kills enemy and draws 1 card from discard to tavern and should defeat next enemy
         # And enemy doesn't have immune
-        game.play_cards(game.first_player, [game.first_player.hand[0]])
+        turn = {"cards": [("4", "♥")]}
+        game.make_turn(game.first_player.id, turn)
 
-        self.assertEqual(GameState.PLAYING_CARDS, game.state)
+        self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(5, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(1, len(game.enemy_deck))
@@ -101,17 +99,18 @@ class TestGame(TestCase):
             played_combos=[
                 [("9", "♠")],
             ],
-            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            status=Status.PLAYING_CARDS.value,  # type: ignore
             tavern_deck=[("2", "♣"), ("3", "♥"), ("4", "♥")],
             turn=4,
         )
-        game = self.loader.load(dump)
+        game = self.game_state_converter.load(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
-        game.play_cards(game.first_player, [game.first_player.hand[0]])
+        turn = {"cards": [("2", "♦")]}
+        game.make_turn(game.first_player.id, turn)
 
-        self.assertEqual(GameState.DISCARDING_CARDS, game.state)
+        self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(5, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(1, len(game.enemy_deck))
@@ -134,17 +133,18 @@ class TestGame(TestCase):
             played_combos=[
                 [("9", "♣")],
             ],
-            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            status=Status.PLAYING_CARDS.value,  # type: ignore
             tavern_deck=[("2", "♣")],
             turn=4,
         )
-        game = self.loader.load(dump)
+        game = self.game_state_converter.load(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
-        game.play_cards(game.first_player, [game.first_player.hand[0]])
+        turn = {"cards": [("2", "♣")]}
+        game.make_turn(game.first_player.id, turn)
 
-        self.assertEqual(GameState.LOST, game.state)
+        self.assertEqual(Status.LOST, game.status)
         self.assertEqual(4, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(1, len(game.enemy_deck))
@@ -165,16 +165,17 @@ class TestGame(TestCase):
                 (self.user1_id, [("4", "♣"), ("9", "♣"), ("Q", "♣")]),
             ],
             played_combos=[],
-            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            status=Status.PLAYING_CARDS.value,  # type: ignore
             tavern_deck=[("2", "♣")],
             turn=6,
         )
-        game = self.loader.load(dump)
+        game = self.game_state_converter.load(dump)
 
         # player plays card with damage enough to defeat the enemy and won the game
-        game.play_cards(game.first_player, [game.first_player.hand[2]])
+        turn = {"cards": [("Q", "♣")]}
+        game.make_turn(game.first_player.id, turn)
 
-        self.assertEqual(game.state, GameState.WON)
+        self.assertEqual(game.status, Status.WON)
         self.assertEqual(6, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(0, len(game.enemy_deck))
@@ -195,24 +196,17 @@ class TestGame(TestCase):
                 (self.user1_id, [("2", "♣"), ("2", "♥"), ("2", "♦"), ("2", "♠")]),
             ],
             played_combos=[[("10", "♠")]],
-            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            status=Status.PLAYING_CARDS.value,  # type: ignore
             tavern_deck=[("3", "♣"), ("4", "♣")],
             turn=6,
         )
-        game = self.loader.load(dump)
+        game = self.game_state_converter.load(dump)
 
         # player plays combo from 2x4, enemy has immune to hearts
-        game.play_cards(
-            game.first_player,
-            [
-                game.first_player.hand[0],
-                game.first_player.hand[1],
-                game.first_player.hand[2],
-                game.first_player.hand[3],
-            ],
-        )
+        turn = {"cards": [("2", "♣"), ("2", "♥"), ("2", "♦"), ("2", "♠")]}
+        game.make_turn(game.first_player.id, turn)
 
-        self.assertEqual(GameState.PLAYING_CARDS, game.state)
+        self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(7, game.turn)
         self.assertEqual(game.first_player.id, self.user2_id)
         self.assertEqual(1, len(game.enemy_deck))
@@ -233,16 +227,17 @@ class TestGame(TestCase):
                 (self.user1_id, [("5", "♣"), ("10", "♠"), ("K", "♦"), ("A", "♦")]),
             ],
             played_combos=[[("4", "♠")]],
-            state=GameState.PLAYING_CARDS.value,  # type: ignore
+            status=Status.PLAYING_CARDS.value,  # type: ignore
             tavern_deck=[("4", "♣")],
             turn=6,
         )
-        game = self.loader.load(dump)
+        game = self.game_state_converter.load(dump)
 
         # player plays combo from ace and 5, game moves to discard cards state
-        game.play_cards(game.first_player, [game.first_player.hand[0], game.first_player.hand[3]])
+        turn = {"cards": [("5", "♣"), ("A", "♦")]}
+        game.make_turn(game.first_player.id, turn)
 
-        self.assertEqual(GameState.DISCARDING_CARDS, game.state)
+        self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(7, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(1, len(game.enemy_deck))
@@ -263,14 +258,15 @@ class TestGame(TestCase):
                 (self.user1_id, [("10", "♠"), ("K", "♦")]),
             ],
             played_combos=[[("4", "♠")], [("5", "♣"), ("A", "♦")]],
-            state=GameState.DISCARDING_CARDS.value,  # type: ignore
+            status=Status.DISCARDING_CARDS.value,  # type: ignore
             tavern_deck=[("4", "♣")],
             turn=6,
         )
-        game = self.loader.load(dump)
-        game.discard_cards(game.first_player, [game.players[1].hand[1]])
+        game = self.game_state_converter.load(dump)
+        turn = {"cards": [("K", "♦")]}
+        game.make_turn(game.first_player.id, turn)
 
-        self.assertEqual(GameState.PLAYING_CARDS, game.state)
+        self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(game.first_player.id, self.user2_id)
         self.assertEqual(2, len(game.discard_deck))
         self.assertEqual(2, len(game.played_combos))

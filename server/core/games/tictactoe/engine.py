@@ -3,9 +3,9 @@ from dataclasses import asdict
 from typing import List
 
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
+from core.games.exceptions import GameDataNotFound
 from core.games.tictactoe.converters import TicTacToeGameStateDataConverter
 from core.games.tictactoe.dto import GameStateDto
-from core.games.tictactoe.exceptions import GameDataNotFound
 from core.games.tictactoe.game import Game, validate_game_turn
 from core.games.tictactoe.models import Status
 from core.resources.models import GameTurn, Player
@@ -31,14 +31,15 @@ class GameEngine(AbstractGame):
         game = self.state_converter.load(game_data)
         # always run validation before apply a turn
         validate_game_turn(game, player_id, turn)
-        game.make_turn(turn)
+        game.make_turn(player_id, turn)
         await self._save_game_state(game)
 
     async def poll(self, player_id: Id | None = None) -> GameData | None:
         """Poll the last game state"""
-        last_turn_state = await self._get_latest_game_state()
+        last_state = await self._get_latest_game_state()
         player_id = str(player_id) if player_id else None
-        return dict(player_id=player_id, **asdict(last_turn_state))
+        # we don't need to hide anything from other users, just serialize state
+        return dict(player_id=player_id, **asdict(last_state))
 
     async def _get_latest_game_state(self) -> GameStateDto:
         """Get the latest game state from db"""

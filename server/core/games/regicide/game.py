@@ -2,17 +2,16 @@
 import itertools
 import random
 from itertools import product
-from typing import Iterable, List, Optional
+from typing import Any, Iterable, List, Optional
 
 from ..base import Id
+from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..regicide.exceptions import (
     CardBelongsToAnotherError,
-    InvalidGameStateError,
     InvalidPairComboError,
     MaxComboSizeExceededError,
-    TurnOrderViolationError,
 )
-from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, GameState, Player, Suit
+from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, Player, Status, Suit
 from ..utils import infinite_cycle
 
 
@@ -78,18 +77,24 @@ class Game:
         # list of combos represents cards played against enemy before they went to discard pile
         self.played_combos: List[CardCombo] = []
         # setup game state
-        self.state = GameState.CREATED
+        self.status = Status.CREATED
         self.next_player_loop = infinite_cycle(self.players)
+        self.first_player = None
 
     @property
     def is_playing_cards_state(self) -> bool:
         """True if game is in play cards state"""
-        return self.state == GameState.PLAYING_CARDS
+        return self.status == Status.PLAYING_CARDS
 
     @property
     def is_discarding_cards_state(self) -> bool:
         """True if game is discard cards state"""
-        return self.state == GameState.DISCARDING_CARDS
+        return self.status == Status.DISCARDING_CARDS
+
+    @property
+    def is_game_in_progress(self) -> bool:
+        """True if game is in progress"""
+        return self.status in (Status.PLAYING_CARDS, Status.DISCARDING_CARDS)
 
     @property
     def current_enemy(self) -> Optional[Card]:
@@ -114,13 +119,21 @@ class Game:
             hand = game.tavern_deck.pop_many(player.hand_size)
             player.hand = hand
         # first player could play cards now
-        game.state = GameState.PLAYING_CARDS
+        game.status = Status.PLAYING_CARDS
         game.turn = 1
         return game
 
-    def play_cards(self: "Game", player: Player, combo: CardCombo) -> None:
+    def make_turn(self, player_id: Id, turn: dict) -> None:
+        """Player could make a turn"""
+        player = self.find_player(player_id)
+        cards = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
+        if self.is_playing_cards_state:
+            self._play_cards(player, cards)
+        elif self.is_discarding_cards_state:
+            self._discard_cards(player, cards)
+
+    def _play_cards(self: "Game", player: Player, combo: CardCombo) -> None:
         """Play cards"""
-        self._assert_can_play_cards(player, combo)
         enemy = self.current_enemy
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
@@ -129,39 +142,38 @@ class Game:
         # add cards to played cards deck
         self.played_combos.append(combo)
         # move to the next state
-        self.state = GameState.DISCARDING_CARDS
+        self.status = Status.DISCARDING_CARDS
         # check has been enemy defeated
         enemy_defeated = is_enemy_defeated(enemy, self.played_combos)
         if enemy_defeated:
             # no need to discard cards
-            self.state = GameState.PLAYING_CARDS
+            self.status = Status.PLAYING_CARDS
             # pull next enemy from castle deck and discard defeated enemy and played cards
             self._pull_next_enemy()
             # transit to won state if enemy deck is empty now
             if not len(self.enemy_deck):
-                self.state = GameState.WON
+                self.status = Status.WON
                 return
         else:
             if get_enemy_attack_damage(enemy, self.played_combos) <= 0:
                 # enemy can't attack, let next player to play cards
-                self.state = GameState.PLAYING_CARDS
+                self.status = Status.PLAYING_CARDS
                 self.toggle_next_player_turn()
             elif not can_defeat_enemy_attack(player, enemy, self.played_combos):
                 # player must have cards on hand enough to deal with enemies attack, otherwise
                 # game lost
-                self.state = GameState.LOST
+                self.status = Status.LOST
                 return
         self.turn += 1
 
-    def discard_cards(self: "Game", player: Player, combo: CardCombo) -> None:
+    def _discard_cards(self: "Game", player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
-        self._assert_can_discard_cards(player, combo)
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
         # move cards to discard pile
         self.discard_deck.append(combo)
         # next player could play card
-        self.state = GameState.PLAYING_CARDS
+        self.status = Status.PLAYING_CARDS
         self.toggle_next_player_turn()
         self.turn += 1
 
@@ -176,48 +188,6 @@ class Game:
             if player.id == player_id:
                 return player
         return None
-
-    def _assert_can_play_cards(self, player: Player, combo: CardCombo) -> None:
-        """Assert player can play cards"""
-        if not self.is_playing_cards_state:
-            raise InvalidGameStateError
-        if player not in self.players:
-            raise Exception  # FIXME
-        if not combo:
-            raise Exception  # FIXME
-        if player != self.first_player:
-            raise TurnOrderViolationError
-        if not cards_belong_to_player(player, combo):
-            raise CardBelongsToAnotherError
-        combo_size = len(combo)
-        if combo_size == 1:
-            return
-        if any(card.rank == CardRank.ACE for card in combo):
-            if combo_size > 2:
-                raise MaxComboSizeExceededError
-        else:
-            if any(
-                not is_valid_duplicate_combo(rank, combo) for rank in self.DUPLICATED_COMBO_RANKS
-            ):
-                raise InvalidPairComboError
-
-    def _assert_can_discard_cards(self, player: Player, combo: CardCombo) -> None:
-        """Assert can player discard these cards"""
-        if not self.is_discarding_cards_state:
-            raise InvalidGameStateError
-        if player != self.first_player:
-            raise TurnOrderViolationError
-        if player not in self.players:
-            raise Exception  # FIXME
-        if not cards_belong_to_player(player, combo):
-            raise CardBelongsToAnotherError
-        if not combo:
-            raise Exception  # FIXME
-        enemy = self.current_enemy
-        # damage from combo without suits power should be enough to deal with enemies attack damage
-        combo_damage = Card.get_combo_damage(combo)
-        if get_enemy_attack_damage(enemy, self.played_combos) > combo_damage:
-            raise Exception  # FIXME
 
     def _pull_next_enemy(self) -> None:
         """Remove current enemy, throw off played cards to discard"""
@@ -276,3 +246,63 @@ class Game:
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))
         self.enemy_deck = Deck([*jacks, *queens, *kings])
+
+
+def validate_can_play_cards(game: Game, player: Player, combo: CardCombo) -> None:
+    """Assert player can play cards"""
+    if not cards_belong_to_player(player, combo):
+        raise CardBelongsToAnotherError
+    combo_size = len(combo)
+    if combo_size == 1:
+        return
+    if any(card.rank == CardRank.ACE for card in combo):
+        if combo_size > 2:
+            raise MaxComboSizeExceededError
+    else:
+        if any(not is_valid_duplicate_combo(rank, combo) for rank in self.DUPLICATED_COMBO_RANKS):
+            raise InvalidPairComboError
+
+
+def validate_can_discard_cards(game: Game, player: Player, combo: CardCombo) -> None:
+    """Assert can player discard these cards"""
+    if not cards_belong_to_player(player, combo):
+        raise CardBelongsToAnotherError
+    enemy = self.current_enemy
+    # damage from combo without suits power should be enough to deal with enemies attack damage
+    combo_damage = Card.get_combo_damage(combo)
+    if get_enemy_attack_damage(enemy, self.played_combos) > combo_damage:
+        raise Exception  # FIXME
+
+
+def is_valid_card(card: Any) -> bool:
+    """True if card is valid"""
+    try:
+        Card(card[0], card[1])
+    except ValueError:
+        return False
+    return True
+
+
+def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
+    """Verify it's a valid turn"""
+    if not game.is_game_in_progress:
+        raise InvalidGameStateError
+    if not turn:
+        raise Exception  # FIXME
+    player = game.first_player
+    if not player:
+        raise Exception  # FIXME
+    if player.id != player_id:
+        raise Exception  # FIXME
+    if game.first_player.id != player_id:
+        raise TurnOrderViolationError
+
+    cards = turn.get("cards")
+    if not combo or any(not is_valid_card(card) for card in cards):
+        raise Exception  # FIXME
+
+    combo = list(map(lambda c: Card(c[0], c[1]), combo))
+    if game.is_playing_cards_state:
+        validate_can_play_cards(game, player, combo)
+    elif game.is_discarding_cards_state:
+        validate_can_discard_cards(game, player, combo)

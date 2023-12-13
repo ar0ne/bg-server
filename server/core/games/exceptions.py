@@ -18,3 +18,7 @@ class InvalidGameStateError(GameLogicError):
 
 class TurnOrderViolationError(GameLogicError):
     """Another player's turn"""
+
+
+class GameDataNotFound(Error):
+    """Game data not found"""

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from core.games.base import GameData, GameDataTurn, Id
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto
 from core.games.regicide.game import Game, infinite_cycle
-from core.games.regicide.models import Card, CardHand, Deck, GameState, Player, Suit
+from core.games.regicide.models import Card, CardHand, Deck, Player, Status, Suit
 from core.games.regicide.utils import to_flat_hand
 from core.games.transform import GameStateDataConverter, GameTurnDataConverter
 
@@ -27,7 +27,7 @@ class RegicideGameTurnDataConverter(GameTurnDataConverter):
             first_player_id=game.first_player.id,
             player_id=player_id or "",
             played_combos=[to_flat_hand(combo) for combo in game.played_combos],
-            state=game.state.value,  # type: ignore
+            status=game.status.value,  # type: ignore
             tavern_size=len(game.tavern_deck),
             turn=game.turn,
             hand=to_flat_hand(player.hand) if player else None,
@@ -68,6 +68,7 @@ class RegicideGameStateDataConverter(GameStateDataConverter):
             Card(rank, Suit(suit))
             for rank, suit in data.enemy_deck
         ])
+        game.first_player = game.find_player(data.first_player_id)
         # fmt: on
 
         # shift players' loop until first player from data
@@ -76,7 +77,7 @@ class RegicideGameStateDataConverter(GameStateDataConverter):
             pass
 
         game.turn = data.turn
-        game.state = GameState(data.state)
+        game.status = Status(data.status)
         return game
 
     @staticmethod
@@ -89,7 +90,7 @@ class RegicideGameStateDataConverter(GameStateDataConverter):
             first_player_id=game.first_player.id,
             players=[(pl.id, to_flat_hand(pl.hand)) for pl in game.players],
             played_combos=[to_flat_hand(combo) for combo in game.played_combos],
-            state=game.state.value,  # type: ignore
+            status=game.status.value,  # type: ignore
             tavern_deck=to_flat_hand(game.tavern_deck.cards),
             turn=game.turn,
         )
