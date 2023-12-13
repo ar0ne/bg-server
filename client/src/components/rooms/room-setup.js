@@ -109,7 +109,8 @@ class RoomSetup extends Component {
 
         RoomService.changeRoomSize(this.state.room.id, newSize).then(response => {
             console.log("room updated");
-            this.setRoom(response.data);
+            // {"data": {...}}
+            this.setRoom(response.data.data);
             this.setState({isLoading: false});
         },
         error => {
@@ -130,7 +131,7 @@ class RoomSetup extends Component {
         this.setState({ isLoading: true });
         RoomService.startRoom(this.state.room.id)
             .then(response => {
-                this.setRoom(response.data);
+                this.setRoom(response.data.data);
                 this.setState({isLoading: false});
                 setTimeout(() => this.props.router.navigate(`/rooms/${this.state.room.id}`, { replace: true }), 1);
             },

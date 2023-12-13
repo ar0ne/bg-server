@@ -1,8 +1,21 @@
 // Base room table component
-import { Component, lazy, Suspense } from "react";
+import { Component, lazy, Suspense, useState, setState } from "react";
 
 import RoomService from "../../services/room.service";
 import { withRouter } from "../../common/with-router";
+import { useWs } from "../ws";
+
+
+function wsComponent(WrappedComponent) {
+
+    return function(props) {
+        const { room_id } = props.router.params;
+        const [ready, val, timeStamp, send] = useWs(`ws://localhost:8888/api/v1/rooms/${room_id}/ws`);
+        return (
+            <WrappedComponent {...props} wsVal={val} wsTimeStamp={timeStamp} wsSend={send} wsReady={ready} />
+        );
+    };
+}
 
 
 class RoomTable extends Component {
@@ -25,6 +38,7 @@ class RoomTable extends Component {
             data: {}
         }
         this.fetchRoomData.bind(this);
+        this.notifyAllAboutUpdate.bind(this);
     }
 
     componentDidMount() {
@@ -55,8 +69,22 @@ class RoomTable extends Component {
         });
     }
 
+    notifyAllAboutUpdate() {
+        // send a message via ws to make page refresh
+        console.log("send refresh to all consumers")
+        this.props.wsSend("refresh");
+    }
+
+    componentDidUpdate(prevProps) {
+        const { wsVal, wsTimeStamp } = this.props;
+        if (wsVal == "refresh" && prevProps.wsTimeStamp !== wsTimeStamp) {
+            this.fetchRoomData();
+        }
+    }
+
     render() {
         const { room, data, isLoading } = this.state;
+
         if (!room || !room.status) {
             return (
                 <div>Nothing is here.</div>
@@ -74,7 +102,11 @@ class RoomTable extends Component {
             <div>
                 <div>Game Table: {room.game.name}</div>
                 <Suspense fallback={<div>Loading...</div>}>
-                    {isLoading ? "" : <Game room_id={room.id} data={data} fetchRoomData={() => this.fetchRoomData()} />}
+                    {isLoading ? "" : <Game 
+                        room_id={room.id} 
+                        data={data} 
+                        // fetchRoomData={() => this.fetchRoomData()} 
+                        notifyAllAboutUpdate={() => this.notifyAllAboutUpdate()} />}
                 </Suspense>
             </div>
         )
@@ -82,4 +114,4 @@ class RoomTable extends Component {
 
 }
 
-export default withRouter(RoomTable);
+export default withRouter(wsComponent(RoomTable));

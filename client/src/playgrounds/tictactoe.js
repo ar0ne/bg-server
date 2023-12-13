@@ -2,7 +2,6 @@
 import { Component, useState, useEffect } from "react";
 import { styles } from "../styles/tictactoe";
 import RoomService from "../services/room.service";
-import { useWs } from "../components/ws";
 
 
 // FIXME: refactor this logic
@@ -111,23 +110,6 @@ function Board(props) {
 };
 
 
-function wsComponent(WrappedComponent) {
-    return function(props) {
-        const [ready, val, send] = useWs();
-
-        // useEffect(() => {
-        //     if (ready) {
-        //       send("test message")
-        //     }
-        // }, [ready, send]);
-
-        return (
-            <WrappedComponent {...props} wsVal={val} wsSend={send} wsReady={ready} />
-        );
-    };
-}
-
-
 class Game extends Component {
 
     constructor(props) {
@@ -155,9 +137,10 @@ class Game extends Component {
         RoomService.createTurnData(
             this.props.room_id, {index: idx}
         ).then(response => {
-            console.log(response);
+            console.log("successfuly sent turn data");
             this.setState({isLoading: false});
-            this.props.fetchRoomData();
+            // this.props.fetchRoomData();
+            this.props.notifyAllAboutUpdate();
         },
         error => {
             console.log("unable to make a turn");
@@ -191,8 +174,7 @@ class Game extends Component {
             }
         }
         **/
-        const { data, wsVal, wsSend } = this.props;
-
+        const { data } = this.props;
         if (!data) {
             return (
                 <div>Game not found</div>
@@ -206,11 +188,6 @@ class Game extends Component {
 
         return (
             <div className="game" style={styles.Game}>
-
-                {/* <button 
-                    onClick={() => wsSend(Math.random())}
-                >Webscoket : {wsVal} </button> */}
-
                 <GameStatus 
                     status={data.status} 
                     is_active_player={is_active_player} 
@@ -229,4 +206,4 @@ class Game extends Component {
     }
 }
 
-export default wsComponent(Game);
+export default Game;
