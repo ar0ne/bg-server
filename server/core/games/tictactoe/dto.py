@@ -13,14 +13,4 @@ class GameStateDto:
     board: List[str | None]
     status: str
     turn: int
-
-
-@dataclass(frozen=True)
-class GameTurnDataDto:
-    """Represents game turn data"""
-
-    active_player_id: str
-    # cell_idx: int | None
-    player_id: str
-    status: str
-    turn: int
+    winner_id: str | None = None

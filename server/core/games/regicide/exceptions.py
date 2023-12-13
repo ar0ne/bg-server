@@ -1,23 +1,8 @@
-"""Game exceptions"""
+"""Regicide errors"""
 
+from core.games.exceptions import GameLogicError
 
-# TODO: provide error messages
-
-
-class Error(Exception):
-    """Base error class"""
-
-
-class GameLogicError(Error):
-    """Generic error in Game Logic"""
-
-
-class InvalidGameStateError(GameLogicError):
-    """Invalid game state error"""
-
-
-class TurnOrderViolationError(GameLogicError):
-    """Another player's turn"""
+# FIXME: provide error messages
 
 
 class CardBelongsToAnotherError(GameLogicError):

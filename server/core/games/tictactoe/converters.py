@@ -1,28 +1,12 @@
 """TicTacToe converters"""
 
-from core.games.tictactoe.dto import GameStateDto, GameTurnDataDto
+from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import Game
-from core.games.tictactoe.models import Board, Status
+from core.games.tictactoe.models import Status
 from core.games.transform import GameStateDataConverter, GameTurnDataConverter
 from core.games.utils import infinite_cycle
 
 from ..base import GameState
-
-
-class TicTacToeGameTurnDataConverter(GameTurnDataConverter):
-    """TicTacToe Game turn data converter"""
-
-    @staticmethod
-    def dump(game: Game, **kwargs) -> GameTurnDataDto:
-        """Dump game turn data for player into the object"""
-
-        return GameTurnDataDto(
-            active_player_id=game.active_player.id,
-            # board=game.board,
-            player_id=player_id or "",
-            status=game.status.value,
-            turn=game.turn,
-        )
 
 
 class TicTacToeGameStateDataConverter(GameStateDataConverter):
@@ -37,7 +21,8 @@ class TicTacToeGameStateDataConverter(GameStateDataConverter):
         game.next_player_loop = infinite_cycle(game.players)
         while game.toggle_next_player_turn().id != data.active_player_id:
             pass
-        game.board = Board(data.board)
+
+        game.board = data.board
         game.turn = data.turn
         game.status = Status(data.status)
         return game
@@ -48,7 +33,8 @@ class TicTacToeGameStateDataConverter(GameStateDataConverter):
         return GameStateDto(
             active_player_id=game.active_player.id,
             players=[pl.id for pl in game.players],
-            board=game.board.items,
+            board=game.board,
             status=game.status.value,
             turn=game.turn,
+            winner_id=str(game.winner.id) if game.winner else None,
         )

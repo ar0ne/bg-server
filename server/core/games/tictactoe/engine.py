@@ -3,10 +3,7 @@ from dataclasses import asdict
 from typing import List
 
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
-from core.games.tictactoe.converters import (
-    TicTacToeGameStateDataConverter,
-    TicTacToeGameTurnDataConverter,
-)
+from core.games.tictactoe.converters import TicTacToeGameStateDataConverter
 from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import Game
 from core.games.tictactoe.models import Status
@@ -22,7 +19,6 @@ class GameEngine(AbstractGame):
         """init engine"""
         self.room_id = room_id
         # FIXME: add some factory to avoid dependencies
-        self.data_converter = TicTacToeGameTurnDataConverter
         self.state_converter = TicTacToeGameStateDataConverter
 
     async def setup(self, player_ids: List[Id]) -> None:

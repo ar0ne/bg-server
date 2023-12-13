@@ -4,19 +4,26 @@ import { styles } from "../styles/tictactoe";
 import RoomService from "../services/room.service";
 
 
+// FIXME: refactor this logic
 function GameStatus(props) {
     let msg = "";
-    const {status, is_active_player, is_anonymous} = props;
+    const {status, is_active_player, is_anonymous, is_winner} = props;
     if (status === "in_progress") {
         if (!is_anonymous) {
             msg = is_active_player ? "Your turn." : "Your opponent turn.";
         } else {
             msg = "Game in progress."
         }
+    } else if (status === "finished") {
+        if (is_winner) {
+            msg = "Hooray! You won!"
+        } else if (is_anonymous) {
+            msg = "Game over!"
+        } else if (is_active_player) {
+            msg = "You lost!"
+        }
     }
-    return (
-        <h5>{msg}</h5>
-    )
+    return <h5>{msg}</h5>
 }
 
 
@@ -87,21 +94,21 @@ class Game extends Component {
             room_id: "",
             data: {
                 active_player_id: "",
+                board: [],
                 players: "",
                 player_id: "",
-                board: [],
                 status: "",
                 turn: 0,
+                winner_id: "",
             }
         }
     }
 
     handeClick(idx) {
-        console.log(idx);
         this.setState({ isLoading: true });
 
         RoomService.createTurnData(
-            this.props.room_id, {cell: idx}
+            this.props.room_id, {index: idx}
         ).then(response => {
             console.log(response);
             this.setState({isLoading: false});
@@ -132,7 +139,8 @@ class Game extends Component {
                 null, null, "uuid2"
             ], 
             "status": "in_progress", 
-            "turn": 4
+            "turn": 4,
+            "winner_id": null
         }
         **/
         const { data } = this.props;
@@ -143,6 +151,7 @@ class Game extends Component {
         }
 
         const is_active_player = data.active_player_id === data.player_id;
+        const is_winner = data.winner_id && data.player_id == data.winner_id
         const is_anonymous = !!!data.player_id;
         const cross_player_id = data.players && data.players[0]
 
@@ -157,6 +166,7 @@ class Game extends Component {
                     board={data.board} 
                     status={data.status}
                     is_active_player={is_active_player}
+                    is_winner={is_winner}
                     onSquareClick={this.handeClick.bind(this)}
                     cross_player_id={cross_player_id}
                 />

@@ -165,38 +165,6 @@ class Game:
         self.toggle_next_player_turn()
         self.turn += 1
 
-    # FIXME: Is it useful?
-    def get_game_state(self: "Game") -> dict:
-        """Returns state of the game and all public information"""
-        enemy = self.current_enemy
-        # fmt: off
-        return {
-            "discard_deck_size": len(self.discard_deck),
-            "played_combos": [
-                [str(card) for card in combo]
-                for combo in self.played_combos
-            ],
-            "enemy": {
-                "card": str(enemy),
-                "health": enemy.health,
-                "health_left": get_remaining_enemy_health(enemy, self.played_combos),
-                "attack": enemy.attack,
-                "attack_left": get_enemy_attack_damage(enemy, self.played_combos),
-            }
-            if enemy else None,
-            "first_player": str(self.first_player),
-            "players": [str(p) for p in self.players],
-            "state": str(self.state),
-            "turn": self.turn,
-            # players hands (perhaps depend on current user)
-            "hand_size": self.first_player.hand_size,
-            "hands": {
-                str(player): [str(card) for card in player.hand]
-                for player in self.players
-            },
-        }
-        # fmt: on
-
     def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
         self.first_player = next(self.next_player_loop)
