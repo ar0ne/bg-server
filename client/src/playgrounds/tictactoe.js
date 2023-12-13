@@ -1,7 +1,8 @@
 // TicTacToe
-import { Component } from "react";
+import { Component, useState, useEffect } from "react";
 import { styles } from "../styles/tictactoe";
 import RoomService from "../services/room.service";
+import { useWs } from "../components/ws";
 
 
 // FIXME: refactor this logic
@@ -112,7 +113,25 @@ function Board(props) {
 };
 
 
+function wsComponent(WrappedComponent) {
+    
+    return function(props) {
+        useEffect(() => {
+            if (ready) {
+              send("test message")
+            }
+        }, [ready, send]);
+      
+        const [ready, val, send] = useWs();
+        return (
+            <WrappedComponent {...props} wsVal={val} wsSend={send} wsReady={ready} />
+        );
+    };
+}
+
+
 class Game extends Component {
+
     constructor(props) {
         super(props);
 
@@ -153,6 +172,10 @@ class Game extends Component {
         })
     }
 
+    componentDidMount() {
+        
+    }
+
 
     render() {
         /**
@@ -170,7 +193,8 @@ class Game extends Component {
             "winner_id": null
         }
         **/
-        const { data } = this.props;
+        const { data, wsVal, wsSend } = this.props;
+
         if (!data) {
             return (
                 <div>Game not found</div>
@@ -181,10 +205,12 @@ class Game extends Component {
         const is_anonymous = !!!data.player_id;
         const is_winner = !is_anonymous && data.player_id === data.winner_id;
         const cross_player_id = data.players && data.players[0]
-        console.log(is_winner)
 
         return (
             <div className="game" style={styles.Game}>
+                <button 
+                    onClick={() => wsSend("hello")}
+                >Webscoket : {wsVal} </button>
                 <GameStatus 
                     status={data.status} 
                     is_active_player={is_active_player} 
@@ -203,4 +229,4 @@ class Game extends Component {
     }
 }
 
-export default Game;
+export default wsComponent(Game);

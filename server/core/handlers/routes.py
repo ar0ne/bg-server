@@ -13,6 +13,7 @@ from core.handlers.room import (
     RoomHandler,
     RoomPlayersHandler,
 )
+from core.handlers.websocket import EchoWebSocket
 
 API_URL_PREFIX = "/api/v1"
 
@@ -32,6 +33,7 @@ def get_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
         (r"/rooms/([a-zA-Z0-9_.-]+)/turn/?", RoomGameTurnHandler),
         (r"/rooms/([a-zA-Z0-9_.-]+)/players/([a-zA-Z0-9_.-]+)/?", RoomPlayersHandler),
         (r"/rooms/([a-zA-Z0-9_.-]+)/players/?", RoomPlayersHandler),
+        (r"/ws", EchoWebSocket),
     ]
     routes = [(API_URL_PREFIX + url, handler) for (url, handler) in routes]
     routes.append((r"/", MainHandler))
