@@ -52,11 +52,13 @@ class RoomHandler(BaseRequestHandler):
             # FIXME: add limit
             # FIXME: filter open to join pages only
             serializer = await RoomListSerializer.from_queryset(Room.all())
-            self.write(serializer.model_dump_json())
+            rooms = serializer.model_dump(mode="json")
+            self.write(dict(results=rooms))
         else:
             room = await Room.get(id=room_id).select_related("game")
             serializer = await RoomSerializer.from_tortoise_orm(room)
-            self.write(serializer.model_dump_json())
+            data = serializer.model_dump(mode="json")
+            self.write(dict(data=data))
 
     @login_required
     async def put(self, room_id: str) -> None:

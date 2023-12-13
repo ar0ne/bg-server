@@ -74,6 +74,7 @@ class RoomSetup extends Component {
             isCanJoin: false,
             isCanStart: false,
             isSetupRoom: false,
+            isStarted: false,
             user_id: "",
             room: {
                 admin: {
@@ -95,6 +96,7 @@ class RoomSetup extends Component {
 
         this.changeRoomSize = this.changeRoomSize.bind(this);
         this.startGame = this.startGame.bind(this);
+        this.redirectToGame = this.redirectToGame.bind(this);
         this.quitGame = this.quitGame.bind(this);
         this.joinGame = this.joinGame.bind(this);
         this.increaseRoomSize = this.increaseRoomSize.bind(this);
@@ -188,6 +190,9 @@ class RoomSetup extends Component {
                 );
             });
     }
+    redirectToGame() {
+        setTimeout(() => this.props.router.navigate(`/rooms/${this.state.room.id}`, { replace: true }), 1);
+    }
 
     increaseRoomSize() {
         console.log("+")
@@ -198,6 +203,7 @@ class RoomSetup extends Component {
         this.changeRoomSize(this.state.room.size - 1);
     }
     setRoom(room) {
+        let isStarted = RoomService.isStarted(room);
         let isAdmin = (this.state.user_id && this.state.user_id === room.admin.id);
         let isParticipant = !!(this.state.user_id && room.participants.find((p) => p.id === this.state.user_id));
         let isSetupRoom = RoomService.isCreated(room);
@@ -210,6 +216,7 @@ class RoomSetup extends Component {
             isCanJoin,
             isCanStart,
             isSetupRoom,
+            isStarted,
         });
     }
 
@@ -223,17 +230,25 @@ class RoomSetup extends Component {
         }
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            this.setRoom(response.data);
+            this.setRoom(response.data.data);
         })
     }
 
     render() {
         const {
-            isAdmin, isLoggedIn, isParticipant, isCanJoin, isCanStart, isSetupRoom, room,
+            isAdmin, isLoggedIn, isParticipant, isCanJoin, isCanStart, isSetupRoom, isStarted, room,
          } = this.state;
         return (
             <div>
                 <RoomInfo room={room} />
+
+                { isStarted && (
+                    <div>
+                        <button
+                            onClick={this.redirectToGame}
+                        >Go to game</button>
+                    </div>
+                )}
 
                 { isCanStart && (
                     <div>

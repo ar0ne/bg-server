@@ -55,7 +55,7 @@ export default class LobbyPage extends Component {
         RoomService.getAllPublicRooms().then(
             response => {
                 this.setState({
-                    rooms: response.data
+                    rooms: response.data.results
                 });
             },
             error => {

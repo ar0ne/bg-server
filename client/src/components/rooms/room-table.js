@@ -30,7 +30,7 @@ class RoomTable extends Component {
         this.setState({isLoading: true});
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(response => {
-            const room  = response.data;
+            const room  = response.data.data;
             this.setState({room: room, isLoading: false});
             if (RoomService.isCreated(room)) {
                 // redirect to Setup page
