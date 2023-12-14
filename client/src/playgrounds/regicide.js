@@ -1,6 +1,7 @@
 // Regicide
 import { Component } from "react";
 import { styles } from "../styles/regicide";
+import RoomService from "../services/room.service";
 
 
 function isContainsCard(card, cards) {
@@ -98,14 +99,18 @@ function PlayedCombos (props) {
             );
         });
         return (
-            <div key={idx}>{comboCards}</div>
+            <div key={idx} style={styles.PlayedCombo}>
+                {comboCards}
+            </div>
         )
     });
 
     return (
         <div>
-            <p>Played combos</p>
-            {combos}
+            <p>Played cards</p>
+            <div style={styles.PlayedCardsArea}>
+                {combos}
+            </div>
         </div>
     );
 }
@@ -130,11 +135,26 @@ function Card (props) {
     );
 }
 
+// FIXME: refactor this mess
 function GameState(props) {
     let msg = "";
-    const {state, is_active_player, turn} = props;
-    if (state === "playing_cards") {
-        msg = is_active_player ? "Your turn." : "Your partner plays.";
+    const {status, isActivePlayer, isAnonymous, turn} = props;
+    if (isAnonymous) {
+        if (status === "playing_cards") {
+            msg = "Game in progress";
+        } else {
+            msg = "Game is over.";
+        }
+    } else {
+        if (status === "playing_cards") {
+            msg = isActivePlayer ? "Your turn." : "Your partner plays.";
+        } else if (status === "discarding_cards") {
+            msg = isActivePlayer ? "Discard cards" : "Your partners should discard cards.";
+        } else if (status === "lost") {
+            msg = "You have lost! Try again.";
+        } else if (status === "won") {
+            msg = "Hooray! You won!";
+        }
     }
     return (
         <div><b>Turn {turn}</b>. {msg}</div>
@@ -151,7 +171,7 @@ class Game extends Component {
                 enemy: [],
                 first_player_id: "",
                 state: "",
-                player_id: "",
+                player_id: "",  // FIXME: if user is not belong to players should it be null ?
                 played_combos: [],
                 tavern_size: 0,
                 turn: 0,
@@ -164,7 +184,6 @@ class Game extends Component {
     }
 
     handleCardClick(card) {
-        console.log("handleCardClick", card);
         const { selectedCards } = this.state;
         if (isContainsCard(card, selectedCards)) {
             let cards = selectedCards.filter((c) => c[0] !== card[0] || c[1] !== card[1]);
@@ -176,7 +195,29 @@ class Game extends Component {
 
     playSelectedCards() {
         const { selectedCards } = this.state;
-        console.log("play cards", selectedCards);
+        RoomService.createTurnData(
+            this.props.room_id, {cards: selectedCards}
+        ).then(response => {
+            this.setState({isLoading: false, selectedCards: []});
+            this.props.notifyAllAboutUpdate();
+        },
+        error => {
+            console.log("unable to make a turn");
+            console.log(
+                (error.response &&
+                error.response.data &&
+                error.response.data.error &&
+                error.response.data.error.message) ||
+                error.message ||
+                error.toString()
+            );
+        })
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.data.enemy_deck_size != this.props.data.enemy_deck_size) {
+            this.setState({selectedCards: []})
+        }
     }
 
     render() {
@@ -186,34 +227,43 @@ class Game extends Component {
                 <div>Loading...</div>
             )
         }
-        const hand = data.hand;
+        const isGameInProgress = data.status === "playing_cards" || data.status === "discarding_cards";
         const { selectedCards } = this.state; 
         const hasSelectedCards = selectedCards && selectedCards.length > 0;
-
-        const isActivePlayer = data.first_player_id === data.player_id;
+        const isAnonymous = !!!data.player_id || (data.hand && !data.hand.length);
+        const isActivePlayer = !isAnonymous && isGameInProgress && data.first_player_id === data.player_id;
         return (
-            <div style={styles.Container}>
-                <div style={styles.SideColumn}>
-                    <GameState state={data.status} isActivePlayer={isActivePlayer} turn={data.turn} />
-                    <EnemyDeck name="Enemy" size={data.enemy_deck_size} />
-                    <Deck name="Discard" size={data.discard_size} />
-                    <Deck name="Tavern" size={data.tavern_size} />
-                </div>
-                <div style={styles.PlayArea}>
-                    <EnemyCard card={data.enemy} />
-                    <PlayedCombos combos={data.played_combos} />
-                    {hasSelectedCards && (
-                        <div>
-                            <button onClick={this.playSelectedCards}>Play</button>
-                        </div>
-                    )}
-                    <PlayerHand 
-                        hand={hand} 
-                        selectedCards={selectedCards}
-                        playerId={data.player_id} 
-                        isActivePlayer={isActivePlayer} 
-                        onCardClick={this.handleCardClick}
+            <div>
+                <div>
+                    <GameState 
+                        status={data.status} 
+                        isAnonymous={isAnonymous}
+                        isActivePlayer={isActivePlayer}
+                        turn={data.turn} 
                     />
+                </div>
+                <div style={styles.Container}>
+                    <div style={styles.SideColumn}>
+                        <EnemyDeck name="Enemy" size={data.enemy_deck_size} />
+                        <Deck name="Discard" size={data.discard_size} />
+                        <Deck name="Tavern" size={data.tavern_size} />
+                    </div>
+                    <div style={styles.PlayArea}>
+                        <EnemyCard card={data.enemy} />
+                        <PlayedCombos combos={data.played_combos} />
+                        {hasSelectedCards && (
+                            <div>
+                                <button onClick={this.playSelectedCards}>Play</button>
+                            </div>
+                        )}
+                        <PlayerHand 
+                            hand={data.hand} 
+                            selectedCards={selectedCards}
+                            playerId={data.player_id} 
+                            isActivePlayer={isActivePlayer} 
+                            onCardClick={this.handleCardClick}
+                        />
+                    </div>
                 </div>
             </div>
         );

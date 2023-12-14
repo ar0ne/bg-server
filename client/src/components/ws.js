@@ -15,7 +15,6 @@ export const useWs = (url) => {
         socket.onopen = () => setIsReady(true);
         socket.onclose = () => setIsReady(false);
         socket.onmessage = (event) => {
-            console.log("received on message", event);
             setVal(event.data);
             setTimeStamp(event.timeStamp);
         }

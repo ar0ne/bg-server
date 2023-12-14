@@ -14,6 +14,9 @@ from ..regicide.exceptions import (
 from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, Player, Status, Suit
 from ..utils import infinite_cycle
 
+DUPLICATED_COMBO_RANKS = (CardRank.TWO, CardRank.THREE, CardRank.FOUR, CardRank.FIVE)
+ENEMY_RANKS = (CardRank.JACK, CardRank.QUEEN, CardRank.KING)
+
 
 def cards_belong_to_player(player: Player, combo: CardCombo) -> bool:
     """True if all cards in combo from players hand"""
@@ -59,9 +62,6 @@ def is_valid_duplicate_combo(rank: CardRank, combo: CardCombo) -> bool:
 
 class Game:
     """Regicide game class"""
-
-    DUPLICATED_COMBO_RANKS = (CardRank.TWO, CardRank.THREE, CardRank.FOUR, CardRank.FIVE)
-    ENEMY_RANKS = (CardRank.JACK, CardRank.QUEEN, CardRank.KING)
 
     def __init__(self, players_ids: List[str]) -> None:
         """Init game"""
@@ -123,7 +123,7 @@ class Game:
         game.turn = 1
         return game
 
-    def make_turn(self, player_id: Id, turn: dict) -> None:
+    def make_turn(self, player_id: str, turn: dict) -> None:
         """Player could make a turn"""
         player = self.find_player(player_id)
         cards = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
@@ -134,6 +134,7 @@ class Game:
 
     def _play_cards(self: "Game", player: Player, combo: CardCombo) -> None:
         """Play cards"""
+        self.turn += 1
         enemy = self.current_enemy
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
@@ -153,7 +154,6 @@ class Game:
             # transit to won state if enemy deck is empty now
             if not len(self.enemy_deck):
                 self.status = Status.WON
-                return
         else:
             if get_enemy_attack_damage(enemy, self.played_combos) <= 0:
                 # enemy can't attack, let next player to play cards
@@ -163,8 +163,6 @@ class Game:
                 # player must have cards on hand enough to deal with enemies attack, otherwise
                 # game lost
                 self.status = Status.LOST
-                return
-        self.turn += 1
 
     def _discard_cards(self: "Game", player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
@@ -241,7 +239,7 @@ class Game:
 
     def _create_enemy_deck(self) -> None:
         """Create enemy cards deck"""
-        face_combs = product(self.ENEMY_RANKS, Suit.values())
+        face_combs = product(ENEMY_RANKS, Suit.values())
         enemy_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), face_combs))
         jacks, queens, kings = enemy_deck[:4], enemy_deck[4:8], enemy_deck[8:]
         list(map(random.shuffle, (jacks, queens, kings)))
@@ -259,7 +257,7 @@ def validate_can_play_cards(game: Game, player: Player, combo: CardCombo) -> Non
         if combo_size > 2:
             raise MaxComboSizeExceededError
     else:
-        if any(not is_valid_duplicate_combo(rank, combo) for rank in self.DUPLICATED_COMBO_RANKS):
+        if any(not is_valid_duplicate_combo(rank, combo) for rank in DUPLICATED_COMBO_RANKS):
             raise InvalidPairComboError
 
 
@@ -267,10 +265,10 @@ def validate_can_discard_cards(game: Game, player: Player, combo: CardCombo) -> 
     """Assert can player discard these cards"""
     if not cards_belong_to_player(player, combo):
         raise CardBelongsToAnotherError
-    enemy = self.current_enemy
+    enemy = game.current_enemy
     # damage from combo without suits power should be enough to deal with enemies attack damage
     combo_damage = Card.get_combo_damage(combo)
-    if get_enemy_attack_damage(enemy, self.played_combos) > combo_damage:
+    if get_enemy_attack_damage(enemy, game.played_combos) > combo_damage:
         raise Exception  # FIXME
 
 
@@ -292,16 +290,19 @@ def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
     player = game.first_player
     if not player:
         raise Exception  # FIXME
+    if not player_id:
+        raise Exception  # FIXME
+    player_id = str(player_id)
     if player.id != player_id:
         raise Exception  # FIXME
     if game.first_player.id != player_id:
         raise TurnOrderViolationError
 
     cards = turn.get("cards")
-    if not combo or any(not is_valid_card(card) for card in cards):
+    if not cards or any(not is_valid_card(card) for card in cards):
         raise Exception  # FIXME
 
-    combo = list(map(lambda c: Card(c[0], c[1]), combo))
+    combo = list(map(lambda c: Card(c[0], c[1]), cards))
     if game.is_playing_cards_state:
         validate_can_play_cards(game, player, combo)
     elif game.is_discarding_cards_state:

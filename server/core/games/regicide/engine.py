@@ -35,7 +35,7 @@ class GameEngine(AbstractGame):
         last_game_data = await self._get_latest_game_state()
         game = self.game_state_converter.load(last_game_data)
         validate_game_turn(game, player_id, turn)
-        game.make_turn(player_id, turn)
+        game.make_turn(str(player_id), turn)
         # save changes
         await self._save_game_state(game)
 

@@ -1,5 +1,5 @@
 // TicTacToe
-import { Component, useState, useEffect } from "react";
+import { Component } from "react";
 import { styles } from "../styles/tictactoe";
 import RoomService from "../services/room.service";
 

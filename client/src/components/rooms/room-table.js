@@ -71,7 +71,6 @@ class RoomTable extends Component {
 
     notifyAllAboutUpdate() {
         // send a message via ws to make page refresh
-        console.log("send refresh to all consumers")
         this.props.wsSend("refresh");
     }
 

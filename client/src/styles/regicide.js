@@ -65,6 +65,17 @@ const EnemyAttack = {
     color: "blue",
 }
 
+const PlayedCombo = {
+    display: "flex",
+}
+
+const PlayedCardsArea = {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: "1em",
+}
+
 
 
 export const styles = {
@@ -81,4 +92,6 @@ export const styles = {
     SideColumn: SideColumn,
     PlayArea: PlayArea,
     PlayerHand: PlayerHand,
+    PlayedCardsArea: PlayedCardsArea,
+    PlayedCombo: PlayedCombo,
 }
