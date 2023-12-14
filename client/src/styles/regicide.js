@@ -43,6 +43,11 @@ const RedCardSuit = {
     color: "red",
 }
 
+const HighlightCard = {
+    ...Card,
+    backgroundColor: "grey",
+}
+
 const EnemyArea = {
     display: "flex",
     flexDirection: "row",
@@ -72,6 +77,7 @@ export const styles = {
     EnemyArea: EnemyArea,
     EnemyHealth: EnemyHealth,
     EnemyAttack: EnemyAttack,
+    HighlightCard: HighlightCard,
     SideColumn: SideColumn,
     PlayArea: PlayArea,
     PlayerHand: PlayerHand,
