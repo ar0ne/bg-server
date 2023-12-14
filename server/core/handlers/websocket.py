@@ -6,6 +6,7 @@ from tornado.websocket import WebSocketHandler
 log = logging.getLogger(__name__)
 
 # FIXME: i need to store websocket connections for each room somewhere
+# FIXME: socket-io + redis-adapter
 
 
 class RoomWebSocketHandler(WebSocketHandler):

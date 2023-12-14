@@ -1,5 +1,6 @@
 // Regicide
 import { Component } from "react";
+import { styles } from "../styles/regicide";
 
 
 function PlayerHand (props) {
@@ -14,8 +15,8 @@ function PlayerHand (props) {
 
     return (
         <div>
-            <h3>Player ({props.player_id}) hand</h3>
-            <div>
+            <h5>Player ({props.player_id}) hand</h5>
+            <div style={styles.PlayerHand}>
                 {hand}
             </div>
         </div>
@@ -23,22 +24,22 @@ function PlayerHand (props) {
 }
 
 function Deck(props) {
-    const isEmpty = !(props.size);
-//    const isHidden = !props.show;  // do show top card
     return (
         <div>
-            This is <b>{ props.name }</b> deck. Size is {props.size}.
-            { isEmpty && (
-                <p>Empty deck</p>
-            )}
-            { !isEmpty && (
-                <p>...</p>
-            )}
+            <b>{ props.name }</b> deck.
+            <Card rank="&nbsp;" suit={props.size} />
         </div>
     )
 }
 
 function EnemyDeck(props) {
+
+    return (
+        <Deck name={props.name} size={props.size} />
+    );
+}
+
+function EnemyCard(props) {
     const card = props.card;
     if (!card || !card.length) {
         return (
@@ -57,15 +58,19 @@ function EnemyDeck(props) {
 
     return (
         <div>
-            <Deck name={props.name} size={props.size} />
             { card && (
-                <div>
+                <div style={styles.EnemyArea}>
+                    <div style={styles.EnemyHealth}>
+                        <div>Health</div>
+                        {health}
+                    </div>
                     <Card rank={rank} suit={card[1]} />
-                    <p>Health: {health}</p>
-                    <p>Attack: {attack}</p>
+                    <div style={styles.EnemyAttack}>
+                        <div>Attack</div>
+                        {attack}
+                    </div>
                 </div>
             )}
-
         </div>
     );
 }
@@ -95,21 +100,27 @@ function PlayedCombos (props) {
 }
 
 function Card (props) {
+
+    const redSuits = ["\u2665", "\u2666"];
+    const { suit } = props;
+    const suitStyle = redSuits.includes(suit) ? styles.RedCardSuit : styles.CardSuit;
     return (
-        <div>
-            Card is {props.rank} {props.suit}
+        <div style={styles.Card}>
+            <div style={styles.CardRankTop}>{props.rank}</div>
+            <div style={suitStyle}>{props.suit}</div>
+            <div style={styles.CardRankBottom}>{props.rank}</div>
         </div>
     );
 }
 
 function GameState(props) {
     let msg = "";
-    const {state, is_active_player} = props;
+    const {state, is_active_player, turn} = props;
     if (state === "playing_cards") {
-        msg = is_active_player ? "You should play cards or yield (TBA)." : "Your partner plays.";
+        msg = is_active_player ? "Your turn." : "Your partner plays.";
     }
     return (
-        <div>{msg}</div>
+        <div><b>Turn {turn}</b>. {msg}</div>
     )
 }
 
@@ -143,14 +154,18 @@ class Game extends Component {
         }
         const is_active_player = data.first_player_id === data.player_id;
         return (
-            <div>
-                <GameState state={data.state} is_active_player={is_active_player} />
-                <h5>Turn: {data.turn}</h5>
-                <EnemyDeck name="enemy" size={data.enemy_deck_size} card={data.enemy} />
-                <Deck name="discard" size={data.discard_size} />
-                <Deck name="tavern" size={data.tavern_size} />
-                <PlayedCombos combos={data.played_combos} />
-                <PlayerHand hand={data.hand} player_id={data.player_id} />
+            <div style={styles.Container}>
+                <div style={styles.SideColumn}>
+                    <GameState state={data.status} is_active_player={is_active_player} turn={data.turn} />
+                    <EnemyDeck name="Enemy" size={data.enemy_deck_size} />
+                    <Deck name="Discard" size={data.discard_size} />
+                    <Deck name="Tavern" size={data.tavern_size} />
+                </div>
+                <div style={styles.PlayArea}>
+                    <EnemyCard card={data.enemy} />
+                    <PlayedCombos combos={data.played_combos} />
+                    <PlayerHand hand={data.hand} player_id={data.player_id} />
+                </div>
             </div>
         );
     }

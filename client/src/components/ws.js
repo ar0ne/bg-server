@@ -7,6 +7,8 @@ export const useWs = (url) => {
   
     const ws = useRef(null);
   
+    // TODO: move to socket-io and redis-adapter or something similar
+
     useEffect(() => {
         const socket = new WebSocket(url);
     
@@ -23,7 +25,7 @@ export const useWs = (url) => {
         return () => {
             socket.close();
         }
-    }, []);
+    }, [url]);
   
     // bind is needed to make sure `send` references correct `this`
     return [isReady, val, timeStamp, ws.current?.send.bind(ws.current)]
