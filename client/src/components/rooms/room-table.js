@@ -3,19 +3,7 @@ import { Component, lazy, Suspense } from "react";
 
 import RoomService from "../../services/room.service";
 import { withRouter } from "../../common/with-router";
-import { useWs } from "../ws";
-
-
-function wsComponent(WrappedComponent) {
-
-    return function(props) {
-        const { room_id } = props.router.params;
-        const [ready, val, timeStamp, send] = useWs(`${process.env.REACT_APP_WS_SERVER_ROOT}/rooms/${room_id}/ws`);
-        return (
-            <WrappedComponent {...props} wsVal={val} wsTimeStamp={timeStamp} wsSend={send} wsReady={ready} />
-        );
-    };
-}
+import wsRoom from "./room-ws";
 
 
 class RoomTable extends Component {
@@ -37,8 +25,8 @@ class RoomTable extends Component {
             },
             data: {}
         }
-        this.fetchRoomData.bind(this);
-        this.notifyAllAboutUpdate.bind(this);
+        this.fetchRoomData = this.fetchRoomData.bind(this);
+        this.notifyAllAboutUpdate = this.notifyAllAboutUpdate.bind(this);
     }
 
     componentDidMount() {
@@ -104,8 +92,7 @@ class RoomTable extends Component {
                     {isLoading ? "" : <Game 
                         room_id={room.id} 
                         data={data} 
-                        // fetchRoomData={() => this.fetchRoomData()} 
-                        notifyAllAboutUpdate={() => this.notifyAllAboutUpdate()} />}
+                        notifyAllAboutUpdate={this.notifyAllAboutUpdate} />}
                 </Suspense>
             </div>
         )
@@ -113,4 +100,5 @@ class RoomTable extends Component {
 
 }
 
-export default withRouter(wsComponent(RoomTable));
+
+export default withRouter(wsRoom(RoomTable));

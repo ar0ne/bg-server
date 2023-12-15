@@ -4,6 +4,7 @@ import { Component } from "react";
 import AuthService from "../../services/auth.service";
 import RoomService from "../../services/room.service";
 import { withRouter } from "../../common/with-router";
+import wsRoom from "./room-ws";
 
 
 function RoomInfo (props) {
@@ -13,7 +14,7 @@ function RoomInfo (props) {
             <h3>Setup Game</h3>
             <p>Game image: TBD</p>
             <p>Name: {room.game.name}</p>
-            <p>State: {RoomService.getRoomStatus(room)}</p>
+            <p>Status: {RoomService.getRoomStatus(room.status)}</p>
             <p>Room size is {room.size}</p>
             <p>Min/Max: ({room.game.min_size}/{room.game.max_size})</p>
         </div>
@@ -25,11 +26,11 @@ function RoomSize (props) {
     return (
         <div>
             <button
-                disabled={size === max}
+                disabled={size >= max}
                 onClick={props.increaseRoomSize}
             >+</button>
             <button
-                disabled={size === min}
+                disabled={size <= min}
                 onClick={props.decreaseRoomSize}
             >-</button>
         </div>
@@ -96,7 +97,7 @@ class RoomSetup extends Component {
 
         this.changeRoomSize = this.changeRoomSize.bind(this);
         this.startGame = this.startGame.bind(this);
-        this.redirectToGame = this.redirectToGame.bind(this);
+        this.redirectToRoomTable = this.redirectToRoomTable.bind(this);
         this.quitGame = this.quitGame.bind(this);
         this.joinGame = this.joinGame.bind(this);
         this.increaseRoomSize = this.increaseRoomSize.bind(this);
@@ -104,7 +105,6 @@ class RoomSetup extends Component {
     }
 
     changeRoomSize(newSize) {
-        console.log('Room update');
         this.setState({ isLoading: true });
 
         RoomService.changeRoomSize(this.state.room.id, newSize).then(response => {
@@ -112,6 +112,7 @@ class RoomSetup extends Component {
             // {"data": {...}}
             this.setRoom(response.data.data);
             this.setState({isLoading: false});
+            this.notifyAllAboutUpdate();
         },
         error => {
             console.log("unable to update game room setup");
@@ -133,10 +134,11 @@ class RoomSetup extends Component {
             .then(response => {
                 this.setRoom(response.data.data);
                 this.setState({isLoading: false});
-                setTimeout(() => this.props.router.navigate(`/rooms/${this.state.room.id}`, { replace: true }), 1);
+                this.notifyAllAboutUpdate();
+                this.redirectToRoomTable();
             },
             error => {
-                console.log("unable to remove participant");
+                console.log("unable to start a game");
                 console.log(
                     (error.response &&
                      error.response.data &&
@@ -150,13 +152,12 @@ class RoomSetup extends Component {
 
     quitGame() {
         console.log("quit the game");
-        this.setState({
-            isLoading: true,
-        })
+        this.setState({isLoading: true});
         RoomService.removeParticipant(this.state.room.id, this.state.user_id)
             .then(response => {
-                this.setRoom(response.data);
+                // empty body
                 this.setState({isLoading: false});
+                this.notifyAllAboutUpdate();
             },
             error => {
                 console.log("unable to remove participant");
@@ -178,6 +179,7 @@ class RoomSetup extends Component {
             .then(response => {
                 this.setRoom(response.data);
                 this.setState({isLoading: false});
+                this.notifyAllAboutUpdate();
             },
             error => {
                 console.log("unable to add participant");
@@ -191,7 +193,7 @@ class RoomSetup extends Component {
                 );
             });
     }
-    redirectToGame() {
+    redirectToRoomTable() {
         setTimeout(() => this.props.router.navigate(`/rooms/${this.state.room.id}`, { replace: true }), 1);
     }
 
@@ -221,6 +223,39 @@ class RoomSetup extends Component {
         });
     }
 
+    fetchRoom() {
+        const { room_id } = this.props.router.params;
+        RoomService.getRoom(room_id).then(response => {
+            this.setRoom(response.data.data);
+        },
+        error => {
+            console.log("unable to fetch room");
+            console.log(
+                (error.response &&
+                 error.response.data &&
+                 error.response.data.error &&
+                 error.response.data.error.message) ||
+                error.message ||
+                error.toString()
+            );
+        });
+    }
+
+    notifyAllAboutUpdate() {
+        // send a message via ws to make page refresh
+        this.props.wsSend("refresh");
+    }
+
+    componentDidUpdate(prevProps) {
+        const { wsVal, wsTimeStamp } = this.props;
+        if (wsVal === "refresh" && prevProps.wsTimeStamp !== wsTimeStamp) {
+            this.fetchRoom();
+            if (RoomService.isStarted(this.state.room)) {
+                this.redirectToRoomTable();
+            }
+        }
+    }
+
     componentDidMount() {
         const user = AuthService.getCurrentUser();
         if (user) {
@@ -229,10 +264,10 @@ class RoomSetup extends Component {
                 isLoggedIn: true,
             });
         }
-        const { room_id } = this.props.router.params;
-        RoomService.getRoom(room_id).then(response => {
-            this.setRoom(response.data.data);
-        })
+        this.fetchRoom();
+        if (RoomService.isStarted(this.state.room)) {
+            this.redirectToRoomTable();
+        }
     }
 
     render() {
@@ -246,7 +281,7 @@ class RoomSetup extends Component {
                 { isStarted && (
                     <div>
                         <button
-                            onClick={this.redirectToGame}
+                            onClick={this.redirectToRoomTable}
                         >Go to game</button>
                     </div>
                 )}
@@ -294,4 +329,4 @@ class RoomSetup extends Component {
     }
 }
 
-export default withRouter(RoomSetup);
+export default withRouter(wsRoom(RoomSetup));

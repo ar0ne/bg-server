@@ -52,7 +52,7 @@ class RoomHandler(BaseRequestHandler):
 
     @login_required
     async def put(self, room_id: str) -> None:
-        """Player could make game turns"""
+        """Player could setup game settings"""
         current_user = self.request.user
         room = await Room.get(id=room_id).select_related("game")
         if current_user.id != room.admin_id:
@@ -70,6 +70,8 @@ class RoomHandler(BaseRequestHandler):
                 await engine.setup(players_ids)
 
         if "size" in data:
+            if room.game.min_size < data["size"] > room.game.max_size:
+                raise Exception  # FIXME: raise validation error
             room.size = data["size"]
         await room.save(update_fields=("status", "size"))
         serializer = await RoomSerializer.from_tortoise_orm(room)
