@@ -92,13 +92,7 @@ function EnemyCard(props) {
     }
     // FIXME: we could let to configure difficulty later, for now just hardcode it
     const rank = card[0];
-    const healthAndAttack = {
-        "J": [20, 10],
-        "Q": [30, 15],
-        "K": [40, 20],
-    };
-
-    const [ health, attack ] = healthAndAttack[rank];
+    const [ healthLeft, damageLeft ] = props.state;
 
     return (
         <div>
@@ -106,12 +100,12 @@ function EnemyCard(props) {
                 <div style={styles.EnemyArea}>
                     <div style={styles.EnemyHealth}>
                         <div>Health</div>
-                        {health}
+                        {healthLeft}
                     </div>
                     <Card rank={rank} suit={card[1]} disabled={true} />
                     <div style={styles.EnemyAttack}>
                         <div>Attack</div>
-                        {attack}
+                        {damageLeft}
                     </div>
                 </div>
             )}
@@ -200,6 +194,7 @@ class Game extends Component {
                 enemy_deck_size: 0,
                 discard_size: 0,
                 enemy: [],
+                enemy_state: [],
                 first_player_id: "",
                 state: "",
                 player_id: "",  // FIXME: if user is not belong to players should it be null ?
@@ -271,7 +266,7 @@ class Game extends Component {
                         <Deck name="Tavern" size={data.tavern_size} />
                     </div>
                     <div style={styles.PlayArea}>
-                        <EnemyCard card={data.enemy} />
+                        <EnemyCard card={data.enemy} state={data.enemy_state} />
                         <PlayedCombos combos={data.played_combos} />
                         {hasSelectedCards && (
                             <div>

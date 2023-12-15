@@ -209,7 +209,7 @@ class Game:
         if enemy.suit != Suit.HEARTS and any(Suit.HEARTS == card.suit for card in combo):
             # shuffle deck
             self.discard_deck.shuffle()
-            # ensure we don't try to move to many cards
+            # ensure we don't try to move too many cards
             discard_length = len(self.discard_deck)
             draw_count = combo_damage if combo_damage < discard_length else discard_length
             draw_cards = self.discard_deck.pop_many(draw_count)

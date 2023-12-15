@@ -74,6 +74,6 @@ class GameEngine(AbstractGame):
         """Factory for engine"""
         return cls(
             room_id=room_id,
-            turn_data_serializer=RegicideGameTurnDataSerializer,
-            state_serializer=RegicideGameStateDataSerializer,
+            turn_data_serializer=RegicideGameTurnDataSerializer(),
+            state_serializer=RegicideGameStateDataSerializer(),
         )
