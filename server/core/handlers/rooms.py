@@ -92,7 +92,7 @@ class RoomDataHandler(BaseRequestHandler):
         room = await Room.get(id=room_id).select_related("game")
         engine = get_engine(room.game, room_id)
         # this is public endpoint, user could be missed
-        user_id = self.request.user.id if self.request.user else None
+        user_id = str(self.request.user.id) if self.request.user else None
         data = await engine.poll(user_id)
         # wrap up in object -> {"data": {...}}
         self.write(dict(data=data))

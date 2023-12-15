@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 
 from core.games.base import GameData, GameDataTurn, Id
-from core.games.regicide.dto import GameStateDto, GameTurnDataDto
+from core.games.regicide.dto import GameStateDto, GameTurnDataDto, PlayerHand
 from core.games.regicide.game import Game, infinite_cycle
 from core.games.regicide.models import Card, CardHand, Deck, Player, Status, Suit
 from core.games.regicide.utils import to_flat_hand
@@ -15,7 +15,7 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
     @staticmethod
     def dump(game: Game, **kwargs) -> GameTurnDataDto:  # type: ignore[override]
         """Serialize game object to game turn DTO for a player"""
-        player_id: str | None = kwargs.get("player_id")
+        player_id: Id | None = kwargs.get("player_id")
         player = None
         if player_id:
             player = game.find_player(player_id)
@@ -25,12 +25,19 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
             discard_size=len(game.discard_deck),
             enemy=(top_enemy.rank.value, top_enemy.suit.value),
             first_player_id=game.first_player.id,
-            player_id=player_id or "",
+            player_id=str(player_id) or "",
             played_combos=[to_flat_hand(combo) for combo in game.played_combos],
             status=game.status.value,  # type: ignore
             tavern_size=len(game.tavern_deck),
             turn=game.turn,
-            hand=to_flat_hand(player.hand) if player else None,
+            hands=[
+                PlayerHand(
+                    id=pl.id,
+                    size=len(pl.hand),  # use actual size
+                    hand=to_flat_hand(pl.hand) if player and player_id == pl.id else None,
+                )
+                for pl in game.players
+            ],
         )
 
 

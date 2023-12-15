@@ -5,7 +5,7 @@ import RoomService from "../services/room.service";
 
 
 function isContainsCard(card, cards) {
-    return cards.filter(sc => sc[0] === card[0] && sc[1] === card[1]).length > 0;
+    return cards && cards.filter(sc => sc[0] === card[0] && sc[1] === card[1]).length > 0;
 }
 
 function PlayerHand (props) {
@@ -13,15 +13,15 @@ function PlayerHand (props) {
         return (<div></div>);
     }
 
-    const { isActivePlayer, onCardClick, playerId, selectedCards } = props;
-    const hand = props.hand.map((card) => {
+    const { isActivePlayer, onCardClick, playerId, selectedCards, hand } = props;
+    const playerHand = hand.map((card, idx) => {
         return (
             <Card 
-                key={(card[0] + card[1])} 
+                key={idx+card[0]+card[1]} 
                 rank={card[0]} 
                 suit={card[1]}
                 onCardClick={isActivePlayer ? () => onCardClick(card) : undefined}
-                highlighted={isContainsCard(card, selectedCards)}
+                highlighted={selectedCards && isContainsCard(card, selectedCards)}
             />
         )
     });
@@ -30,11 +30,43 @@ function PlayerHand (props) {
         <div>
             <h5>Player ({playerId}) hand</h5>
             <div style={styles.PlayerHand}>
-                {hand}
+                {playerHand}
             </div>
         </div>
     )
 }
+
+
+function PlayerHands(props) {
+    const { hands, playerId, selectedCards, isActivePlayer, onCardClick } = props;
+    const playerHand = !!playerId && hands.filter(ph => ph.id === playerId)[0];
+    const otherHands = hands.filter(ph => ph !== playerHand);
+    const hiddenPlayerHands = otherHands && otherHands.map(pHand => {
+        const fakeHand = [...Array(pHand.size).keys()].map(i => ['\u00A0', '\u00A0']);
+        return (
+            <PlayerHand
+                key="fake"
+                hand={fakeHand}
+                playerId={pHand.id} 
+                isActivePlayer={false}
+            />
+        );
+    });
+    return (
+        <div>
+            <PlayerHand
+                hand={playerHand.hand}
+                size={playerHand.size}
+                selectedCards={selectedCards}
+                playerId={playerHand.id} 
+                isActivePlayer={isActivePlayer} 
+                onCardClick={onCardClick}
+            />
+            {hiddenPlayerHands}
+        </div>
+    );
+}
+
 
 function Deck(props) {
     return (
@@ -116,7 +148,6 @@ function PlayedCombos (props) {
 }
 
 function Card (props) {
-
     const { suit, rank, disabled, highlighted, onCardClick } = props;
     const redSuits = ["\u2665", "\u2666"];
     const suitStyle = redSuits.includes(suit) ? styles.RedCardSuit : styles.CardSuit;
@@ -128,9 +159,9 @@ function Card (props) {
             tabIndex={disabled ? "-1" : "0"}
             aria-disabled={disabled}
             >
-            <div style={styles.CardRankTop}>{rank}</div>
-            <div style={suitStyle}>{suit}</div>
-            <div style={styles.CardRankBottom}>{rank}</div>
+            <div className="card-rank-top" style={styles.CardRankTop}>{rank}</div>
+            <div className="card-suit" style={suitStyle}>{suit}</div>
+            <div className="card-rank-botton" style={styles.CardRankBottom}>{rank}</div>
         </div>
     );
 }
@@ -176,6 +207,7 @@ class Game extends Component {
                 tavern_size: 0,
                 turn: 0,
                 hand: undefined,
+                hand: [],
             },
             selectedCards: [],
         };
@@ -197,21 +229,10 @@ class Game extends Component {
         const { selectedCards } = this.state;
         RoomService.createTurnData(
             this.props.room_id, {cards: selectedCards}
-        ).then(response => {
-            this.setState({isLoading: false, selectedCards: []});
+        ).then(room => {
+            this.setState({isLoading: false, room: room, selectedCards: []});
             this.props.notifyAllAboutUpdate();
-        },
-        error => {
-            console.log("unable to make a turn");
-            console.log(
-                (error.response &&
-                error.response.data &&
-                error.response.data.error &&
-                error.response.data.error.message) ||
-                error.message ||
-                error.toString()
-            );
-        })
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -222,7 +243,7 @@ class Game extends Component {
 
     render() {
         const { data } = this.props;
-        if (!data) {
+        if (!(data && data.hands)) {
             return (
                 <div>Loading...</div>
             )
@@ -230,8 +251,9 @@ class Game extends Component {
         const isGameInProgress = data.status === "playing_cards" || data.status === "discarding_cards";
         const { selectedCards } = this.state; 
         const hasSelectedCards = selectedCards && selectedCards.length > 0;
-        const isAnonymous = !!!data.player_id || (data.hand && !data.hand.length);
+        const isAnonymous = !!!data.player_id;
         const isActivePlayer = !isAnonymous && isGameInProgress && data.first_player_id === data.player_id;
+
         return (
             <div>
                 <div>
@@ -256,8 +278,8 @@ class Game extends Component {
                                 <button onClick={this.playSelectedCards}>Play</button>
                             </div>
                         )}
-                        <PlayerHand 
-                            hand={data.hand} 
+                        <PlayerHands 
+                            hands={data.hands}
                             selectedCards={selectedCards}
                             playerId={data.player_id} 
                             isActivePlayer={isActivePlayer} 

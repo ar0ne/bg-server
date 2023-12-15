@@ -5,6 +5,13 @@ from typing import List, Optional, Tuple
 FlatCard = Tuple[str, str]
 
 
+@dataclass
+class PlayerHand:
+    id: str
+    size: int
+    hand: List[FlatCard] | None = None
+
+
 @dataclass(frozen=True)
 class GameStateDto:
     """Represents internal game state data"""
@@ -32,4 +39,4 @@ class GameTurnDataDto:
     status: str
     tavern_size: int
     turn: int
-    hand: Optional[List[FlatCard]] = None
+    hands: List[PlayerHand]
