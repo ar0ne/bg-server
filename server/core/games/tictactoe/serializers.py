@@ -1,20 +1,22 @@
 """TicTacToe converters"""
 
+import json
+
 from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import Game
 from core.games.tictactoe.models import Status
-from core.games.transform import GameStateDataConverter, GameTurnDataConverter
+from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.games.utils import infinite_cycle
 
 from ..base import GameState
 
 
-class TicTacToeGameStateDataConverter(GameStateDataConverter):
-    """TicTacToe game state converter"""
+class TicTacToeGameStateDataSerializer(GameStateDataSerializer):
+    """TicTacToe game state serializer"""
 
     @staticmethod
     def load(data: GameStateDto, **kwargs) -> Game:
-        """Load game state to game instance"""
+        """Deserialize game state DTO to game object"""
         game = Game(data.players)
 
         # shift players' loop until first player from data
@@ -29,7 +31,7 @@ class TicTacToeGameStateDataConverter(GameStateDataConverter):
 
     @staticmethod
     def dump(game: Game, **kwargs) -> GameState:
-        """Dump game state into the DTO"""
+        """Serializer game object to game state DTO"""
         return GameStateDto(
             active_player_id=game.active_player.id,
             players=[pl.id for pl in game.players],

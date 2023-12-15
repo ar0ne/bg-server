@@ -8,8 +8,8 @@ from .base import Game, GameState
 # FIXME: protocol instead?
 
 
-class GameTurnDataConverter(ABC):
-    """Abstract game data converter"""
+class GameTurnDataSerializer(ABC):
+    """Abstract game data serializer"""
 
     # FIXME: load ?
 
@@ -19,8 +19,8 @@ class GameTurnDataConverter(ABC):
         """Transfor game state to turn data dto object"""
 
 
-class GameStateDataConverter(ABC):
-    """Abstract game state data converter"""
+class GameStateDataSerializer(ABC):
+    """Abstract game state data serializer"""
 
     @staticmethod
     @abstractmethod

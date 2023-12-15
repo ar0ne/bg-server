@@ -6,15 +6,15 @@ from core.games.regicide.dto import GameStateDto, GameTurnDataDto
 from core.games.regicide.game import Game, infinite_cycle
 from core.games.regicide.models import Card, CardHand, Deck, Player, Status, Suit
 from core.games.regicide.utils import to_flat_hand
-from core.games.transform import GameStateDataConverter, GameTurnDataConverter
+from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 
 
-class RegicideGameTurnDataConverter(GameTurnDataConverter):
+class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
     """Regicide game data serilizer"""
 
     @staticmethod
     def dump(game: Game, **kwargs) -> GameTurnDataDto:  # type: ignore[override]
-        """Convert game turn data for player into the object"""
+        """Serialize game object to game turn DTO for a player"""
         player_id: str | None = kwargs.get("player_id")
         player = None
         if player_id:
@@ -34,12 +34,12 @@ class RegicideGameTurnDataConverter(GameTurnDataConverter):
         )
 
 
-class RegicideGameStateDataConverter(GameStateDataConverter):
-    """Regicide game state converter"""
+class RegicideGameStateDataSerializer(GameStateDataSerializer):
+    """Regicide game state serializer"""
 
     @staticmethod
     def load(data: GameStateDto, **kwargs) -> Game:  # type: ignore[override]
-        """Load data from object to game instance"""
+        """Deserialize game state DTO to game object"""
         # fmt: off
         game = Game(list(map(lambda p: p[0], data.players)))
         game.players = [
@@ -82,7 +82,7 @@ class RegicideGameStateDataConverter(GameStateDataConverter):
 
     @staticmethod
     def dump(game: Game, **kwargs) -> GameStateDto:
-        """Dump current game state into object"""
+        """Serialize game object into game state DTO"""
 
         return GameStateDto(
             enemy_deck=to_flat_hand(game.enemy_deck.cards),

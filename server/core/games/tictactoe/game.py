@@ -57,6 +57,7 @@ class Game:
         self.status = Status.CREATED
         self.next_player_loop = infinite_cycle(self.players)
         self.board = None
+        self.active_player = None
         self.winner = None
 
     @staticmethod
@@ -76,19 +77,21 @@ class Game:
         self.active_player = next(self.next_player_loop)
         return self.active_player
 
-    def make_turn(self, player_id: str, turn: dict) -> None:
+    @staticmethod
+    def make_turn(game: "Game", player_id: str, turn: dict) -> "Game":
         """Player makes a turn"""
         index = turn["index"]
-        player = self.active_player
-        self.board[index] = player.id
+        player = game.active_player
+        game.board[index] = player.id
 
-        winner_id = get_winner_id(self.board)
+        winner_id = get_winner_id(game.board)
         if winner_id:
-            self.status = Status.FINISHED
-            self.winner = player
+            game.status = Status.FINISHED
+            game.winner = player
 
-        self.toggle_next_player_turn()
-        self.turn += 1
+        game.toggle_next_player_turn()
+        game.turn += 1
+        return game
 
     @property
     def is_game_in_progress(self) -> bool:

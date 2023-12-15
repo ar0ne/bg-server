@@ -18,7 +18,7 @@ class AbstractGame(ABC):
         """game setup"""
 
     @abstractmethod
-    async def update(self, player_id: Id, turn: GameDataTurn) -> None:
+    async def update(self, player_id: Id, turn: GameDataTurn) -> GameData | None:
         """update game state"""
 
     @abstractmethod

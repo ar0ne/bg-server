@@ -114,9 +114,7 @@ class RoomGameTurnHandler(BaseRequestHandler):
         room = await Room.get(id=room_id).select_related("game")
         engine = get_engine(room.game)(room_id)
         # update game state
-        await engine.update(user_id, turn)
-        # FIXME: notify all players (observers) => WS ?
-        data = await engine.poll(user_id)
+        data = await engine.update(user_id, turn)
         # FIXME: check if game is over and update room status
         self.write(dict(data=data))
 

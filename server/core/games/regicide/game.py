@@ -123,18 +123,20 @@ class Game:
         game.turn = 1
         return game
 
-    def make_turn(self, player_id: str, turn: dict) -> None:
+    @staticmethod
+    def make_turn(game: "Game", player_id: str, turn: dict) -> "Game":
         """Player could make a turn"""
-        player = self.find_player(player_id)
+        player = game.find_player(player_id)
         cards = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
-        if self.is_playing_cards_state:
-            self._play_cards(player, cards)
-        elif self.is_discarding_cards_state:
-            self._discard_cards(player, cards)
+        if game.is_playing_cards_state:
+            game._play_cards(player, cards)
+        elif game.is_discarding_cards_state:
+            game._discard_cards(player, cards)
+        game.turn += 1
+        return game
 
     def _play_cards(self: "Game", player: Player, combo: CardCombo) -> None:
         """Play cards"""
-        self.turn += 1
         enemy = self.current_enemy
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
@@ -173,7 +175,6 @@ class Game:
         # next player could play card
         self.status = Status.PLAYING_CARDS
         self.toggle_next_player_turn()
-        self.turn += 1
 
     def toggle_next_player_turn(self) -> Player:
         """Change first player to next"""
