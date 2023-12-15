@@ -1,11 +1,11 @@
 """Regicide errors"""
 
-from core.games.exceptions import GameLogicError
+from core.games.exceptions import GameLogicError, ValidationError
 
 # FIXME: provide error messages
 
 
-class CardBelongsToAnotherError(GameLogicError):
+class CardDoesNotBelongsToPlayerError(GameLogicError):
     """Card doesn't belong to player"""
 
 
@@ -15,3 +15,11 @@ class MaxComboSizeExceededError(GameLogicError):
 
 class InvalidPairComboError(GameLogicError):
     """Pair combo is invalid"""
+
+
+class InvalidTurnDataError(ValidationError):
+    """invalid turn data error"""
+
+
+class InvalidCardDataError(ValidationError):
+    """Invalid card error"""

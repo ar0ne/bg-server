@@ -2,6 +2,13 @@
 from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
+from core.games.regicide.exceptions import (
+    CardDoesNotBelongsToPlayerError,
+    InvalidCardDataError,
+    InvalidPairComboError,
+    InvalidTurnDataError,
+    MaxComboSizeExceededError,
+)
 from core.games.regicide.game import Game
 from core.games.regicide.models import Status
 from core.games.regicide.serializers import RegicideGameStateDataSerializer
@@ -246,6 +253,64 @@ class TestGame(TestCase):
         self.assertEqual(2, len(game.played_combos))
         self.assertEqual(1, len(game.players[0].hand))
         self.assertEqual(2, len(game.players[1].hand))
+
+    def test_play_cards__invalid_turn(self) -> None:
+        """Tests playing card combo :: invalid turn"""
+        five_clubs = ("5", "♣")
+        five_diamonds = ("5", "♦")
+        five_spades = ("5", "♠")
+        six_clubs = ("6", "♣")
+        six_diamonds = ("6", "♦")
+        ten_spades = ("10", "♠")
+        jack_diamonds = ("J", "♦")
+        ace_diamonds = ("A", "♦")
+        dump = GameStateDto(
+            enemy_deck=[("Q", "♦")],
+            discard_deck=[],
+            first_player_id=self.user1_id,
+            players=[
+                (
+                    self.user1_id,
+                    [
+                        five_clubs,
+                        five_diamonds,
+                        five_spades,
+                        six_clubs,
+                        six_diamonds,
+                        ten_spades,
+                        jack_diamonds,
+                        ace_diamonds,
+                    ],
+                ),
+            ],
+            played_combos=[],
+            status=Status.PLAYING_CARDS.value,  # type: ignore
+            tavern_deck=[],
+            turn=2,
+        )
+        game = self.game_state_serializer.load(dump)
+
+        with self.assertRaises(InvalidTurnDataError):
+            Game.make_turn(game, game.first_player.id, None)
+        with self.assertRaises(InvalidTurnDataError):
+            Game.make_turn(game, game.first_player.id, {})
+        with self.assertRaises(InvalidTurnDataError):
+            Game.make_turn(game, game.first_player.id, [("♣", "5")])
+
+        invalid_combos = [
+            ([("A", "♣")], CardDoesNotBelongsToPlayerError),
+            ([ace_diamonds, ("2", "♦")], CardDoesNotBelongsToPlayerError),
+            ([], InvalidCardDataError),
+            ([("♣", "5")], InvalidCardDataError),
+            ([ten_spades, jack_diamonds, ace_diamonds], MaxComboSizeExceededError),
+            ([ten_spades, jack_diamonds], InvalidPairComboError),
+            ([six_diamonds, six_clubs], InvalidPairComboError),
+            ([five_clubs, five_diamonds, five_spades], InvalidPairComboError),
+        ]
+        for combo, exc in invalid_combos:
+            with self.subTest(combo=combo, exc=exc):
+                with self.assertRaises(exc):
+                    Game.make_turn(game, game.first_player.id, {"cards": combo})
 
     def test_discard_cards(self) -> None:
         """Tests discarding cards"""

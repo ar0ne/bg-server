@@ -5,7 +5,7 @@ from typing import List, Self
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.exceptions import GameDataNotFound
 from core.games.regicide.dto import GameStateDto
-from core.games.regicide.game import Game, validate_game_turn
+from core.games.regicide.game import Game
 from core.games.regicide.models import Card
 from core.games.regicide.serializers import (
     RegicideGameStateDataSerializer,
@@ -39,7 +39,6 @@ class GameEngine(AbstractGame):
         # transform from flat cards to Card objects
         last_game_data = await self._get_latest_game_state()
         game = self.game_state_serializer.load(last_game_data)
-        validate_game_turn(game, player_id, turn)
         game = Game.make_turn(game, str(player_id), turn)
         # save changes
         await self._save_game_state(game)

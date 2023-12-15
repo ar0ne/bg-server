@@ -22,3 +22,7 @@ class TurnOrderViolationError(GameLogicError):
 
 class GameDataNotFound(Error):
     """Game data not found"""
+
+
+class ValidationError(Error):
+    """Validation error"""

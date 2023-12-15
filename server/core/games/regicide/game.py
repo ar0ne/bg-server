@@ -7,8 +7,10 @@ from typing import Any, Iterable, List, Optional
 from ..base import Id
 from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..regicide.exceptions import (
-    CardBelongsToAnotherError,
+    CardDoesNotBelongsToPlayerError,
+    InvalidCardDataError,
     InvalidPairComboError,
+    InvalidTurnDataError,
     MaxComboSizeExceededError,
 )
 from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, Player, Status, Suit
@@ -47,17 +49,6 @@ def can_defeat_enemy_attack(player: Player, enemy: Enemy, played_combos: List[Ca
 def is_enemy_defeated(enemy: Enemy, cards: List[CardCombo]) -> bool:
     """True if enemy defeated (sum of attacks played cards is equal to enemy health or more)"""
     return enemy.health <= get_total_damage_to_enemy(enemy, cards)
-
-
-def is_valid_duplicate_combo(rank: CardRank, combo: CardCombo) -> bool:
-    """True if it is valid combo from duplicated cards"""
-    if not any(card.rank == rank for card in combo):
-        return True
-    if not all(card.rank == rank for card in combo):
-        return False
-    if Card.get_combo_damage(combo) > 10:
-        return False
-    return True
 
 
 class Game:
@@ -126,6 +117,7 @@ class Game:
     @staticmethod
     def make_turn(game: "Game", player_id: str, turn: dict) -> "Game":
         """Player could make a turn"""
+        validate_game_turn(game, player_id, turn)
         player = game.find_player(player_id)
         cards = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
         if game.is_playing_cards_state:
@@ -250,7 +242,7 @@ class Game:
 def validate_can_play_cards(game: Game, player: Player, combo: CardCombo) -> None:
     """Assert player can play cards"""
     if not cards_belong_to_player(player, combo):
-        raise CardBelongsToAnotherError
+        raise CardDoesNotBelongsToPlayerError
     combo_size = len(combo)
     if combo_size == 1:
         return
@@ -258,14 +250,18 @@ def validate_can_play_cards(game: Game, player: Player, combo: CardCombo) -> Non
         if combo_size > 2:
             raise MaxComboSizeExceededError
     else:
-        if any(not is_valid_duplicate_combo(rank, combo) for rank in DUPLICATED_COMBO_RANKS):
+        if len(set(map(lambda c: c.rank, combo))) != 1:
+            raise InvalidPairComboError
+        if combo[0].rank not in DUPLICATED_COMBO_RANKS:
+            raise InvalidPairComboError
+        if Card.get_combo_damage(combo) > 10:
             raise InvalidPairComboError
 
 
 def validate_can_discard_cards(game: Game, player: Player, combo: CardCombo) -> None:
     """Assert can player discard these cards"""
     if not cards_belong_to_player(player, combo):
-        raise CardBelongsToAnotherError
+        raise CardDoesNotBelongsToPlayerError
     enemy = game.current_enemy
     # damage from combo without suits power should be enough to deal with enemies attack damage
     combo_damage = Card.get_combo_damage(combo)
@@ -286,8 +282,8 @@ def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
     """Verify it's a valid turn"""
     if not game.is_game_in_progress:
         raise InvalidGameStateError
-    if not turn:
-        raise Exception  # FIXME
+    if not (turn and isinstance(turn, dict)):
+        raise InvalidTurnDataError  # FIXME
     player = game.first_player
     if not player:
         raise Exception  # FIXME
@@ -300,8 +296,8 @@ def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
         raise TurnOrderViolationError
 
     cards = turn.get("cards")
-    if not cards or any(not is_valid_card(card) for card in cards):
-        raise Exception  # FIXME
+    if not cards or not all(is_valid_card(card) for card in cards):
+        raise InvalidCardDataError
 
     combo = list(map(lambda c: Card(c[0], c[1]), cards))
     if game.is_playing_cards_state:

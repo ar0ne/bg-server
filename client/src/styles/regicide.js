@@ -24,6 +24,7 @@ const PlayerHand = {
 const Card = {
     width: "3em",
     height: "auto",
+    border: "none",
 }
 
 const CardRankTop = {
