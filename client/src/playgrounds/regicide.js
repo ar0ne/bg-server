@@ -215,7 +215,7 @@ class Game extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.data.enemy_deck_size != this.props.data.enemy_deck_size) {
+        if (prevProps.data.enemy_deck_size !== this.props.data.enemy_deck_size) {
             this.setState({selectedCards: []})
         }
     }

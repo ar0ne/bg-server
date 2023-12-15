@@ -4,7 +4,7 @@ import authHeader from "./auth-header";
 
 
 // FIXME: hardcoded url
-const API_URL = 'http://localhost:8888/api/v1/rooms';
+const API_URL = `${process.env.REACT_APP_SERVER_ROOT}/rooms`;
 
 const RoomStatus = {
     CREATED: 0,

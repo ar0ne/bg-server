@@ -5,7 +5,7 @@ import authHeader from "./auth-header";
 
 
 // FIXME: hardcoded url
-const API_URL = 'http://localhost:8888/api/v1/games';
+const API_URL = `${process.env.REACT_APP_SERVER_ROOT}/games`;
 
 class GameService {
     getAll() {

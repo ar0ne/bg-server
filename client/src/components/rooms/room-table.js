@@ -1,5 +1,5 @@
 // Base room table component
-import { Component, lazy, Suspense, useState, setState } from "react";
+import { Component, lazy, Suspense } from "react";
 
 import RoomService from "../../services/room.service";
 import { withRouter } from "../../common/with-router";
@@ -10,7 +10,7 @@ function wsComponent(WrappedComponent) {
 
     return function(props) {
         const { room_id } = props.router.params;
-        const [ready, val, timeStamp, send] = useWs(`ws://localhost:8888/api/v1/rooms/${room_id}/ws`);
+        const [ready, val, timeStamp, send] = useWs(`${process.env.REACT_APP_WS_SERVER_ROOT}/rooms/${room_id}/ws`);
         return (
             <WrappedComponent {...props} wsVal={val} wsTimeStamp={timeStamp} wsSend={send} wsReady={ready} />
         );
@@ -76,7 +76,7 @@ class RoomTable extends Component {
 
     componentDidUpdate(prevProps) {
         const { wsVal, wsTimeStamp } = this.props;
-        if (wsVal == "refresh" && prevProps.wsTimeStamp !== wsTimeStamp) {
+        if (wsVal === "refresh" && prevProps.wsTimeStamp !== wsTimeStamp) {
             this.fetchRoomData();
         }
     }

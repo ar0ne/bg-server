@@ -5,7 +5,7 @@ import authHeader from "./auth-header";
 import EventBus from "../common/EventBus";
 
 // FIXME: hardcoded url
-const API_URL = "http://localhost:8888/api/v1/players";
+const API_URL = `${process.env.REACT_APP_SERVER_ROOT}/players`;
 
 class UserService {
     getPublicDetails(user_id) {

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // FIXME: hardcoded url
-const API_URL = "http://localhost:8888/api/v1/auth";
+const API_URL = `${process.env.REACT_APP_SERVER_ROOT}/auth`;
 const TOKEN_KEY = "user"
 
 class AuthService {
