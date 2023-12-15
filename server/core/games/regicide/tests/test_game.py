@@ -1,10 +1,10 @@
 """Unit tests for game"""
 from unittest import TestCase
 
-from core.games.regicide.converters import RegicideGameStateDataConverter
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
 from core.games.regicide.models import Status
+from core.games.regicide.serializers import RegicideGameStateDataSerializer
 
 
 class TestGame(TestCase):
@@ -15,7 +15,7 @@ class TestGame(TestCase):
         """Setup test cases"""
         cls.user1_id = "user1"
         cls.user2_id = "user2"
-        cls.game_state_converter = RegicideGameStateDataConverter()
+        cls.game_state_serializer = RegicideGameStateDataSerializer()
 
     def test_create_game(self) -> None:
         """Tests creating new game object"""
@@ -66,14 +66,14 @@ class TestGame(TestCase):
             tavern_deck=[("2", "♣")],
             turn=4,
         )
-        game = self.game_state_converter.load(dump)
+        game = self.game_state_serializer.load(dump)
 
         enemy = game.enemy_deck.peek()
 
         # Player kills enemy and draws 1 card from discard to tavern and should defeat next enemy
         # And enemy doesn't have immune
         turn = {"cards": [("4", "♥")]}
-        game.make_turn(game.first_player.id, turn)
+        game = Game.make_turn(game, game.first_player.id, turn)
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(5, game.turn)
@@ -103,12 +103,12 @@ class TestGame(TestCase):
             tavern_deck=[("2", "♣"), ("3", "♥"), ("4", "♥")],
             turn=4,
         )
-        game = self.game_state_converter.load(dump)
+        game = self.game_state_serializer.load(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
         turn = {"cards": [("2", "♦")]}
-        game.make_turn(game.first_player.id, turn)
+        game = Game.make_turn(game, game.first_player.id, turn)
 
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(5, game.turn)
@@ -137,15 +137,15 @@ class TestGame(TestCase):
             tavern_deck=[("2", "♣")],
             turn=4,
         )
-        game = self.game_state_converter.load(dump)
+        game = self.game_state_serializer.load(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
         turn = {"cards": [("2", "♣")]}
-        game.make_turn(game.first_player.id, turn)
+        game = Game.make_turn(game, game.first_player.id, turn)
 
         self.assertEqual(Status.LOST, game.status)
-        self.assertEqual(4, game.turn)
+        self.assertEqual(5, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(1, len(game.enemy_deck))
         self.assertEqual(1, len(game.discard_deck))
@@ -169,14 +169,14 @@ class TestGame(TestCase):
             tavern_deck=[("2", "♣")],
             turn=6,
         )
-        game = self.game_state_converter.load(dump)
+        game = self.game_state_serializer.load(dump)
 
         # player plays card with damage enough to defeat the enemy and won the game
         turn = {"cards": [("Q", "♣")]}
-        game.make_turn(game.first_player.id, turn)
+        game = Game.make_turn(game, game.first_player.id, turn)
 
         self.assertEqual(game.status, Status.WON)
-        self.assertEqual(6, game.turn)
+        self.assertEqual(7, game.turn)
         self.assertEqual(game.first_player.id, self.user1_id)
         self.assertEqual(0, len(game.enemy_deck))
         self.assertEqual(3, len(game.discard_deck))
@@ -200,11 +200,11 @@ class TestGame(TestCase):
             tavern_deck=[("3", "♣"), ("4", "♣")],
             turn=6,
         )
-        game = self.game_state_converter.load(dump)
+        game = self.game_state_serializer.load(dump)
 
         # player plays combo from 2x4, enemy has immune to hearts
         turn = {"cards": [("2", "♣"), ("2", "♥"), ("2", "♦"), ("2", "♠")]}
-        game.make_turn(game.first_player.id, turn)
+        game = Game.make_turn(game, game.first_player.id, turn)
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(7, game.turn)
@@ -231,11 +231,11 @@ class TestGame(TestCase):
             tavern_deck=[("4", "♣")],
             turn=6,
         )
-        game = self.game_state_converter.load(dump)
+        game = self.game_state_serializer.load(dump)
 
         # player plays combo from ace and 5, game moves to discard cards state
         turn = {"cards": [("5", "♣"), ("A", "♦")]}
-        game.make_turn(game.first_player.id, turn)
+        game = Game.make_turn(game, game.first_player.id, turn)
 
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(7, game.turn)
@@ -262,9 +262,9 @@ class TestGame(TestCase):
             tavern_deck=[("4", "♣")],
             turn=6,
         )
-        game = self.game_state_converter.load(dump)
+        game = self.game_state_serializer.load(dump)
         turn = {"cards": [("K", "♦")]}
-        game.make_turn(game.first_player.id, turn)
+        game = Game.make_turn(game, game.first_player.id, turn)
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(game.first_player.id, self.user2_id)

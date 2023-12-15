@@ -1,19 +1,19 @@
 """Tests for converter"""
 from unittest import TestCase
 
-from core.games.regicide.converters import RegicideGameStateDataConverter
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
 from core.games.regicide.models import Card, CardRank, Deck, Player, Status, Suit
+from core.games.regicide.serializers import RegicideGameStateDataSerializer
 
 
-class TestRegicideGameStateDataConverter(TestCase):
-    """unit tests for game state data converter"""
+class TestRegicideGameStateDataSerializers(TestCase):
+    """unit tests for game state data serializers"""
 
     @classmethod
     def setUpClass(cls) -> None:
         """Setup test class"""
-        cls.converter = RegicideGameStateDataConverter()
+        cls.serializer = RegicideGameStateDataSerializer()
 
     def test_dump_game_state(self) -> None:
         """Tests dumping (upload) game state"""
@@ -33,7 +33,7 @@ class TestRegicideGameStateDataConverter(TestCase):
         game.status = Status.DISCARDING_CARDS
         game.turn = 5
 
-        dump = self.converter.dump(game)
+        dump = self.serializer.dump(game)
 
         self.assertEqual([("J", "♠")], dump.enemy_deck)
         self.assertEqual([("2", "♣")], dump.tavern_deck)
@@ -61,7 +61,7 @@ class TestRegicideGameStateDataConverter(TestCase):
             tavern_deck=[("2", "♣")],
             turn=20,
         )
-        game = self.converter.load(dump)
+        game = self.serializer.load(dump)
 
         self.assertEqual(20, game.turn)
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
