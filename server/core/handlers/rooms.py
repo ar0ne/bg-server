@@ -68,7 +68,7 @@ class RoomHandler(BaseRequestHandler):
             if status == GameRoomStatus.STARTED.value:
                 players_ids = await room.participants.all().values_list("id", flat=True)
                 # new game event triggered
-                engine = get_engine(room.game)(room_id)
+                engine = await get_engine(room.game)(room_id)
                 await engine.setup(players_ids)
 
         if "size" in data:
@@ -112,7 +112,7 @@ class RoomGameTurnHandler(BaseRequestHandler):
         if not turn:
             raise APIError(400, "Validation error")
         room = await Room.get(id=room_id).select_related("game")
-        engine = get_engine(room.game)(room_id)
+        engine = await get_engine(room.game)(room_id)
         # update game state
         data = await engine.update(user_id, turn)
         # FIXME: check if game is over and update room status
