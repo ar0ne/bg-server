@@ -164,16 +164,18 @@ function Card (props) {
 function GameState(props) {
     let msg = "";
     const {status, isActivePlayer, isAnonymous, turn} = props;
+    const isPlayingCards = status === "playing_cards";
+    const isDiscardingCards = status === "discarding_cards";
     if (isAnonymous) {
-        if (status === "playing_cards") {
+        if (isPlayingCards) {
             msg = "Game in progress";
         } else {
             msg = "Game is over.";
         }
     } else {
-        if (status === "playing_cards") {
+        if (isPlayingCards) {
             msg = isActivePlayer ? "Your turn." : "Your partner plays.";
-        } else if (status === "discarding_cards") {
+        } else if (isDiscardingCards) {
             msg = isActivePlayer ? "Discard cards" : "Your partners should discard cards.";
         } else if (status === "lost") {
             msg = "You have lost! Try again.";
@@ -181,8 +183,13 @@ function GameState(props) {
             msg = "Hooray! You won!";
         }
     }
+    const style = isPlayingCards ? styles.PlayingCards : (
+        isDiscardingCards ? styles.DiscardingCards : (
+            status === "lost" || status === "won" ? styles.GameOver : undefined
+        )
+    );
     return (
-        <div><b>Turn {turn}</b>. {msg}</div>
+        <div style={style}><b>Turn {turn}</b>. {msg}</div>
     )
 }
 
@@ -197,12 +204,11 @@ class Game extends Component {
                 enemy_state: [],
                 first_player_id: "",
                 state: "",
-                player_id: "",  // FIXME: if user is not belong to players should it be null ?
+                player_id: "",
                 played_combos: [],
                 tavern_size: 0,
                 turn: 0,
-                hand: undefined,
-                hand: [],
+                hands: [],
             },
             selectedCards: [],
         };

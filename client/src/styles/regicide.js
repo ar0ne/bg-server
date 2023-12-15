@@ -77,6 +77,20 @@ const PlayedCardsArea = {
     gap: "1em",
 }
 
+const PlayingCards = {
+    backgroundColor: "green",
+    color: "white",
+}
+
+const DiscardingCards = {
+    backgroundColor: "red",
+    color: "white",
+}
+
+const GameOver = {
+    backgroundColor: "grey",
+    color: "white",
+}
 
 
 export const styles = {
@@ -85,6 +99,7 @@ export const styles = {
     CardRankTop: CardRankTop,
     CardRankBottom: CardRankBottom,
     CardSuit: CardSuit,
+    GameOver: GameOver,
     RedCardSuit: RedCardSuit,
     EnemyArea: EnemyArea,
     EnemyHealth: EnemyHealth,
@@ -95,4 +110,6 @@ export const styles = {
     PlayerHand: PlayerHand,
     PlayedCardsArea: PlayedCardsArea,
     PlayedCombo: PlayedCombo,
+    PlayingCards: PlayingCards,
+    DiscardingCards: DiscardingCards,
 }

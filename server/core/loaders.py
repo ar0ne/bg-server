@@ -12,6 +12,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 log = logging.getLogger(__name__)
 
 
+@cached(cache=CACHE, key_func=lambda n: n, ttl=3600)
 def load_game_module(game_name: str):
     """
     Load game engine class.
@@ -24,7 +25,6 @@ def load_game_module(game_name: str):
         log.error("Game module (%s) not found.", game_name)
 
 
-@cached(cache=CACHE, key_func=lambda g, _: g.name.lower(), ttl=3600)
 def get_engine(game: Game, *args, **kwargs) -> AbstractGame:
     """Get game engine instance"""
     name = game.name.lower()
