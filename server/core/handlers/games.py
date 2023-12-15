@@ -14,8 +14,9 @@ class GameHandler(BaseRequestHandler):
         """Get game or all games endpoint"""
         if not game_name:
             serializer = await GameListSerializer.from_queryset(Game.all())
+            data = dict(results=serializer.model_dump(mode="json"))
         else:
             game = await Game.get(name=game_name)
             serializer = await GameSerializer.from_tortoise_orm(game)
-        # FIXME: do not return list, instead wrap it in {"data": <list>}
-        self.write(serializer.json())
+            data = dict(data=serializer.model_dump(mode="json"))
+        self.write(data)

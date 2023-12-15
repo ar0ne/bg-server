@@ -1,23 +1,21 @@
 // User service
-import axios from "axios";
+import { apiV1 } from "./base";
 
-import authHeader from "./auth-header";
 import EventBus from "../common/EventBus";
 
-// FIXME: hardcoded url
-const API_URL = `${process.env.REACT_APP_SERVER_ROOT}/players`;
+const PATH = "/players";
 
 class UserService {
-    getPublicDetails(user_id) {
-        return axios.get(API_URL + "/" + user_id, {
-            headers: authHeader()
-        }).then(response => {
-            return response.data;
+    async getPublicDetails(user_id) {
+        const response = apiV1.request({
+            url: `${PATH}/${user_id}`,
+            method: "GET",
         }, error => {
             if (error && error.response && error.response.status === 401) {
                 EventBus.dispatch("logout");
             }
-        })
+        });
+        return (await response).data?.player;
     }
 }
 

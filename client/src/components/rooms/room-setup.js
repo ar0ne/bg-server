@@ -107,23 +107,11 @@ class RoomSetup extends Component {
     changeRoomSize(newSize) {
         this.setState({ isLoading: true });
 
-        RoomService.changeRoomSize(this.state.room.id, newSize).then(response => {
+        RoomService.changeRoomSize(this.state.room.id, newSize).then(room => {
             console.log("room updated");
-            // {"data": {...}}
-            this.setRoom(response.data.data);
+            this.setRoom(room);
             this.setState({isLoading: false});
             this.notifyAllAboutUpdate();
-        },
-        error => {
-            console.log("unable to update game room setup");
-            console.log(
-                (error.response &&
-                error.response.data &&
-                error.response.data.error &&
-                error.response.data.error.message) ||
-                error.message ||
-                error.toString()
-            );
         });
     }
 
@@ -131,22 +119,11 @@ class RoomSetup extends Component {
         console.log("start the game");
         this.setState({ isLoading: true });
         RoomService.startRoom(this.state.room.id)
-            .then(response => {
-                this.setRoom(response.data.data);
+            .then(room => {
+                this.setRoom(room);
                 this.setState({isLoading: false});
                 this.notifyAllAboutUpdate();
                 this.redirectToRoomTable();
-            },
-            error => {
-                console.log("unable to start a game");
-                console.log(
-                    (error.response &&
-                     error.response.data &&
-                     error.response.data.error &&
-                     error.response.data.error.message) ||
-                    error.message ||
-                    error.toString()
-                );
             });
     }
 
@@ -158,17 +135,6 @@ class RoomSetup extends Component {
                 // empty body
                 this.setState({isLoading: false});
                 this.notifyAllAboutUpdate();
-            },
-            error => {
-                console.log("unable to remove participant");
-                console.log(
-                    (error.response &&
-                     error.response.data &&
-                     error.response.data.error &&
-                     error.response.data.error.message) ||
-                    error.message ||
-                    error.toString()
-                );
             });
     }
 
@@ -176,21 +142,10 @@ class RoomSetup extends Component {
         console.log("joined the game");
         this.setState({ isLoading: true })
         RoomService.addParticipant(this.state.room.id, this.state.user_id)
-            .then(response => {
-                this.setRoom(response.data);
+            .then(room => {
+                this.setRoom(room);
                 this.setState({isLoading: false});
                 this.notifyAllAboutUpdate();
-            },
-            error => {
-                console.log("unable to add participant");
-                console.log(
-                    (error.response &&
-                     error.response.data &&
-                     error.response.data.error &&
-                     error.response.data.error.message) ||
-                    error.message ||
-                    error.toString()
-                );
             });
     }
     redirectToRoomTable() {
@@ -225,20 +180,7 @@ class RoomSetup extends Component {
 
     fetchRoom() {
         const { room_id } = this.props.router.params;
-        RoomService.getRoom(room_id).then(response => {
-            this.setRoom(response.data.data);
-        },
-        error => {
-            console.log("unable to fetch room");
-            console.log(
-                (error.response &&
-                 error.response.data &&
-                 error.response.data.error &&
-                 error.response.data.error.message) ||
-                error.message ||
-                error.toString()
-            );
-        });
+        RoomService.getRoom(room_id).then(room => this.setRoom(room));
     }
 
     notifyAllAboutUpdate() {

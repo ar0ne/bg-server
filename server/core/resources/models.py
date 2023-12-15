@@ -1,10 +1,9 @@
 """DB models"""
 import json
-import os
 
 from core.constants import REGICIDE, TICTACTOE, GameRoomStatus
-from core.games.base import AbstractGame, Id
-from core.resources.utils import CustomJSONEncoder, lazy_import
+from core.games.base import Id
+from core.resources.utils import CustomJSONEncoder
 from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 
@@ -35,14 +34,6 @@ class Game(Model):
 
     # description
     # image
-
-    # FIXME: cache it
-    def get_engine(self) -> AbstractGame:
-        """Get game engine class"""
-        game_name = self.name.lower()
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        module = lazy_import("engine", f"{base_dir}/core/games/{game_name}/engine.py")
-        return getattr(module, "GameEngine")
 
     class PydanticMeta:
         exclude = ("rooms",)

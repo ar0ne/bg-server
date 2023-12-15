@@ -16,25 +16,11 @@ class NewRoom extends Component {
 
     createNewRoom(e) {
         e.preventDefault();
-        console.log('Room created');
-        this.setState({
-            isLoading: true
-        });
+        this.setState({isLoading: true});
 
-        GameService.createNewGame(this.props.game_id).then(response => {
+        GameService.createNewGame(this.props.game_id).then(room => {
             this.setState({ isLoading: false });
-            this.props.router.navigate(`/rooms/${response.data.id}`);
-        },
-        error => {
-            console.log("unable to create game room");
-            console.log(
-                (error.response &&
-                error.response.data &&
-                error.response.data.error &&
-                error.response.data.error.message) ||
-                error.message ||
-                error.toString()
-            );
+            this.props.router.navigate(`/rooms/${room.id}`);
         });
     }
 

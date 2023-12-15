@@ -32,8 +32,7 @@ class RoomTable extends Component {
     componentDidMount() {
         this.setState({isLoading: true});
         const { room_id } = this.props.router.params;
-        RoomService.getRoom(room_id).then(response => {
-            const room  = response.data.data;
+        RoomService.getRoom(room_id).then(room => {
             this.setState({room: room, isLoading: false});
             if (RoomService.isCreated(room)) {
                 // redirect to Setup page
@@ -50,10 +49,8 @@ class RoomTable extends Component {
     fetchRoomData() {
         // FIXME: maybe take it from websocket channel ?
         const { room_id } = this.props.router.params;
-        RoomService.getRoomData(room_id).then(response => {
-            // {"data": {...}}
-            const data = response.data.data;
-            this.setState({data: data});
+        RoomService.getRoomData(room_id).then(roomData => {
+            this.setState({data: roomData});
         });
     }
 

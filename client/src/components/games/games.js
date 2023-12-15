@@ -29,10 +29,13 @@ function GameList(props) {
 export default class GameListPage extends Component {
     constructor(props) {
         super(props);
-
         this.state = {
             games: []
         }
+    }
+
+    componentDidMount() {
+        GameService.getAll().then(games => this.setState({games: games}));
     }
 
     render() {
@@ -45,24 +48,4 @@ export default class GameListPage extends Component {
         )
     }
 
-    componentDidMount() {
-        GameService.getAll().then(
-            response => {
-                this.setState({
-                    games: response.data
-                });
-            },
-            error => {
-                console.log("unable to fetch games");
-                console.log(
-                    (error.response &&
-                    error.response.data &&
-                    error.response.data.error
-                    && error.response.data.error.message) ||
-                    error.message ||
-                    error.toString()
-                );
-            }
-        )
-    }
 }

@@ -4,6 +4,7 @@ from typing import Optional
 
 import tornado
 from core.constants import GameRoomStatus
+from core.loaders import get_engine
 from core.resources.auth import login_required
 from core.resources.errors import APIError
 from core.resources.handlers import BaseRequestHandler
@@ -28,7 +29,8 @@ class GameRoomHandler(BaseRequestHandler):
         await room.participants.add(admin)
         serializer = await RoomSerializer.from_tortoise_orm(room)
         self.set_status(201)
-        self.write(serializer.model_dump_json())
+        data = serializer.model_dump(mode="json")
+        self.write(dict(data=data))
 
 
 class RoomHandler(BaseRequestHandler):
@@ -66,7 +68,7 @@ class RoomHandler(BaseRequestHandler):
             if status == GameRoomStatus.STARTED.value:
                 players_ids = await room.participants.all().values_list("id", flat=True)
                 # new game event triggered
-                engine = room.game.get_engine()(room_id)
+                engine = get_engine(room.game)(room_id)
                 await engine.setup(players_ids)
 
         if "size" in data:
@@ -88,7 +90,7 @@ class RoomDataHandler(BaseRequestHandler):
     async def get(self, room_id: str) -> None:
         """Get the latest game room state"""
         room = await Room.get(id=room_id).select_related("game")
-        engine = room.game.get_engine()(room_id)
+        engine = get_engine(room.game)(room_id)
         # this is public endpoint, user could be missed
         user_id = self.request.user.id if self.request.user else None
         data = await engine.poll(user_id)
@@ -110,7 +112,7 @@ class RoomGameTurnHandler(BaseRequestHandler):
         if not turn:
             raise APIError(400, "Validation error")
         room = await Room.get(id=room_id).select_related("game")
-        engine = room.game.get_engine()(room_id)
+        engine = get_engine(room.game)(room_id)
         # update game state
         await engine.update(user_id, turn)
         # FIXME: notify all players (observers) => WS ?
@@ -138,7 +140,8 @@ class RoomPlayersHandler(BaseRequestHandler):
             raise APIError(400, "User already joined the room.")
         await room.participants.add(current_user)
         serializer = await RoomSerializer.from_tortoise_orm(room)
-        self.write(serializer.model_dump_json())
+        self.set_status(201)
+        self.write(dict(data=serializer.model_dump(mode="json")))
 
     @login_required
     async def delete(self, room_id: str, player_id: str) -> None:
@@ -148,15 +151,13 @@ class RoomPlayersHandler(BaseRequestHandler):
         if str(current_user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         room = await Room.get(id=room_id).select_related("admin").prefetch_related("participants")
-        is_admin = current_user.id == room.admin.id
         player_participate = any(filter(lambda p: p.id == current_user.id, room.participants))
         if not (room and player_participate):
             raise APIError(400, "User aren't participant of the room.")
         await room.participants.remove(current_user)
-        if is_admin and not len(await room.participants.all()):
+        if not len(await room.participants.all()):
             # cancel room if there are no participants
             room.status = GameRoomStatus.CANCELED.value
             room.closed = datetime.now()
             await room.save(update_fields=("status",))
-        serializer = await RoomSerializer.from_tortoise_orm(room)
-        self.write(serializer.model_dump_json())
+        self.set_status(204)

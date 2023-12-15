@@ -21,24 +21,7 @@ class GameDetailsPage extends Component {
 
     componentDidMount() {
         const { name } = this.props.router.params;
-        GameService.getDetails(name).then(
-            response => {
-                this.setState({
-                    game: response.data
-                });
-            },
-            error => {
-                console.log("unable to fetch games");
-                console.log(
-                    (error.response &&
-                    error.response.data &&
-                    error.response.data.error &&
-                    error.response.data.error.message) ||
-                    error.message ||
-                    error.toString()
-                );
-            }
-        )
+        GameService.getDetails(name).then(game => this.setState({game: game}));
     }
 
     render() {

@@ -102,9 +102,8 @@ class App extends React.Component {
                         <Route path="/signup" element={ <SignUp /> } />
                         <Route path="/lobby" element={ <LobbyPage /> } />
                         <Route path="/player" element={ <PlayerProfilePage /> } />
-                        <Route path="/games" element={ <GameListPage /> } >
-                            <Route path=":name" element={ <GameDetailsPage /> } />
-                        </Route>
+                        <Route path="/games" element={ <GameListPage /> } />
+                        <Route path="/games/:name" element={ <GameDetailsPage /> } />
                         <Route path="/rooms/:room_id" element={ <RoomTable /> } />
                         <Route path="/rooms/:room_id/setup" element={ <RoomSetup /> } />
                         <Route

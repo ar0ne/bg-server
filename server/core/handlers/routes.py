@@ -3,10 +3,10 @@ from typing import List, Tuple
 
 import tornado
 from core.handlers.auth import AuthLoginHandler, AuthSignUpHandler
-from core.handlers.game import GameHandler
+from core.handlers.games import GameHandler
 from core.handlers.index import MainHandler
-from core.handlers.player import PlayerHandler
-from core.handlers.room import (
+from core.handlers.players import PlayerHandler
+from core.handlers.rooms import (
     GameRoomHandler,
     RoomDataHandler,
     RoomGameTurnHandler,

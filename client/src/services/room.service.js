@@ -1,10 +1,7 @@
 // Rooms service
-import axios from "axios";
-import authHeader from "./auth-header";
+import { apiV1 } from "./base";
 
-
-// FIXME: hardcoded url
-const API_URL = `${process.env.REACT_APP_SERVER_ROOT}/rooms`;
+const PATH = "/rooms";
 
 const RoomStatus = {
     CREATED: 0,
@@ -15,49 +12,67 @@ const RoomStatus = {
 };
 
 class RoomService {
-    getAllPublicRooms() {
-        return axios.get(API_URL);
-    }
-    getRoom(room_id) {
-        return axios.get(`${API_URL}/${room_id}`, {
-            headers: authHeader()
+    async getAllPublicRooms() {
+        const response = apiV1.request({
+            url: PATH,
+            method: "GET",
         });
+        return (await response).data?.results;
     }
-    getRoomData(room_id) {
-        return axios.get(`${API_URL}/${room_id}/data`, {
-            headers: authHeader()
+    async getRoom(room_id) {
+        const response =  apiV1.request({
+            url: `${PATH}/${room_id}`,
+            method: "GET",
         });
+        return (await response).data?.data;
     }
-    createTurnData(room_id, data) {
-        return axios.post(`${API_URL}/${room_id}/turn`, data, {
-            headers: authHeader()
+    async getRoomData(room_id) {
+        const response =  apiV1.request({
+            url: `${PATH}/${room_id}/data`, 
+            method: "GET",
         });
+        return (await response).data?.data;
     }
-    changeRoomSize(room_id, size) {
+    async createTurnData(room_id, data) {
+        const response = apiV1.request({
+            url: `${PATH}/${room_id}/turn`, 
+            data: data,
+            method: "POST",
+        });
+        return (await response).data?.data;
+    }
+    async changeRoomSize(room_id, size) {
         return this.updateRoom(room_id, {size: size});
     }
-    cancelRoom(room_id) {
+    async cancelRoom(room_id) {
         return this.updateRoom(room_id, {status: RoomStatus.CANCELED});
     }
-    startRoom(room_id) {
+    async startRoom(room_id) {
         return this.updateRoom(room_id, {status: RoomStatus.STARTED});
     }
-    updateRoom(room_id, data) {
-        return axios.put(`${API_URL}/${room_id}`, data, {
-            headers: authHeader()
+    async updateRoom(room_id, data) {
+        const response = apiV1.request({
+            url: `${PATH}/${room_id}`,
+            data: data,
+            method: "PUT",
         });
+        return (await response).data?.data;
     }
-    addParticipant(room_id, user_id) {
-        return axios.post(`${API_URL}/${room_id}/players`, {
-            user_id
-        }, {
-            headers: authHeader()
+    async addParticipant(room_id, user_id) {
+        const response = apiV1.request({
+            url: `${PATH}/${room_id}/players`, 
+            data: {user_id},
+            method: "POST",
         });
+        return (await response).data?.data;
     }
-    removeParticipant(room_id, user_id) {
-        return axios.delete(`${API_URL}/${room_id}/players/${user_id}`, {
-            headers: authHeader()
+    async removeParticipant(room_id, user_id) {
+        const response = apiV1.request({
+            url: `${PATH}/${room_id}/players/${user_id}`, 
+            method: "DELETE",
         });
+        // empty response
+        return (await response).data;
     }
     getRoomStatus(room_status) {
         switch(room_status) {

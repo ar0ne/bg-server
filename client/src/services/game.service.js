@@ -1,24 +1,29 @@
-// Game service
-import axios from "axios";
+import { apiV1 } from "./base";
 
-import authHeader from "./auth-header";
-
-
-// FIXME: hardcoded url
-const API_URL = `${process.env.REACT_APP_SERVER_ROOT}/games`;
+const PATH = "/games";
 
 class GameService {
-    getAll() {
-        return axios.get(API_URL);
-    }
-    getDetails(game_name) {
-        return axios.get(`${API_URL}/${game_name}`);
-    }
-    createNewGame(game_id) {
-        // FIXME: do we want to let setup room size and participants at creation
-        return axios.post(`${API_URL}/${game_id}/rooms`, null, {
-            headers: authHeader()
+    async getAll() {
+        const response = apiV1.request({
+            url: PATH,
+            method: "GET",
         });
+        return (await response).data?.results;
+    }
+    async getDetails(game_name) {
+        const response = apiV1.request({
+            url: `${PATH}/${game_name}`,
+            method: "GET",
+        });
+        return (await response).data?.data;
+    }
+    async createNewGame(game_id) {
+        // FIXME: do we want to let setup room size and participants at creation
+        const response = apiV1.request({
+            url: `${PATH}/${game_id}/rooms`, 
+            method: "POST",
+        });
+        return (await response).data?.data;
     }
 }
 

@@ -53,10 +53,8 @@ export default class LobbyPage extends Component {
             });
         }
         RoomService.getAllPublicRooms().then(
-            response => {
-                this.setState({
-                    rooms: response.data.results
-                });
+            rooms => {
+                this.setState({rooms: rooms});
             },
             error => {
                 console.log("unable to fetch public rooms");

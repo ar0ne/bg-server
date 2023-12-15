@@ -4,13 +4,13 @@ from typing import List
 
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.exceptions import GameDataNotFound
-from core.games.regicide.converters import (
-    RegicideGameStateDataConverter,
-    RegicideGameTurnDataConverter,
-)
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game, validate_game_turn
 from core.games.regicide.models import Card
+from core.games.regicide.serializers import (
+    RegicideGameStateDataConverter,
+    RegicideGameTurnDataConverter,
+)
 from core.resources.models import GameTurn, Player
 
 
@@ -18,7 +18,7 @@ class GameEngine(AbstractGame):
     """Regicide game engine"""
 
     def __init__(self, room_id: Id) -> None:
-        """Init adapter"""
+        """Init game engine"""
         self.room_id = room_id
         # FIXME: add some factory to avoid dependencies
         self.game_data_converter = RegicideGameTurnDataConverter

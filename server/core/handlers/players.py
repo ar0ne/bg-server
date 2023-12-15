@@ -12,4 +12,4 @@ class PlayerHandler(BaseRequestHandler):
         """Render public info about player"""
         player = await Player.get(id=player_id)
         serializer = await PlayerSerializer.from_tortoise_orm(player)
-        self.write(serializer.json())
+        self.write(dict(player=serializer.model_dump(mode="json")))
