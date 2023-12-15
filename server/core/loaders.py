@@ -1,4 +1,5 @@
 """Loaders"""
+import logging
 import os
 
 from core.caches import CACHE, cached
@@ -8,10 +9,28 @@ from core.resources.utils import lazy_import
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+log = logging.getLogger(__name__)
 
-@cached(cache=CACHE, key_func=lambda g: g.name.lower(), ttl=3600)
-def get_engine(game: Game) -> AbstractGame:
-    """Get game engine class"""
-    game_name = game.name.lower()
-    module = lazy_import("engine", f"{BASE_DIR}/core/games/{game_name}/engine.py")
-    return getattr(module, "GameEngine")
+
+def load_game_module(game_name: str):
+    """
+    Load game engine class.
+    """
+    path = f"{BASE_DIR}/core/games/{game_name}/engine.py"
+    module = lazy_import("engine", path)
+    try:
+        return getattr(module, "GameEngine")
+    except FileNotFoundError:
+        log.error("Game module (%s) not found.", game_name)
+
+
+@cached(cache=CACHE, key_func=lambda g, _: g.name.lower(), ttl=3600)
+def get_engine(game: Game, *args, **kwargs) -> AbstractGame:
+    """Get game engine instance"""
+    name = game.name.lower()
+    module = load_game_module(name)
+    if not module:
+        raise Exception  # FIXME
+    if not hasattr(module, "create_engine"):
+        raise Exception  # FIXME
+    return module.create_engine(*args, **kwargs)

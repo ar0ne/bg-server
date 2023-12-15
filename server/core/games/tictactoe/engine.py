@@ -1,6 +1,6 @@
 """Tic Tac Toe game engine"""
 from dataclasses import asdict
-from typing import List
+from typing import List, Self
 
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.exceptions import GameDataNotFound
@@ -8,17 +8,17 @@ from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import Game, validate_game_turn
 from core.games.tictactoe.models import Status
 from core.games.tictactoe.serializers import TicTacToeGameStateDataSerializer
+from core.games.transform import GameStateDataSerializer
 from core.resources.models import GameTurn, Player
 
 
 class GameEngine(AbstractGame):
     """TicTacToe game engine"""
 
-    def __init__(self, room_id: Id) -> None:
+    def __init__(self, room_id: Id, state_serializer: GameStateDataSerializer) -> None:
         """init game engine"""
         self.room_id = room_id
-        # FIXME: add a factory to avoid dependencies here
-        self.game_state_serializer = TicTacToeGameStateDataSerializer
+        self.state_serializer = state_serializer
 
     async def setup(self, player_ids: List[Id]) -> None:
         """Setup game"""
@@ -28,14 +28,14 @@ class GameEngine(AbstractGame):
     async def update(self, player_id: Id, turn: GameDataTurn) -> GameData | None:
         """Update game state"""
         game_data = await self._get_latest_game_state()
-        game = self.game_state_serializer.load(game_data)
+        game = self.state_serializer.load(game_data)
         # always run validation before apply a turn
         validate_game_turn(game, player_id, turn)
         game = Game.make_turn(game, player_id, turn)
         # save changes
         await self._save_game_state(game)
         # serialize updated game state
-        game_turn = self.game_state_serializer.dump(game)
+        game_turn = self.state_serializer.dump(game)
         return asdict(game_turn)
 
     async def poll(self, player_id: Id | None = None) -> GameData | None:
@@ -54,5 +54,12 @@ class GameEngine(AbstractGame):
 
     async def _save_game_state(self, game: Game) -> None:
         """persist game state into db"""
-        game_state = self.game_state_serializer.dump(game)
+        game_state = self.state_serializer.dump(game)
         await GameTurn.create(room_id=self.room_id, turn=game.turn, data=game_state)
+
+    @classmethod
+    def create_engine(cls, room_id: Id) -> Self:
+        return cls(
+            room_id=room_id,
+            state_serializer=TicTacToeGameStateDataSerializer,
+        )

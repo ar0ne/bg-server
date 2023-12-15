@@ -1,6 +1,6 @@
 """Base game interface"""
 import uuid
-from abc import ABC, abstractmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 from typing import Any, Dict, List, Type, Union
 
 Id = Union[str, uuid.UUID]
@@ -24,3 +24,7 @@ class AbstractGame(ABC):
     @abstractmethod
     async def poll(self, player_id: Id | None = None) -> GameData | None:
         """poll game state"""
+
+    @abstractclassmethod
+    def create_engine(cls, room_id: Id) -> "AbstractGame":
+        """factory for game engines"""

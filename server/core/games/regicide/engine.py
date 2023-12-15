@@ -1,6 +1,6 @@
 """Regicide game engine"""
 from dataclasses import asdict
-from typing import List
+from typing import List, Self
 
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.exceptions import GameDataNotFound
@@ -11,18 +11,23 @@ from core.games.regicide.serializers import (
     RegicideGameStateDataSerializer,
     RegicideGameTurnDataSerializer,
 )
+from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.resources.models import GameTurn, Player
 
 
 class GameEngine(AbstractGame):
     """Regicide game engine"""
 
-    def __init__(self, room_id: Id) -> None:
+    def __init__(
+        self,
+        room_id: Id,
+        turn_data_serializer: GameTurnDataSerializer,
+        state_serializer: GameStateDataSerializer,
+    ) -> None:
         """Init game engine"""
         self.room_id = room_id
-        # FIXME: add some factory to avoid dependencies
-        self.game_data_serializer = RegicideGameTurnDataSerializer
-        self.game_state_serializer = RegicideGameStateDataSerializer
+        self.game_data_serializer = turn_data_serializer
+        self.game_state_serializer = state_serializer
 
     async def setup(self, players: List[Id]) -> None:
         """Setup new game"""
@@ -63,3 +68,12 @@ class GameEngine(AbstractGame):
         """persist game state into db"""
         game_state = self.game_state_serializer.dump(game)
         await GameTurn.create(room_id=self.room_id, turn=game.turn, data=game_state)
+
+    @classmethod
+    def create_engine(cls, room_id: Id) -> Self:
+        """Factory for engine"""
+        return cls(
+            room_id=room_id,
+            turn_data_serializer=RegicideGameTurnDataSerializer,
+            state_serializer=RegicideGameStateDataSerializer,
+        )
