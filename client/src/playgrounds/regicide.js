@@ -293,17 +293,18 @@ class Game extends Component {
                     <div style={styles.PlayArea}>
                         <EnemyCard card={data.enemy} state={data.enemy_state} />
                         <PlayedCombos combos={data.played_combos} />
-                        {hasSelectedCards && (
-                            <div>
-                                <button onClick={this.playSelectedCards}>Play</button>
-                            </div>
-                        )}
-                        {canSkipCards && (
-                            <div>
-                                <button onClick={this.playSkipCards}>Skip</button>
-                            </div>
-                        )}
-                        
+                        <div className="play-buttons" style={styles.PlayButtons}>
+                            {hasSelectedCards && (
+                                <div>
+                                    <button onClick={this.playSelectedCards}>Play</button>
+                                </div>
+                            )}
+                            {canSkipCards && (
+                                <div>
+                                    <button onClick={this.playSkipCards}>Skip</button>
+                                </div>
+                            )}
+                        </div>
                         <PlayerHands 
                             hands={data.hands}
                             selectedCards={selectedCards}

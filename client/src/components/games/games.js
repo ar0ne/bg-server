@@ -11,18 +11,18 @@ function GameList(props) {
     }
     const gameItems = games.map((game) => (
         <div key={game.id}>
-            <nav>
+            <li>
                 <NavLink
                     to={`/games/${game.name}`}
                 >
                 {game.name}
                 </NavLink>
-            </nav>
+            </li>
             <Outlet />
         </div>
     ));
     return (
-        <div>{gameItems}</div>
+        <ul>{gameItems}</ul>
     );
 }
 

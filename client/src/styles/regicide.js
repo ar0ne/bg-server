@@ -94,6 +94,12 @@ const GameOver = {
     color: "white",
 }
 
+const PlayButtons = {
+    display: "flex",
+    flexDirection: "row",
+    paddingTop: "1em",
+}
+
 
 export const styles = {
     Container: Container,
@@ -111,6 +117,7 @@ export const styles = {
     PlayArea: PlayArea,
     PlayerHand: PlayerHand,
     PlayedCardsArea: PlayedCardsArea,
+    PlayButtons: PlayButtons,
     PlayedCombo: PlayedCombo,
     PlayingCards: PlayingCards,
     DiscardingCards: DiscardingCards,

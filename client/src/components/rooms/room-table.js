@@ -84,7 +84,7 @@ class RoomTable extends Component {
 
         return (
             <div>
-                <div>Game Table: {room.game.name}</div>
+                <div>{room.game.name}</div>
                 <Suspense fallback={<div>Loading...</div>}>
                     {isLoading ? "" : <Game 
                         room_id={room.id} 

@@ -1,8 +1,8 @@
 // Lobby Page component
 import { Component } from "react";
 import { Link } from "react-router-dom";
-import RoomService from "../services/room.service";
 import AuthService from "../services/auth.service";
+import RoomService from "../services/room.service";
 
 
 function PublicRooms(props) {
@@ -32,6 +32,7 @@ export default class LobbyPage extends Component {
         this.state = {
             rooms: [],
             isLoggedIn: false,
+            isLoading: false,
         }
     }
 
@@ -46,27 +47,13 @@ export default class LobbyPage extends Component {
     }
 
     componentDidMount() {
+        this.setState({isLoading: true});
         const user = AuthService.getCurrentUser();
         if (user) {
-            this.setState({
-                isLoggedIn: true
-            });
+            this.setState({isLoggedIn: true});
         }
         RoomService.getAllPublicRooms().then(
-            rooms => {
-                this.setState({rooms: rooms});
-            },
-            error => {
-                console.log("unable to fetch public rooms");
-                console.log(
-                    (error.response &&
-                     error.response.data &&
-                     error.response.data.error &&
-                     error.response.data.error.message) ||
-                    error.message ||
-                    error.toString()
-                );
-            }
-        )
+            rooms => this.setState({rooms: rooms, isLoading: false})
+        );
     }
 }
