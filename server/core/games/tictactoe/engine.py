@@ -1,7 +1,8 @@
 """Tic Tac Toe game engine"""
 from dataclasses import asdict
-from typing import List, Self
+from typing import List, Self, Tuple
 
+from core.constants import GameRoomStatus
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.exceptions import GameDataNotFound
 from core.games.tictactoe.dto import GameStateDto
@@ -9,7 +10,9 @@ from core.games.tictactoe.game import Game, validate_game_turn
 from core.games.tictactoe.models import Status
 from core.games.tictactoe.serializers import TicTacToeGameStateDataSerializer
 from core.games.transform import GameStateDataSerializer
-from core.resources.models import GameTurn, Player
+from core.resources.models import GameTurn
+
+STATUSES_IN_PROGRESS = (Status.CREATED, Status.IN_PROGRESS)
 
 
 class GameEngine(AbstractGame):
@@ -25,7 +28,7 @@ class GameEngine(AbstractGame):
         game = Game.start_new_game(player_ids)
         await self._save_game_state(game)
 
-    async def update(self, player_id: Id, turn: GameDataTurn) -> GameData | None:
+    async def update(self, player_id: Id, turn: GameDataTurn) -> Tuple[GameData, Game]:
         """Update game state"""
         game_data = await self._get_latest_game_state()
         game = self.state_serializer.load(game_data)
@@ -36,7 +39,7 @@ class GameEngine(AbstractGame):
         await self._save_game_state(game)
         # serialize updated game state
         game_turn = self.state_serializer.dump(game)
-        return asdict(game_turn)
+        return asdict(game_turn), game
 
     async def poll(self, player_id: Id | None = None) -> GameData | None:
         """Poll the last game state"""
@@ -56,6 +59,10 @@ class GameEngine(AbstractGame):
         """persist game state into db"""
         game_state = self.state_serializer.dump(game)
         await GameTurn.create(room_id=self.room_id, turn=game.turn, data=game_state)
+
+    def is_in_progress(self, game_status: str) -> bool:
+        """True if game is in progress"""
+        return game_status in STATUSES_IN_PROGRESS
 
     @classmethod
     def create_engine(cls, room_id: Id) -> Self:

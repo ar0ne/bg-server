@@ -4,7 +4,7 @@ import os
 
 from core.caches import CACHE, cached
 from core.games.base import AbstractGame
-from core.resources.models import Game
+from core.resources.models import Room
 from core.resources.utils import lazy_import
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,12 +25,12 @@ def load_game_module(game_name: str):
         log.error("Game module (%s) not found.", game_name)
 
 
-def get_engine(game: Game, *args, **kwargs) -> AbstractGame:
+def get_engine(room: Room) -> AbstractGame:
     """Get game engine instance"""
-    name = game.name.lower()
+    name = room.game.name.lower()
     module = load_game_module(name)
     if not module:
         raise Exception  # FIXME
     if not hasattr(module, "create_engine"):
         raise Exception  # FIXME
-    return module.create_engine(*args, **kwargs)
+    return module.create_engine(room_id=room.id)

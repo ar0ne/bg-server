@@ -37,7 +37,7 @@ function GameStatus(props) {
             msg = "You lost!";
         }
     } else if (status === GAME_STATUS.DRAW || status === GAME_STATUS.ABANDONED) {
-        msg = "Game over. It's draw."
+        msg = "Game over. It's a draw."
         style = styles.GameOver;
     }
 
@@ -155,7 +155,6 @@ class Game extends Component {
 
     handeClick(idx) {
         this.setState({ isLoading: true });
-
         RoomService.createTurnData(
             this.props.room_id, {index: idx}
         ).then(room => {

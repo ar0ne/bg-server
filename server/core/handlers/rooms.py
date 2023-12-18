@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 import tornado
-from core.constants import GameRoomStatus
+from core.constants import IN_PROGRESS, GameRoomStatus
 from core.loaders import get_engine
 from core.resources.auth import login_required
 from core.resources.errors import APIError
@@ -68,7 +68,7 @@ class RoomHandler(BaseRequestHandler):
             if status == GameRoomStatus.STARTED.value:
                 players_ids = await room.participants.all().values_list("id", flat=True)
                 # new game event triggered
-                engine = get_engine(room.game, room_id)
+                engine = get_engine(room)
                 await engine.setup(players_ids)
 
         if "size" in data:
@@ -90,7 +90,7 @@ class RoomDataHandler(BaseRequestHandler):
     async def get(self, room_id: str) -> None:
         """Get the latest game room state"""
         room = await Room.get(id=room_id).select_related("game")
-        engine = get_engine(room.game, room_id)
+        engine = get_engine(room)
         # this is public endpoint, user could be missed
         user_id = str(self.request.user.id) if self.request.user else None
         data = await engine.poll(user_id)
@@ -104,6 +104,18 @@ class RoomGameTurnHandler(BaseRequestHandler):
     Allows to make a game turn.
     """
 
+    async def _close_room(self, room_id: str) -> None:
+        """Update room status to closed"""
+        room = await Room.get(id=room_id)
+        room.status = GameRoomStatus.FINISHED.value
+        room.closed = datetime.now()
+        await room.save(
+            update_fields=(
+                "closed",
+                "status",
+            )
+        )
+
     @login_required
     async def post(self, room_id: str) -> None:
         """Create a game turn"""
@@ -112,10 +124,11 @@ class RoomGameTurnHandler(BaseRequestHandler):
         if not turn:
             raise APIError(400, "Validation error")
         room = await Room.get(id=room_id).select_related("game")
-        engine = get_engine(room.game, room_id)
+        engine = get_engine(room)
         # update game state
-        data = await engine.update(user_id, turn)
-        # FIXME: check if game is over and update room status
+        data, status = await engine.update(user_id, turn)
+        if not engine.is_in_progress(status):
+            await self._close_room(room.id)
         self.write(dict(data=data))
 
 
@@ -157,5 +170,10 @@ class RoomPlayersHandler(BaseRequestHandler):
             # cancel room if there are no participants
             room.status = GameRoomStatus.CANCELED.value
             room.closed = datetime.now()
-            await room.save(update_fields=("status",))
+            await room.save(
+                update_fields=(
+                    "closed",
+                    "status",
+                )
+            )
         self.set_status(204)

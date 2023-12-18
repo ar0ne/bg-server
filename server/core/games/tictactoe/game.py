@@ -88,6 +88,8 @@ class Game:
         if winner_id:
             game.status = Status.FINISHED
             game.winner = player
+        elif all(cell for cell in game.board):
+            game.status = Status.DRAW
 
         game.toggle_next_player_turn()
         game.turn += 1

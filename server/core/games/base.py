@@ -25,6 +25,10 @@ class AbstractGame(ABC):
     async def poll(self, player_id: Id | None = None) -> GameData | None:
         """poll game state"""
 
+    @abstractmethod
+    def is_in_progress(self, game_status: str) -> bool:
+        """True if game is in progress"""
+
     @abstractclassmethod
     def create_engine(cls, room_id: Id) -> "AbstractGame":
         """factory for game engines"""

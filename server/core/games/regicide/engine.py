@@ -1,18 +1,20 @@
 """Regicide game engine"""
 from dataclasses import asdict
-from typing import List, Self
+from typing import List, Self, Tuple
 
 from core.games.base import AbstractGame, GameData, GameDataTurn, Id
 from core.games.exceptions import GameDataNotFound
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
-from core.games.regicide.models import Card
+from core.games.regicide.models import Card, Status
 from core.games.regicide.serializers import (
     RegicideGameStateDataSerializer,
     RegicideGameTurnDataSerializer,
 )
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.resources.models import GameTurn, Player
+
+STATUSES_IN_PROGRESS = (Status.CREATED, Status.PLAYING_CARDS, Status.DISCARDING_CARDS)
 
 
 class GameEngine(AbstractGame):
@@ -67,6 +69,10 @@ class GameEngine(AbstractGame):
         """persist game state into db"""
         game_state = self.game_state_serializer.dump(game)
         await GameTurn.create(room_id=self.room_id, turn=game.turn, data=game_state)
+
+    def is_in_progress(self, game_status: str) -> bool:
+        """True if game is in progress"""
+        return game_status in STATUSES_IN_PROGRESS
 
     @classmethod
     def create_engine(cls, room_id: Id) -> Self:
