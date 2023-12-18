@@ -7,6 +7,7 @@ from ..base import Id
 from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..tictactoe.models import Player, Status
 from ..utils import infinite_cycle
+from .exceptions import CellAlreadyUsedError, InvalidTurnData
 
 WIN_COMBOS = [
     [0, 1, 2],
@@ -28,22 +29,18 @@ def get_winner_id(squares) -> Id | None:
     return None
 
 
-def validate_game_turn(game: "Game", player_id: Id, turn: dict) -> None:
+def validate_game_turn(game: "Game", player_id: str, turn: dict) -> None:
     """Assert player can make turn"""
     if not game.is_game_in_progress:
         raise InvalidGameStateError
-    if not player_id:
-        raise Exception  # FIXME
-    player = Player(player_id)
-    if player not in game.players:
-        raise Exception  # FIXME
-    if player != game.active_player:
+    player = game.active_player
+    if player.id != player_id:
         raise TurnOrderViolationError
     index = turn.get("index")
     if index is None or 0 < index > len(game.board):
-        raise Exception  # FIXME
+        raise InvalidTurnData
     if game.board[index]:
-        raise Exception  # FIXME
+        raise CellAlreadyUsedError
 
 
 class Game:

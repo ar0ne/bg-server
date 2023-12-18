@@ -12,6 +12,7 @@ from ..regicide.exceptions import (
     InvalidPairComboError,
     InvalidTurnDataError,
     MaxComboSizeExceededError,
+    NotEnoughPowerToDiscard,
 )
 from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, Player, Status, Suit
 from ..utils import infinite_cycle
@@ -282,7 +283,7 @@ def validate_can_discard_cards(game: Game, player: Player, combo: CardCombo) -> 
     # damage from combo without suits power should be enough to deal with enemies attack damage
     combo_damage = Card.get_combo_damage(combo)
     if get_enemy_attack_damage(enemy, game.played_combos) > combo_damage:
-        raise Exception  # FIXME
+        raise NotEnoughPowerToDiscard
 
 
 def is_valid_card(card: Any) -> bool:
@@ -294,21 +295,14 @@ def is_valid_card(card: Any) -> bool:
     return True
 
 
-def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
+def validate_game_turn(game: Game, player_id: str, turn: dict) -> None:
     """Verify it's a valid turn"""
     if not game.is_game_in_progress:
         raise InvalidGameStateError
     if not (turn and isinstance(turn, dict)):
-        raise InvalidTurnDataError  # FIXME
+        raise InvalidTurnDataError
     player = game.active_player
-    if not player:
-        raise Exception  # FIXME
-    if not player_id:
-        raise Exception  # FIXME
-    player_id = str(player_id)
     if player.id != player_id:
-        raise Exception  # FIXME
-    if game.active_player.id != player_id:
         raise TurnOrderViolationError
 
     cards = turn.get("cards")

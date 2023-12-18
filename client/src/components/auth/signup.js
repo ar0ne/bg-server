@@ -52,14 +52,12 @@ class SignUp extends Component {
                    error.toString();
 
                    this.setState({
-                       loading: false,
+                       isLoading: false,
                        message: resMessage
                    });
             })
         } else {
-            this.setState({
-                loading: false
-            });
+            this.setState({ isLoading: false });
         }
 
     }
@@ -89,9 +87,7 @@ class SignUp extends Component {
                 <p>Sign Up</p>
                 <Form
                     onSubmit={this.handleSignUp}
-                    ref={c => {
-                        this.form = c;
-                    }}
+                    ref={c => this.form = c}
                 >
                     <div>
                         <label htmlFor="username">Username</label>
@@ -125,7 +121,7 @@ class SignUp extends Component {
                     </div>
                     <div>
                         <button
-                            disabled={this.state.loading}
+                            disabled={this.state.isLoading}
                         >
                             <span>Send</span>
                         </button>
@@ -139,10 +135,8 @@ class SignUp extends Component {
                         </div>
                     )}
                     <CheckButton
-                        style={{ display: "none" }}
-                        ref={c => {
-                            this.checkBtn = c;
-                        }}
+                        className="hidden"
+                        ref={c => this.checkBtn = c}
                     />
                 </Form>
             </div>

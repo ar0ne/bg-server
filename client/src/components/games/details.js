@@ -30,7 +30,6 @@ class GameDetailsPage extends Component {
             <div>
                 <h3>Welcome to {game.name} page</h3>
                 <p>Description: {game.description}</p>
-
                 <NewRoom game_id={game.id} />
             </div>
         )

@@ -2,7 +2,7 @@
 from dataclasses import asdict
 from typing import List, Self, Tuple
 
-from core.games.base import AbstractGame, GameData, GameDataTurn, Id
+from core.games.base import AbstractGame, GameData, GameDataTurn
 from core.games.exceptions import GameDataNotFound
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Game
@@ -22,7 +22,7 @@ class GameEngine(AbstractGame):
 
     def __init__(
         self,
-        room_id: Id,
+        room_id: str,
         turn_data_serializer: GameTurnDataSerializer,
         state_serializer: GameStateDataSerializer,
     ) -> None:
@@ -31,12 +31,12 @@ class GameEngine(AbstractGame):
         self.game_data_serializer = turn_data_serializer
         self.game_state_serializer = state_serializer
 
-    async def setup(self, players: List[Id]) -> None:
+    async def setup(self, players: List[str]) -> None:
         """Setup new game"""
         game = Game.start_new_game(players)
         await self._save_game_state(game)
 
-    async def update(self, player_id: Id, turn: GameDataTurn) -> Tuple[GameData, str]:
+    async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
         # transform from flat cards to Card objects
         last_game_data = await self._get_latest_game_state()
@@ -48,7 +48,7 @@ class GameEngine(AbstractGame):
         game_turn = self.game_data_serializer.dump(game, player_id=player_id)
         return asdict(game_turn), game.status
 
-    async def poll(self, player_id: Id | None = None) -> GameData | None:
+    async def poll(self, player_id: str | None = None) -> GameData | None:
         """Poll the last turn data"""
         last_turn_state = await self._get_latest_game_state()
         game = self.game_state_serializer.load(last_turn_state)
@@ -75,7 +75,7 @@ class GameEngine(AbstractGame):
         return game_status in STATUSES_IN_PROGRESS
 
     @classmethod
-    def create_engine(cls, room_id: Id) -> Self:
+    def create_engine(cls, room_id: str) -> Self:
         """Factory for engine"""
         return cls(
             room_id=room_id,

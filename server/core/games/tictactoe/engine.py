@@ -3,7 +3,7 @@ from dataclasses import asdict
 from typing import List, Self, Tuple
 
 from core.constants import GameRoomStatus
-from core.games.base import AbstractGame, GameData, GameDataTurn, Id
+from core.games.base import AbstractGame, GameData, GameDataTurn
 from core.games.exceptions import GameDataNotFound
 from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import Game, validate_game_turn
@@ -18,17 +18,17 @@ STATUSES_IN_PROGRESS = (Status.CREATED, Status.IN_PROGRESS)
 class GameEngine(AbstractGame):
     """TicTacToe game engine"""
 
-    def __init__(self, room_id: Id, state_serializer: GameStateDataSerializer) -> None:
+    def __init__(self, room_id: str, state_serializer: GameStateDataSerializer) -> None:
         """init game engine"""
         self.room_id = room_id
         self.state_serializer = state_serializer
 
-    async def setup(self, player_ids: List[Id]) -> None:
+    async def setup(self, player_ids: List[str]) -> None:
         """Setup game"""
         game = Game.start_new_game(player_ids)
         await self._save_game_state(game)
 
-    async def update(self, player_id: Id, turn: GameDataTurn) -> Tuple[GameData, str]:
+    async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
         game_data = await self._get_latest_game_state()
         game = self.state_serializer.load(game_data)
@@ -41,7 +41,7 @@ class GameEngine(AbstractGame):
         game_turn = self.state_serializer.dump(game)
         return asdict(game_turn), game.status
 
-    async def poll(self, player_id: Id | None = None) -> GameData | None:
+    async def poll(self, player_id: str | None = None) -> GameData | None:
         """Poll the last game state"""
         last_state = await self._get_latest_game_state()
         player_id = str(player_id) if player_id else None
@@ -65,7 +65,7 @@ class GameEngine(AbstractGame):
         return game_status in STATUSES_IN_PROGRESS
 
     @classmethod
-    def create_engine(cls, room_id: Id) -> Self:
+    def create_engine(cls, room_id: str) -> Self:
         return cls(
             room_id=room_id,
             state_serializer=TicTacToeGameStateDataSerializer,

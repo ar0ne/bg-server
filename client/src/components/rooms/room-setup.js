@@ -219,7 +219,6 @@ class RoomSetup extends Component {
         return (
             <div>
                 <RoomInfo room={room} />
-
                 { isStarted && (
                     <div>
                         <button
@@ -227,7 +226,6 @@ class RoomSetup extends Component {
                         >Go to game</button>
                     </div>
                 )}
-
                 { isCanStart && (
                     <div>
                         <button
@@ -236,7 +234,6 @@ class RoomSetup extends Component {
                         >Start Game</button>
                     </div>
                 )}
-
                 { isLoggedIn && !isParticipant && isCanJoin && (
                     <div>
                         <button
@@ -244,7 +241,6 @@ class RoomSetup extends Component {
                         >Join Game</button>
                     </div>
                 )}
-
                 { isLoggedIn && isParticipant && isSetupRoom && (
                     <div>
                         <button
@@ -252,8 +248,6 @@ class RoomSetup extends Component {
                         >Quit Game</button>
                     </div>
                 )}
-
-
                 { isSetupRoom && isAdmin && (
                     <RoomSize
                         size={this.state.room.size}
@@ -263,9 +257,7 @@ class RoomSetup extends Component {
                         decreaseRoomSize={this.decreaseRoomSize}
                     />
                 )}
-
                 <ParticipantList room={ room } isAdmin={ isAdmin } />
-
             </div>
         )
     }

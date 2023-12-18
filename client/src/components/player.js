@@ -31,14 +31,6 @@ class PlayerProfilePage extends Component {
             },
             error => {
                 console.log("unable to fetch user profile");
-                console.log(
-                    (error.response &&
-                     error.response.data &&
-                     error.response.data.error &&
-                     error.response.data.error.message) ||
-                    error.message ||
-                    error.toString()
-                );
                 if (error.response && error.response.status === 401) {
                     EventBus.dispatch("logout");
                 }

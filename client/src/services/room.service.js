@@ -99,6 +99,9 @@ class RoomService {
     isCanceled(room) {
         return room && room.status === RoomStatus.CANCELED;
     }
+    isAbandoned(room) {
+        return room && room.status === RoomStatus.ABANDONED;
+    }
 };
 
 export default new RoomService();

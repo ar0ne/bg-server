@@ -47,7 +47,6 @@ class RoomTable extends Component {
     }
 
     fetchRoomData() {
-        // FIXME: maybe take it from websocket channel ?
         const { room_id } = this.props.router.params;
         RoomService.getRoomData(room_id).then(roomData => {
             this.setState({data: roomData});
@@ -71,12 +70,12 @@ class RoomTable extends Component {
 
         if (!room || !room.status) {
             return (
-                <div>Nothing is here.</div>
+                <div>Loading.</div>
             )
         }
-        if (RoomService.isCanceled(room)) {
+        if (RoomService.isCanceled(room) || RoomService.isAbandoned(room)) {
             return (
-                <div>Game has been canceled</div>
+                <div>Game has been canceled.</div>
             )
         }
 
@@ -86,10 +85,12 @@ class RoomTable extends Component {
             <div>
                 <div>{room.game.name}</div>
                 <Suspense fallback={<div>Loading...</div>}>
-                    {isLoading ? "" : <Game 
+                    {!isLoading ? <Game 
                         room_id={room.id} 
                         data={data} 
-                        notifyAllAboutUpdate={this.notifyAllAboutUpdate} />}
+                        notifyAllAboutUpdate={this.notifyAllAboutUpdate} 
+                        /> : ""
+                    }
                 </Suspense>
             </div>
         )

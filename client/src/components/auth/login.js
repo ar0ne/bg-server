@@ -62,14 +62,14 @@ class Login extends Component {
                          error.toString();
 
                     this.setState({
-                        loading: false,
+                        isLoading: false,
                         message: resMessage
                     });
                 }
             );
         } else {
             this.setState({
-                loading: false
+                isLoading: false
             });
         }
     }
@@ -103,7 +103,7 @@ class Login extends Component {
                     </div>
                     <div>
                         <button
-                            disabled={this.state.loading}
+                            disabled={this.state.isLoading}
                         >
                             <span>Login</span>
                         </button>
@@ -117,10 +117,8 @@ class Login extends Component {
                         </div>
                     )}
                     <CheckButton
-                        style={{ display: "none" }}
-                        ref={c => {
-                            this.checkBtn = c;
-                        }}
+                        className="hidden"
+                        ref={c => this.checkBtn = c}
                     />
                 </Form>
             </div>

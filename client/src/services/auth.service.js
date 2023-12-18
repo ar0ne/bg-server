@@ -1,6 +1,7 @@
 import { apiV1 } from "./base";
+
 const PATH = "/auth";
-const TOKEN_KEY = "user"
+const TOKEN_KEY = process.env.REACT_APP_AUTH_TOKEN_STORAGE_KEY || "user";
 
 class AuthService {
     async logIn(username, password) {

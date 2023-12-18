@@ -66,6 +66,7 @@ class RoomHandler(BaseRequestHandler):
             status = data["status"]
             room.status = GameRoomStatus(status).value
             if status == GameRoomStatus.STARTED.value:
+                # FIXME: is it uuid?
                 players_ids = await room.participants.all().values_list("id", flat=True)
                 # new game event triggered
                 engine = get_engine(room)
@@ -119,7 +120,7 @@ class RoomGameTurnHandler(BaseRequestHandler):
     @login_required
     async def post(self, room_id: str) -> None:
         """Create a game turn"""
-        user_id = self.request.user.id
+        user_id = str(self.request.user.id)
         turn = tornado.escape.json_decode(self.request.body)
         if not turn:
             raise APIError(400, "Validation error")
