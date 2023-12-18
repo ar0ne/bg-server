@@ -43,7 +43,6 @@ function PlayerHand (props) {
     )
 }
 
-
 function PlayerHands(props) {
     const { hands, playerId, selectedCards, isActivePlayer, onCardClick } = props;
     const playerHand = !!playerId && hands.filter(ph => ph.id === playerId)[0];
@@ -52,7 +51,7 @@ function PlayerHands(props) {
         const fakeHand = [...Array(pHand.size).keys()].map(i => ['\u00A0', '\u00A0']);
         return (
             <PlayerHand
-                key="fake"
+                key={pHand.id}
                 hand={fakeHand}
                 playerId={pHand.id} 
                 isActivePlayer={false}
@@ -74,7 +73,6 @@ function PlayerHands(props) {
         </div>
     );
 }
-
 
 function Deck(props) {
     return (
@@ -171,33 +169,58 @@ function Card (props) {
 // FIXME: refactor this mess
 function GameState(props) {
     let msg = "";
-    const {status, isActivePlayer, isAnonymous, turn} = props;
+    const { status, isActivePlayer, isAnonymous, turn } = props;
     const isPlayingCards = status === GameStatus.PLAY;
     const isDiscardingCards = status === GameStatus.DISCARD;
-    if (isAnonymous) {
-        if (isPlayingCards) {
-            msg = "Game in progress";
+    const isLoseGame = status === GameStatus.LOST;
+    const isWinGame = status === GameStatus.WON;
+
+    let style = null;
+    if (isPlayingCards) {
+        style = styles.PlayingCards;
+        if (isAnonymous) {
+            msg = "Playing cards.";
+        } else if (isActivePlayer) {
+            msg = "Play cards or skip.";
         } else {
-            msg = "Game is over.";
+            msg = "Your partner plays";
         }
-    } else {
-        if (isPlayingCards) {
-            msg = isActivePlayer ? "Your turn." : "Your partner plays.";
-        } else if (isDiscardingCards) {
-            msg = isActivePlayer ? "Discard cards" : "Your partners should discard cards.";
-        } else if (status === GameStatus.LOST) {
-            msg = "You have lost! Try again.";
-        } else if (status === GameStatus.WON) {
+    } else if (isDiscardingCards) {
+        style = styles.DiscardingCards;
+        if (isAnonymous) {
+            msg = "Discarding cards.";
+        } else if (isActivePlayer) {
+            msg = "Discard cards to defeat enemy attack.";
+        } else {
+            msg = "Your partner should discard cards.";
+        }
+    } else if (isLoseGame) {
+        style = styles.GameOver;
+        if (isAnonymous) {
+            msg = "Game over.";
+        } else {
+            msg = "You lost! Try again.";
+        }
+    } else if (isWinGame) {
+        style = styles.GameOver;
+        if (isAnonymous) {
+            msg = "Game over. Victory!";
+        } else {
             msg = "Hooray! You won!";
         }
     }
-    const style = isPlayingCards ? styles.PlayingCards : (
-        isDiscardingCards ? styles.DiscardingCards : (
-            status === GameStatus.LOST || status === GameStatus.WON ? styles.GameOver : undefined
-        )
-    );
+
     return (
         <div style={style}><b>Turn {turn}</b>. {msg}</div>
+    )
+}
+
+function GameErrorNotification(props) {
+    const msg = props.msg;
+    return (
+        <div style={styles.ErrorNotification}>
+            {msg}
+        </div>
     )
 }
 
@@ -218,11 +241,20 @@ class Game extends Component {
                 turn: 0,
                 hands: [],
             },
+            errorMessage: "",
+            isErrorMessageVisible: false,
             selectedCards: [],
         };
         this.handleCardClick = this.handleCardClick.bind(this);
         this.playSelectedCards = this.playSelectedCards.bind(this);
         this.playSkipCards = this.playSkipCards.bind(this);
+    }
+
+    showErrorMessage(msg) {
+        this.setState({isErrorMessageVisible: true, errorMessage: msg});
+        setTimeout(() => {
+            this.setState({isErrorMessageVisible: false});
+        }, 5000);
     }
 
     handleCardClick(card) {
@@ -240,8 +272,12 @@ class Game extends Component {
         RoomService.createTurnData(
             this.props.room_id, {cards: selectedCards}
         ).then(room => {
-            this.setState({isLoading: false, room: room, selectedCards: []});
+            this.setState({isLoading: false, room: room, selectedCards: [], isErrorMessageVisible: false});
             this.props.notifyAllAboutUpdate();
+        }, error => {
+            let message = error.response.status === 400 ? error.response?.statusText : "Something went wrong. Try again later.";
+            this.showErrorMessage(message);
+            this.setState({selectedCards: []});
         });
     }
 
@@ -249,8 +285,12 @@ class Game extends Component {
         RoomService.createTurnData(
             this.props.room_id, {cards: []}
         ).then(room => {
-            this.setState({isLoading: false, room: room, selectedCards: []});
+            this.setState({isLoading: false, room: room, selectedCards: [], isErrorMessageVisible: false});
             this.props.notifyAllAboutUpdate();
+        }, error => {
+            let message = error.response.status === 400 ? error.response?.statusText : "Something went wrong. Try again later.";
+            this.showErrorMessage(message);
+            this.setState({selectedCards: []});
         });
     }
 
@@ -262,6 +302,7 @@ class Game extends Component {
 
     render() {
         const { data } = this.props;
+        const { errorMessage, isErrorMessageVisible } = this.state;
         if (!(data && data.hands)) {
             return (
                 <div>Loading...</div>
@@ -283,6 +324,7 @@ class Game extends Component {
                         isActivePlayer={isActivePlayer}
                         turn={data.turn} 
                     />
+                    {isErrorMessageVisible && <GameErrorNotification msg={errorMessage} />}
                 </div>
                 <div style={styles.Container}>
                     <div style={styles.SideColumn}>

@@ -8,6 +8,12 @@ const GameBoardField = {
     display: "flex",
     flexDirection: "row",
     boxSizing: "border-box",
+    marginTop: "1em",
+}
+
+const ErrorNotification = {
+    backgroundColor: "pink",
+    color: "white",
 }
 
 const Square = {
@@ -32,7 +38,7 @@ const RedSquare = {
 }
 
 const Status = {
-    marginBottom: "1em",
+
 }
 
 const ActivePlayerTurn = {
@@ -55,6 +61,7 @@ const GameOver = {
 
 export const styles = {
     ActivePlayerTurn: ActivePlayerTurn,
+    ErrorNotification: ErrorNotification,
     GameBoard: GameBoard,
     GameBoardField: GameBoardField,
     GameOver: GameOver,

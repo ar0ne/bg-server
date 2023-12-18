@@ -68,6 +68,11 @@ const EnemyAttack = {
     color: "blue",
 }
 
+const ErrorNotification = {
+    backgroundColor: "pink",
+    color: "white",
+}
+
 const PlayedCombo = {
     display: "flex",
 }
@@ -112,6 +117,7 @@ export const styles = {
     EnemyArea: EnemyArea,
     EnemyHealth: EnemyHealth,
     EnemyAttack: EnemyAttack,
+    ErrorNotification: ErrorNotification,
     HighlightCard: HighlightCard,
     SideColumn: SideColumn,
     PlayArea: PlayArea,

@@ -11,6 +11,16 @@ const GAME_STATUS = {
     IN_PROGRESS: "in_progress",
 }
 
+function GameErrorNotification(props) {
+    const msg = props.msg;
+    return (
+        <div style={styles.ErrorNotification}>
+            {msg}
+        </div>
+    )
+}
+
+
 // FIXME: refactor this logic
 function GameStatus(props) {
     let msg = "";
@@ -140,6 +150,7 @@ class Game extends Component {
 
         this.state = {
             isLoading: false,
+            isErrorMessageVisible: false,
             room_id: "",
             data: {
                 active_player_id: "",
@@ -160,8 +171,19 @@ class Game extends Component {
         ).then(room => {
             this.setState({isLoading: false, room: room});
             this.props.notifyAllAboutUpdate();
+        }, error => {
+            let message = error.response.status === 400 ? error.response?.statusText : "Something went wrong. Try again later.";
+            this.showErrorMessage(message);
         });
     }
+
+    showErrorMessage(msg) {
+        this.setState({isErrorMessageVisible: true, errorMessage: msg});
+        setTimeout(() => {
+            this.setState({isErrorMessageVisible: false});
+        }, 5000);
+    }
+
 
     render() {
         /**
@@ -194,6 +216,7 @@ class Game extends Component {
         const isWinner = !isAnonymous && data.player_id === data.winner_id;
         const crossPlayerId = data.players && data.players[0];
         const isCrossSing = data.players && data.players[0] === data.player_id;
+        const { isErrorMessageVisible, errorMessage } = this.state;
 
         return (
             <div className="game">
@@ -205,6 +228,7 @@ class Game extends Component {
                         isWinner={isWinner}
                         isCrossSing={isCrossSing}
                     />
+                    {isErrorMessageVisible && <GameErrorNotification msg={errorMessage} />}
                     <Board 
                         board={data.board} 
                         status={data.status}
