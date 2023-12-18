@@ -70,7 +70,7 @@ class Game:
         # setup game state
         self.status = Status.CREATED
         self.next_player_loop = infinite_cycle(self.players)
-        self.first_player = None
+        self.active_player = None
 
     @property
     def is_playing_cards_state(self) -> bool:
@@ -104,7 +104,7 @@ class Game:
         game.played_combos = []
         # randomly peek first player
         random.shuffle(game.players)
-        game.first_player = game.toggle_next_player_turn()
+        game.active_player = game.toggle_next_player_turn()
         # players draw X random cards on hands
         for player in game.players:
             hand = game.tavern_deck.pop_many(player.hand_size)
@@ -170,9 +170,9 @@ class Game:
         self.toggle_next_player_turn()
 
     def toggle_next_player_turn(self) -> Player:
-        """Change first player to next"""
-        self.first_player = next(self.next_player_loop)
-        return self.first_player
+        """Change active player to next"""
+        self.active_player = next(self.next_player_loop)
+        return self.active_player
 
     def find_player(self, player_id: str) -> Optional[Player]:
         """Find player by id"""
@@ -288,7 +288,7 @@ def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
         raise InvalidGameStateError
     if not (turn and isinstance(turn, dict)):
         raise InvalidTurnDataError  # FIXME
-    player = game.first_player
+    player = game.active_player
     if not player:
         raise Exception  # FIXME
     if not player_id:
@@ -296,7 +296,7 @@ def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
     player_id = str(player_id)
     if player.id != player_id:
         raise Exception  # FIXME
-    if game.first_player.id != player_id:
+    if game.active_player.id != player_id:
         raise TurnOrderViolationError
 
     cards = turn.get("cards")

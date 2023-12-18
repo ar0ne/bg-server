@@ -210,7 +210,7 @@ class Game extends Component {
                 discard_size: 0,
                 enemy: [],
                 enemy_state: [],
-                first_player_id: "",
+                active_player_id: "",
                 state: "",
                 player_id: "",
                 played_combos: [],
@@ -268,7 +268,7 @@ class Game extends Component {
             )
         }
         const isGameInProgress = data.status === GameStatus.PLAY || data.status === GameStatus.DISCARD;
-        const isActivePlayer = !isAnonymous && isGameInProgress && data.first_player_id === data.player_id;
+        const isActivePlayer = !isAnonymous && isGameInProgress && data.active_player_id === data.player_id;
         const { selectedCards } = this.state; 
         const hasSelectedCards = isActivePlayer && selectedCards && selectedCards.length > 0;
         const canSkipCards = isActivePlayer && data.status === GameStatus.PLAY;

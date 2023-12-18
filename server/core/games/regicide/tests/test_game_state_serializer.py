@@ -21,8 +21,8 @@ class TestRegicideGameStateDataSerializers(TestCase):
         user_id = "user_id"
         game = Game(user_id)
         card = Card(suit=Suit.HEARTS, rank=CardRank.FOUR)
-        game.first_player = Player(user_id, [card])
-        game.players = [game.first_player]
+        game.active_player = Player(user_id, [card])
+        game.players = [game.active_player]
         game.enemy_deck = Deck([Card(suit=Suit.SPADES, rank=CardRank.JACK)])
         game.tavern_deck = Deck([Card(suit=Suit.CLUBS, rank=CardRank.TWO)])
         game.played_combos = [
@@ -37,7 +37,7 @@ class TestRegicideGameStateDataSerializers(TestCase):
 
         self.assertEqual([("J", "♠")], dump.enemy_deck)
         self.assertEqual([("2", "♣")], dump.tavern_deck)
-        self.assertEqual(dump.first_player_id, user_id)
+        self.assertEqual(dump.active_player_id, user_id)
         self.assertEqual([(user_id, [("4", "♥")])], dump.players)
         self.assertEqual([[("5", "♣"), ("A", "♥")], [("3", "♠")]], dump.played_combos)
         self.assertEqual([("9", "♦")], dump.discard_deck)
@@ -51,7 +51,7 @@ class TestRegicideGameStateDataSerializers(TestCase):
         dump = GameStateDto(
             enemy_deck=[("J", "♠")],
             discard_deck=[("9", "♦")],
-            first_player_id=user2_id,
+            active_player_id=user2_id,
             players=[
                 (user1_id, [("4", "♥")]),
                 (user2_id, [("2", "♥")]),
@@ -65,7 +65,7 @@ class TestRegicideGameStateDataSerializers(TestCase):
 
         self.assertEqual(20, game.turn)
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
-        self.assertEqual(user2_id, game.first_player.id)
+        self.assertEqual(user2_id, game.active_player.id)
         self.assertEqual(1, len(game.tavern_deck))
         self.assertEqual(CardRank.TWO, game.tavern_deck.cards[0].rank)
         self.assertEqual(Suit.CLUBS, game.tavern_deck.cards[0].suit)

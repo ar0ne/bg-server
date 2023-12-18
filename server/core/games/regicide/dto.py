@@ -18,7 +18,7 @@ class GameStateDto:
 
     enemy_deck: List[FlatCard]
     discard_deck: List[FlatCard]
-    first_player_id: str
+    active_player_id: str
     players: List[Tuple[str, List[FlatCard]]]
     played_combos: List[List[FlatCard]]
     status: str
@@ -34,7 +34,7 @@ class GameTurnDataDto:
     discard_size: int
     enemy: FlatCard
     enemy_state: Tuple[int, int]
-    first_player_id: str
+    active_player_id: str
     player_id: str
     played_combos: List[List[FlatCard]]
     status: str

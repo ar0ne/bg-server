@@ -42,7 +42,7 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
             discard_size=len(game.discard_deck),
             enemy=(top_enemy.rank.value, top_enemy.suit.value),
             enemy_state=enemy_state,
-            first_player_id=game.first_player.id,
+            active_player_id=game.active_player.id,
             player_id=str(player.id) if player else "",
             played_combos=[to_flat_hand(combo) for combo in game.played_combos],
             status=game.status.value,  # type: ignore
@@ -86,12 +86,12 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
             Card(rank, Suit(suit))
             for rank, suit in data.enemy_deck
         ])
-        game.first_player = game.find_player(data.first_player_id)
+        game.active_player = game.find_player(data.active_player_id)
         # fmt: on
 
         # shift players' loop until first player from data
         game.next_player_loop = infinite_cycle(game.players)
-        while game.toggle_next_player_turn().id != data.first_player_id:
+        while game.toggle_next_player_turn().id != data.active_player_id:
             pass
 
         game.turn = data.turn
@@ -105,7 +105,7 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
         return GameStateDto(
             enemy_deck=to_flat_hand(game.enemy_deck.cards),
             discard_deck=to_flat_hand(game.discard_deck.cards),
-            first_player_id=game.first_player.id,
+            active_player_id=game.active_player.id,
             players=[(pl.id, to_flat_hand(pl.hand)) for pl in game.players],
             played_combos=[to_flat_hand(combo) for combo in game.played_combos],
             status=game.status.value,  # type: ignore
