@@ -34,11 +34,11 @@ function PlayerHand (props) {
         )
     });
 
-    const greetings = (currentUserId && currentUserId === playerId) ? "Your hand" : `Player hand`;
+    const greetings = (currentUserId && currentUserId === playerId) ? "Your hand" : "Player hand";
 
     return (
         <div>
-            <h5>{greetings}</h5>
+            <h5>{greetings} ({hand.length})</h5>
             <div style={styles.PlayerHand}>
                 {playerHand}
             </div>
@@ -187,6 +187,7 @@ function GameState(props) {
         } else if (isActivePlayer) {
             msg = "Play cards or skip.";
         } else {
+            style = styles.PartnerPlayingCards;
             msg = "Your partner plays";
         }
     } else if (isDiscardingCards) {
@@ -196,6 +197,7 @@ function GameState(props) {
         } else if (isActivePlayer) {
             msg = "Discard cards to defeat enemy attack.";
         } else {
+            style = styles.PartnerDiscardingCards;
             msg = "Your partner should discard cards.";
         }
     } else if (isLoseGame) {

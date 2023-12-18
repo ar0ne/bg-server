@@ -12,6 +12,7 @@ from core.games.regicide.exceptions import (
 from core.games.regicide.game import Game
 from core.games.regicide.models import Status
 from core.games.regicide.serializers import RegicideGameStateDataSerializer
+from core.games.regicide.utils import to_flat_hand
 
 
 class TestGame(TestCase):
@@ -95,26 +96,28 @@ class TestGame(TestCase):
 
     def test_play_diamond_card(self) -> None:
         """Tests playing diamond card and draw from tavern"""
+        user_1_hand = [("5", "♦")]
+        user_2_hand = [("2", "♠"), ("2", "♣"), ("2", "♥"), ("2", "♦"), ("3", "♠"), ("3", "♥")]
         dump = GameStateDto(
             enemy_deck=[("J", "♣")],
             discard_deck=[("5", "♥")],
             active_player_id=self.user1_id,
             players=[
-                (self.user1_id, [("2", "♦")]),
-                (self.user2_id, [("2", "♥")]),
+                (self.user1_id, user_1_hand),
+                (self.user2_id, user_2_hand),
             ],
             played_combos=[
                 [("9", "♠")],
             ],
             status=Status.PLAYING_CARDS.value,  # type: ignore
-            tavern_deck=[("2", "♣"), ("3", "♥"), ("4", "♥")],
+            tavern_deck=[("8", "♣"), ("8", "♥"), ("9", "♥"), ("9", "♦")],
             turn=4,
         )
         game = self.game_state_serializer.load(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
-        turn = {"cards": [("2", "♦")]}
+        turn = {"cards": [("5", "♦")]}
         game = Game.make_turn(game, game.active_player.id, turn)
 
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
@@ -122,10 +125,14 @@ class TestGame(TestCase):
         self.assertEqual(game.active_player.id, self.user1_id)
         self.assertEqual(1, len(game.enemy_deck))
         self.assertEqual(1, len(game.discard_deck))
-        self.assertEqual(1, len(game.tavern_deck))
+        self.assertEqual(0, len(game.tavern_deck))
         self.assertEqual(2, len(game.played_combos))
-        self.assertEqual(1, len(game.players[0].hand))
-        self.assertEqual(2, len(game.players[1].hand))
+        self.assertEqual(3, len(game.players[0].hand))
+        self.assertEqual(7, len(game.players[1].hand))
+        self.assertListEqual(
+            [("8", "♣"), ("9", "♥"), ("9", "♦")], to_flat_hand(game.players[0].hand)
+        )
+        self.assertListEqual(user_2_hand + [("8", "♥")], to_flat_hand(game.players[1].hand))
 
     def test_play_cards__game_lost_due_to_empty_hand(self) -> None:
         """Tests playing card and no cards to defeat enemy"""

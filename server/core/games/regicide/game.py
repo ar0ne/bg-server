@@ -237,7 +237,13 @@ class Game:
             # make infinite loop
             players_loop = infinite_cycle(players)
             # add cards to players' hands
-            list(map(lambda c: next(players_loop).hand.append(c), draw_cards))
+            for card in draw_cards:
+                # filter only players with still available spots
+                for player in players_loop:
+                    if len(player.hand) >= player.max_hand_size:
+                        continue
+                    player.hand.append(card)
+                    break
 
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""

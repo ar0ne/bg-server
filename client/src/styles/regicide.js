@@ -89,9 +89,19 @@ const PlayingCards = {
     color: "white",
 }
 
+const PartnerPlayingCards = {
+    ...PlayingCards,
+    backgroundColor: "blue",
+}
+
 const DiscardingCards = {
     backgroundColor: "red",
     color: "white",
+}
+
+const PartnerDiscardingCards = {
+    ...DiscardingCards,
+    backgroundColor: "tomato",
 }
 
 const GameOver = {
@@ -127,4 +137,6 @@ export const styles = {
     PlayedCombo: PlayedCombo,
     PlayingCards: PlayingCards,
     DiscardingCards: DiscardingCards,
+    PartnerPlayingCards: PartnerPlayingCards,
+    PartnerDiscardingCards: PartnerDiscardingCards,
 }
