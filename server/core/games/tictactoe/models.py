@@ -28,6 +28,7 @@ class Status(enum.Enum):
     """Enum for game status"""
 
     CREATED = "created"
+    DRAW = "draw"
     IN_PROGRESS = "in_progress"
     FINISHED = "finished"
     ABANDONED = "abandoned"

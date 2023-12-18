@@ -1,8 +1,13 @@
 /** styles for TicTacToe game */
 
-const Game = {
-    // display: "flex",
+const GameBoard = {
+
+}
+
+const GameBoardField = {
+    display: "flex",
     flexDirection: "row",
+    boxSizing: "border-box",
 }
 
 const Square = {
@@ -17,6 +22,8 @@ const Square = {
     padding: 0,
     textAlign: "center",
     width: "34px",
+    float: "left",
+    boxSizing: "border-box",
 }
 
 const RedSquare = {
@@ -24,9 +31,34 @@ const RedSquare = {
     background: "red",
 }
 
+const Status = {
+    marginBottom: "1em",
+}
+
+const ActivePlayerTurn = {
+    ...Status,
+    background: "green",
+    color: "white",
+}
+
+const OpponentTurn = {
+    ...Status,
+    background: "blue",
+    color: "white",
+}
+
+const GameOver = {
+    ...Status,
+    background: "grey",
+    color: "white",
+}
 
 export const styles = {
-    Game: Game,
+    ActivePlayerTurn: ActivePlayerTurn,
+    GameBoard: GameBoard,
+    GameBoardField: GameBoardField,
+    GameOver: GameOver,
     Square: Square,
+    OpponentTurn: OpponentTurn,
     RedSquare: RedSquare,
 }

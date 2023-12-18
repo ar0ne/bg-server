@@ -4,26 +4,48 @@ import { styles } from "../styles/tictactoe";
 import RoomService from "../services/room.service";
 
 
+const GAME_STATUS = {
+    ABANDONED: "abandoned",
+    DRAW: "draw",
+    FINISHED: "finished",
+    IN_PROGRESS: "in_progress",
+}
+
 // FIXME: refactor this logic
 function GameStatus(props) {
     let msg = "";
-    const {status, is_active_player, is_anonymous, is_winner} = props;
-    if (status === "in_progress") {
-        if (!is_anonymous) {
-            msg = is_active_player ? "Your turn." : "Your opponent turn.";
-        } else {
+    const { status, isActivePlayer, isAnonymous, isWinner } = props;
+
+    let style = null
+    if (status === GAME_STATUS.IN_PROGRESS) {
+        if (isAnonymous) {
             msg = "Game in progress.";
+        } else if (isActivePlayer) {
+            msg = "Your turn.";
+            style = styles.ActivePlayerTurn;
+        } else {
+            msg = "Opponent plays.";
+            style = styles.OpponentTurn;
         }
-    } else if (status === "finished") {
-        if (is_winner) {
+    } else if (status === GAME_STATUS.FINISHED) {
+        style = styles.GameOver;
+        if (isWinner) {
             msg = "Hooray! You won!";
-        } else if (is_anonymous) {
+        } else if (isAnonymous) {
             msg = "Game over!";
-        } else if (is_active_player) {
+        } else if (isActivePlayer) {
             msg = "You lost!";
         }
+    } else if (status === GAME_STATUS.DRAW || status === GAME_STATUS.ABANDONED) {
+        msg = "Game over. It's draw."
+        style = styles.GameOver;
     }
-    return <h5>{msg}</h5>
+
+    return (
+        <div className="status" style={style}>
+            {msg}
+        </div>
+    );
 }
 
 
@@ -65,10 +87,9 @@ function Board(props) {
         )
     }
 
-    const canClick = props.is_active_player && props.status === "in_progress";
-    const items = props.board;
-    const size = Math.sqrt(items.length);
-    const cross_player_id = props.cross_player_id;
+    const { crossPlayerId, status, isActivePlayer, board, onSquareClick} = props;
+    const canClick = isActivePlayer && status === GAME_STATUS.IN_PROGRESS;
+    const size = Math.sqrt(board.length);
 
     const group = (items, n) => items.reduce((acc, x, i) => {
         const idx = Math.floor(i / n);
@@ -76,19 +97,20 @@ function Board(props) {
         return acc;
       }, []);
 
-    const sign = (val) => {
+    const sign = val => {
         if (!!!val) {
             return;
         }
-        return cross_player_id === val ? 'x' : 'o'
+        return crossPlayerId === val ? 'x' : 'o'
     }
 
     // [0, 1, 2]
-    const winnerIndexes = getWinnerIndexes(items);
+    const winnerIndexes = getWinnerIndexes(board);
 
     return (
-        <div className="game-board">
-            {group(items, size).map((row, row_idx) => (
+        <div className="game-board-field" style={styles.GameBoardField}>
+            <div>
+            {group(board, size).map((row, row_idx) => (
                 <div className="board-row" key={row_idx}>
                     {row.map((val, col_idx) => {
                         let idx = row_idx * size + col_idx;
@@ -98,13 +120,14 @@ function Board(props) {
                                 key={idx} 
                                 value={sign(val)}
                                 style={isHighlighted ? styles.RedSquare : styles.Square}
-                                onSquareClick={canClick ? () => props.onSquareClick(idx) : undefined} 
+                                onSquareClick={canClick ? () => onSquareClick(idx) : undefined} 
                             />
                         )
                         })
                     }
                 </div>
             ))}
+            </div>
         </div>
     );
 };
@@ -133,26 +156,12 @@ class Game extends Component {
     handeClick(idx) {
         this.setState({ isLoading: true });
 
-        // send http request, but wait for ws hook to make data refresh?
         RoomService.createTurnData(
             this.props.room_id, {index: idx}
-        ).then(response => {
-            console.log("successfuly sent turn data");
-            this.setState({isLoading: false});
-            // this.props.fetchRoomData();
+        ).then(room => {
+            this.setState({isLoading: false, room: room});
             this.props.notifyAllAboutUpdate();
-        },
-        error => {
-            console.log("unable to make a turn");
-            console.log(
-                (error.response &&
-                error.response.data &&
-                error.response.data.error &&
-                error.response.data.error.message) ||
-                error.message ||
-                error.toString()
-            );
-        })
+        });
     }
 
     render() {
@@ -181,26 +190,30 @@ class Game extends Component {
             )
         }
 
-        const is_active_player = data.active_player_id === data.player_id;
-        const is_anonymous = !!!data.player_id;
-        const is_winner = !is_anonymous && data.player_id === data.winner_id;
-        const cross_player_id = data.players && data.players[0]
+        const isAnonymous = !!!data.player_id;
+        const isActivePlayer = !isAnonymous && data.active_player_id === data.player_id;
+        const isWinner = !isAnonymous && data.player_id === data.winner_id;
+        const crossPlayerId = data.players && data.players[0];
+        const isCrossSing = data.players && data.players[0] === data.player_id;
 
         return (
-            <div className="game" style={styles.Game}>
-                <GameStatus 
-                    status={data.status} 
-                    is_active_player={is_active_player} 
-                    is_anonymous={is_anonymous} 
-                    is_winner={is_winner}
-                />
-                <Board 
-                    board={data.board} 
-                    status={data.status}
-                    is_active_player={is_active_player}
-                    onSquareClick={this.handeClick.bind(this)}
-                    cross_player_id={cross_player_id}
-                />
+            <div className="game">
+                <div className="game-board" style={styles.GameBoard}>
+                    <GameStatus 
+                        status={data.status} 
+                        isActivePlayer={isActivePlayer}
+                        isAnonymous={isAnonymous} 
+                        isWinner={isWinner}
+                        isCrossSing={isCrossSing}
+                    />
+                    <Board 
+                        board={data.board} 
+                        status={data.status}
+                        isActivePlayer={isActivePlayer}
+                        onSquareClick={this.handeClick.bind(this)}
+                        crossPlayerId={crossPlayerId}
+                    />
+                </div>
             </div>
         )
     }
