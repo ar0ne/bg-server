@@ -59,6 +59,7 @@ class AuthLoginHandler(BaseRequestHandler):
         self.write(
             {
                 "user_id": user_id,
+                "username": username,
                 "token": await get_jwt_token(user_id),
             }
         )

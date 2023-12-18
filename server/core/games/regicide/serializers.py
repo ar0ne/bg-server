@@ -34,13 +34,13 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
             for pl in game.players
         ]
         enemy_state = (
-            get_remaining_enemy_health(top_enemy, game.played_combos),
-            get_enemy_attack_damage(top_enemy, game.played_combos),
+            get_remaining_enemy_health(top_enemy, game.played_combos) if top_enemy else None,
+            get_enemy_attack_damage(top_enemy, game.played_combos) if top_enemy else None,
         )
         return GameTurnDataDto(
-            enemy_deck_size=len(game.enemy_deck),
+            enemy_deck_size=max(len(game.enemy_deck) - 1, 0),
             discard_size=len(game.discard_deck),
-            enemy=(top_enemy.rank.value, top_enemy.suit.value),
+            enemy=(top_enemy.rank.value, top_enemy.suit.value) if top_enemy else None,
             enemy_state=enemy_state,
             active_player_id=game.active_player.id,
             player_id=str(player.id) if player else "",

@@ -68,7 +68,7 @@ class App extends React.Component {
                         {currentUser && (
                           <li>
                             <Link to="/player">
-                              My profile ({currentUser.user_id})
+                              My profile ({ currentUser.username })
                             </Link>
                           </li>
                         )}

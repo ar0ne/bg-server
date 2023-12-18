@@ -2,6 +2,7 @@
 import { Component } from "react";
 import { styles } from "../styles/regicide";
 import RoomService from "../services/room.service";
+import AuthService from "../services/auth.service";
 
 
 const GameStatus = {
@@ -20,7 +21,7 @@ function PlayerHand (props) {
         return (<div></div>);
     }
 
-    const { isActivePlayer, onCardClick, playerId, selectedCards, hand } = props;
+    const { isActivePlayer, onCardClick, playerId, selectedCards, hand, currentUserId } = props;
     const playerHand = hand.map((card, idx) => {
         return (
             <Card 
@@ -33,9 +34,11 @@ function PlayerHand (props) {
         )
     });
 
+    const greetings = (currentUserId && currentUserId === playerId) ? "Your hand" : `Player hand`;
+
     return (
         <div>
-            <h5>Player ({playerId}) hand</h5>
+            <h5>{greetings}</h5>
             <div style={styles.PlayerHand}>
                 {playerHand}
             </div>
@@ -44,7 +47,7 @@ function PlayerHand (props) {
 }
 
 function PlayerHands(props) {
-    const { hands, playerId, selectedCards, isActivePlayer, onCardClick } = props;
+    const { hands, playerId, selectedCards, isActivePlayer, onCardClick, currentUserId } = props;
     const playerHand = !!playerId && hands.filter(ph => ph.id === playerId)[0];
     const otherHands = hands.filter(ph => ph !== playerHand);
     const hiddenPlayerHands = otherHands && otherHands.map(pHand => {
@@ -64,7 +67,8 @@ function PlayerHands(props) {
                 hand={playerHand.hand}
                 size={playerHand.size}
                 selectedCards={selectedCards}
-                playerId={playerHand.id} 
+                playerId={playerHand.id}
+                currentUserId={currentUserId}
                 isActivePlayer={isActivePlayer} 
                 onCardClick={onCardClick}
             />
@@ -228,6 +232,7 @@ class Game extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            currentUserId: "",
             data:  {
                 enemy_deck_size: 0,
                 discard_size: 0,
@@ -294,6 +299,13 @@ class Game extends Component {
         });
     }
 
+    componentDidMount() {
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            this.setState({ currentUserId: user.user_id });
+        }
+    }
+
     componentDidUpdate(prevProps) {
         if (prevProps.data.enemy_deck_size !== this.props.data.enemy_deck_size) {
             this.setState({selectedCards: []})
@@ -302,7 +314,7 @@ class Game extends Component {
 
     render() {
         const { data } = this.props;
-        const { errorMessage, isErrorMessageVisible } = this.state;
+        const { currentUserId, errorMessage, isErrorMessageVisible } = this.state;
         if (!(data && data.hands)) {
             return (
                 <div>Loading...</div>
@@ -351,7 +363,8 @@ class Game extends Component {
                             hands={data.hands}
                             selectedCards={selectedCards}
                             playerId={data.player_id} 
-                            isActivePlayer={isActivePlayer} 
+                            isActivePlayer={isActivePlayer}
+                            currentUserId={currentUserId}
                             onCardClick={this.handleCardClick}
                         />
                     </div>
