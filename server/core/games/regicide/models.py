@@ -65,7 +65,7 @@ class Player:
         """Init player"""
         self.id = id
         self.hand: CardHand = sorted(hand) if hand else []
-        self.hand_size = hand_size
+        self.max_hand_size = hand_size
 
     def remove_cards_from_hand(self, combo: CardCombo) -> None:
         """Removes cards from hand"""

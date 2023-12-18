@@ -51,6 +51,16 @@ def is_enemy_defeated(enemy: Enemy, cards: List[CardCombo]) -> bool:
     return enemy.health <= get_total_damage_to_enemy(enemy, cards)
 
 
+def has_diamonds(combo: CardCombo) -> bool:
+    """True if combo has diamond suit"""
+    return any(Suit.DIAMONDS == card.suit for card in combo)
+
+
+def has_hearts(combo: CardCombo) -> bool:
+    """True if combo has hearts suit"""
+    return any(Suit.HEARTS == card.suit for card in combo)
+
+
 class Game:
     """Regicide game class"""
 
@@ -107,7 +117,7 @@ class Game:
         game.active_player = game.toggle_next_player_turn()
         # players draw X random cards on hands
         for player in game.players:
-            hand = game.tavern_deck.pop_many(player.hand_size)
+            hand = game.tavern_deck.pop_many(player.max_hand_size)
             player.hand = hand
         # first player could play cards now
         game.status = Status.PLAYING_CARDS
@@ -134,14 +144,14 @@ class Game:
         player.remove_cards_from_hand(combo)
         # activate suits powers if possible
         self._process_played_combo(player, enemy, combo)
-        # add cards to played cards deck
+        # combo could be empty if player decided to skip
         if combo:
+            # add cards to played cards deck
             self.played_combos.append(combo)
         # move to the next state
         self.status = Status.DISCARDING_CARDS
         # check has been enemy defeated
-        enemy_defeated = is_enemy_defeated(enemy, self.played_combos)
-        if enemy_defeated:
+        if is_enemy_defeated(enemy, self.played_combos):
             # no need to discard cards
             self.status = Status.PLAYING_CARDS
             # pull next enemy from castle deck and discard defeated enemy and played cards
@@ -202,7 +212,7 @@ class Game:
             return
         combo_damage = Card.get_attack_power(combo, enemy)
         # if hearts - shuffle and move cards from discard to tavern deck
-        if enemy.suit != Suit.HEARTS and any(Suit.HEARTS == card.suit for card in combo):
+        if enemy.suit != Suit.HEARTS and has_hearts(combo):
             # shuffle deck
             self.discard_deck.shuffle()
             # ensure we don't try to move too many cards
@@ -212,8 +222,8 @@ class Game:
             # add cards to bottom of tavern deck
             self.tavern_deck.append(draw_cards)
         # if diamonds - draw cards to players hands
-        if enemy.suit != Suit.DIAMONDS and any(Suit.DIAMONDS == card.suit for card in combo):
-            hands_capacity = sum(pl.hand_size - len(pl.hand) for pl in self.players)
+        if enemy.suit != Suit.DIAMONDS and has_diamonds(combo):
+            hands_capacity = sum(pl.max_hand_size - len(pl.hand) for pl in self.players)
             tavern_length = len(self.tavern_deck)
             # ensure we don't draw cards more than available
             draw_count = min(hands_capacity, tavern_length, combo_damage)
@@ -221,6 +231,8 @@ class Game:
             player_index = self.players.index(player)
             # create new players list starting from current player
             players = self.players[player_index:] + self.players[:player_index]
+            # filter only players with available spots
+            players = list(filter(lambda p: len(p.hand) < p.max_hand_size, players))
             # make infinite loop
             players_loop = infinite_cycle(players)
             # add cards to players' hands

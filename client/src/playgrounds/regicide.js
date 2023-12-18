@@ -267,12 +267,12 @@ class Game extends Component {
                 <div>Loading...</div>
             )
         }
+        const isAnonymous = !!!data.player_id;
         const isGameInProgress = data.status === GameStatus.PLAY || data.status === GameStatus.DISCARD;
         const isActivePlayer = !isAnonymous && isGameInProgress && data.active_player_id === data.player_id;
         const { selectedCards } = this.state; 
         const hasSelectedCards = isActivePlayer && selectedCards && selectedCards.length > 0;
         const canSkipCards = isActivePlayer && data.status === GameStatus.PLAY;
-        const isAnonymous = !!!data.player_id;
 
         return (
             <div>
