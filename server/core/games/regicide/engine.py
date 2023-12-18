@@ -36,7 +36,7 @@ class GameEngine(AbstractGame):
         game = Game.start_new_game(players)
         await self._save_game_state(game)
 
-    async def update(self, player_id: Id, turn: GameDataTurn) -> GameData | None:
+    async def update(self, player_id: Id, turn: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
         # transform from flat cards to Card objects
         last_game_data = await self._get_latest_game_state()
@@ -46,7 +46,7 @@ class GameEngine(AbstractGame):
         await self._save_game_state(game)
         # return updated game state for player
         game_turn = self.game_data_serializer.dump(game, player_id=player_id)
-        return asdict(game_turn)
+        return asdict(game_turn), game.status
 
     async def poll(self, player_id: Id | None = None) -> GameData | None:
         """Poll the last turn data"""

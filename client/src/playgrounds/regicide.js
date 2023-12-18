@@ -4,6 +4,13 @@ import { styles } from "../styles/regicide";
 import RoomService from "../services/room.service";
 
 
+const GameStatus = {
+    PLAY: "playing_cards",
+    DISCARD: "discarding_cards",
+    LOST: "lost",
+    WON: "won",
+}
+
 function isContainsCard(card, cards) {
     return cards && cards.filter(sc => sc[0] === card[0] && sc[1] === card[1]).length > 0;
 }
@@ -54,7 +61,7 @@ function PlayerHands(props) {
     });
     return (
         <div>
-            <PlayerHand
+            {playerHand && <PlayerHand
                 hand={playerHand.hand}
                 size={playerHand.size}
                 selectedCards={selectedCards}
@@ -62,6 +69,7 @@ function PlayerHands(props) {
                 isActivePlayer={isActivePlayer} 
                 onCardClick={onCardClick}
             />
+            }
             {hiddenPlayerHands}
         </div>
     );
@@ -164,8 +172,8 @@ function Card (props) {
 function GameState(props) {
     let msg = "";
     const {status, isActivePlayer, isAnonymous, turn} = props;
-    const isPlayingCards = status === "playing_cards";
-    const isDiscardingCards = status === "discarding_cards";
+    const isPlayingCards = status === GameStatus.PLAY;
+    const isDiscardingCards = status === GameStatus.DISCARD;
     if (isAnonymous) {
         if (isPlayingCards) {
             msg = "Game in progress";
@@ -177,15 +185,15 @@ function GameState(props) {
             msg = isActivePlayer ? "Your turn." : "Your partner plays.";
         } else if (isDiscardingCards) {
             msg = isActivePlayer ? "Discard cards" : "Your partners should discard cards.";
-        } else if (status === "lost") {
+        } else if (status === GameStatus.LOST) {
             msg = "You have lost! Try again.";
-        } else if (status === "won") {
+        } else if (status === GameStatus.WON) {
             msg = "Hooray! You won!";
         }
     }
     const style = isPlayingCards ? styles.PlayingCards : (
         isDiscardingCards ? styles.DiscardingCards : (
-            status === "lost" || status === "won" ? styles.GameOver : undefined
+            status === GameStatus.LOST || status === GameStatus.WON ? styles.GameOver : undefined
         )
     );
     return (
@@ -214,6 +222,7 @@ class Game extends Component {
         };
         this.handleCardClick = this.handleCardClick.bind(this);
         this.playSelectedCards = this.playSelectedCards.bind(this);
+        this.playSkipCards = this.playSkipCards.bind(this);
     }
 
     handleCardClick(card) {
@@ -236,6 +245,15 @@ class Game extends Component {
         });
     }
 
+    playSkipCards() {
+        RoomService.createTurnData(
+            this.props.room_id, {cards: []}
+        ).then(room => {
+            this.setState({isLoading: false, room: room, selectedCards: []});
+            this.props.notifyAllAboutUpdate();
+        });
+    }
+
     componentDidUpdate(prevProps) {
         if (prevProps.data.enemy_deck_size !== this.props.data.enemy_deck_size) {
             this.setState({selectedCards: []})
@@ -249,11 +267,12 @@ class Game extends Component {
                 <div>Loading...</div>
             )
         }
-        const isGameInProgress = data.status === "playing_cards" || data.status === "discarding_cards";
-        const { selectedCards } = this.state; 
-        const hasSelectedCards = selectedCards && selectedCards.length > 0;
-        const isAnonymous = !!!data.player_id;
+        const isGameInProgress = data.status === GameStatus.PLAY || data.status === GameStatus.DISCARD;
         const isActivePlayer = !isAnonymous && isGameInProgress && data.first_player_id === data.player_id;
+        const { selectedCards } = this.state; 
+        const hasSelectedCards = isActivePlayer && selectedCards && selectedCards.length > 0;
+        const canSkipCards = isActivePlayer && data.status === GameStatus.PLAY;
+        const isAnonymous = !!!data.player_id;
 
         return (
             <div>
@@ -279,6 +298,12 @@ class Game extends Component {
                                 <button onClick={this.playSelectedCards}>Play</button>
                             </div>
                         )}
+                        {canSkipCards && (
+                            <div>
+                                <button onClick={this.playSkipCards}>Skip</button>
+                            </div>
+                        )}
+                        
                         <PlayerHands 
                             hands={data.hands}
                             selectedCards={selectedCards}

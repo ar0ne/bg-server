@@ -37,13 +37,13 @@ def get_remaining_enemy_health(enemy: Enemy, combos: List[CardCombo]) -> int:
 
 def get_enemy_attack_damage(enemy: Enemy, combos: List[CardCombo]) -> int:
     """Get enemy's attack damage power"""
-    return enemy.attack - enemy.get_reduced_attack_damage(combos)
+    return max(0, enemy.attack - enemy.get_reduced_attack_damage(combos))
 
 
 def can_defeat_enemy_attack(player: Player, enemy: Enemy, played_combos: List[CardCombo]) -> bool:
     """True if player can defeat current enemy"""
     total_hand_damage = Card.get_combo_damage(player.hand)
-    return total_hand_damage > get_enemy_attack_damage(enemy, played_combos)
+    return total_hand_damage >= get_enemy_attack_damage(enemy, played_combos)
 
 
 def is_enemy_defeated(enemy: Enemy, cards: List[CardCombo]) -> bool:
@@ -135,7 +135,8 @@ class Game:
         # activate suits powers if possible
         self._process_played_combo(player, enemy, combo)
         # add cards to played cards deck
-        self.played_combos.append(combo)
+        if combo:
+            self.played_combos.append(combo)
         # move to the next state
         self.status = Status.DISCARDING_CARDS
         # check has been enemy defeated
@@ -196,6 +197,9 @@ class Game:
 
     def _process_played_combo(self, player: Player, enemy: Enemy, combo: CardCombo) -> None:
         """Process played combo"""
+        if not combo:
+            # user could skip playing cards and defeat enemy attack
+            return
         combo_damage = Card.get_attack_power(combo, enemy)
         # if hearts - shuffle and move cards from discard to tavern deck
         if enemy.suit != Suit.HEARTS and any(Suit.HEARTS == card.suit for card in combo):
@@ -296,7 +300,10 @@ def validate_game_turn(game: Game, player_id: Id, turn: dict) -> None:
         raise TurnOrderViolationError
 
     cards = turn.get("cards")
-    if not cards or not all(is_valid_card(card) for card in cards):
+    if not cards and game.is_playing_cards_state:
+        # user could skip turn and immediately move to discard state
+        return
+    if not all(is_valid_card(card) for card in cards):
         raise InvalidCardDataError
 
     combo = list(map(lambda c: Card(c[0], c[1]), cards))

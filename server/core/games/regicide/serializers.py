@@ -43,7 +43,7 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
             enemy=(top_enemy.rank.value, top_enemy.suit.value),
             enemy_state=enemy_state,
             first_player_id=game.first_player.id,
-            player_id=str(player_id) or "",
+            player_id=str(player.id) if player else "",
             played_combos=[to_flat_hand(combo) for combo in game.played_combos],
             status=game.status.value,  # type: ignore
             tavern_size=len(game.tavern_deck),

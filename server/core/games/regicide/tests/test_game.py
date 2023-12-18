@@ -195,7 +195,7 @@ class TestGame(TestCase):
     def test_play_cards__combo_from_twos(self) -> None:
         """Tests playing card combo from 2x4"""
         dump = GameStateDto(
-            enemy_deck=[("K", "♥")],
+            enemy_deck=[("Q", "♥")],
             discard_deck=[("4", "♣")],
             first_player_id=self.user1_id,
             players=[
@@ -221,6 +221,37 @@ class TestGame(TestCase):
         self.assertEqual(0, len(game.tavern_deck))
         self.assertEqual(2, len(game.played_combos))
         self.assertEqual(1, len(game.players[0].hand))
+        self.assertEqual(1, len(game.players[1].hand))
+
+    def test_play_cards__skip_playing_cards(self) -> None:
+        """Tests skipping playing card combo"""
+        dump = GameStateDto(
+            enemy_deck=[("Q", "♥")],
+            discard_deck=[("4", "♣")],
+            first_player_id=self.user1_id,
+            players=[
+                (self.user2_id, []),
+                (self.user1_id, [("10", "♥")]),
+            ],
+            played_combos=[[("10", "♠")]],
+            status=Status.PLAYING_CARDS.value,  # type: ignore
+            tavern_deck=[("3", "♣"), ("4", "♣")],
+            turn=6,
+        )
+        game = self.game_state_serializer.load(dump)
+
+        # empty cards means player skipped playing cards and want to discard if needed
+        turn = {"cards": []}
+        game = Game.make_turn(game, game.first_player.id, turn)
+
+        self.assertEqual(Status.DISCARDING_CARDS, game.status)
+        self.assertEqual(7, game.turn)
+        self.assertEqual(game.first_player.id, self.user1_id)
+        self.assertEqual(1, len(game.enemy_deck))
+        self.assertEqual(1, len(game.discard_deck))
+        self.assertEqual(2, len(game.tavern_deck))
+        self.assertEqual(1, len(game.played_combos))
+        self.assertEqual(0, len(game.players[0].hand))
         self.assertEqual(1, len(game.players[1].hand))
 
     def test_play_cards__combo_with_ace(self) -> None:
@@ -300,7 +331,6 @@ class TestGame(TestCase):
         invalid_combos = [
             ([("A", "♣")], CardDoesNotBelongsToPlayerError),
             ([ace_diamonds, ("2", "♦")], CardDoesNotBelongsToPlayerError),
-            ([], InvalidCardDataError),
             ([("♣", "5")], InvalidCardDataError),
             ([ten_spades, jack_diamonds, ace_diamonds], MaxComboSizeExceededError),
             ([ten_spades, jack_diamonds], InvalidPairComboError),

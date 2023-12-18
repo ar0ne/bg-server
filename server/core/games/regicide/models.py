@@ -142,7 +142,7 @@ class Card:
         immune
         """
         return (
-            self.get_attack_power(combo, self)
+            self.get_combo_damage(combo)
             if self.suit != Suit.SPADES and any(card.suit == Suit.SPADES for card in combo)
             else 0
         )
