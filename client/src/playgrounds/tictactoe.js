@@ -130,7 +130,7 @@ function Board(props) {
                                 key={idx} 
                                 value={sign(val)}
                                 style={isHighlighted ? styles.RedSquare : styles.Square}
-                                onSquareClick={canClick ? () => onSquareClick(idx) : undefined} 
+                                onSquareClick={canClick && !val ? () => onSquareClick(idx) : undefined} 
                             />
                         )
                         })
