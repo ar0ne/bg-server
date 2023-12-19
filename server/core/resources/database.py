@@ -15,16 +15,32 @@ async def init_database() -> None:
         database=options.db_database,
     )
     if options.db_provider == "sqlite":
-        # FIXME: fix for other db providers
-        # await Tortoise.init(db_url="sqlite://:memory:", modules={"models": ["core.resources.models"]})
         await Tortoise.init(
             db_url="sqlite://db.sqlite", modules={"models": ["core.resources.models"]}
+        )
+    elif options.db_provider == "postgres":
+        await Tortoise.init(
+            config={
+                "connections": {
+                    "default": {
+                        "engine": "tortoise.backends.asyncpg",
+                        "credentials": {
+                            "database": db_settings["database"],
+                            "host": db_settings["host"],
+                            "password": db_settings["password"],
+                            "port": db_settings["port"],
+                            "user": db_settings["user"],
+                        },
+                    }
+                },
+                "apps": {
+                    "models": {
+                        "models": ["core.resources.models"],
+                        "default_connection": "default",
+                    }
+                },
+            },
         )
 
     # Generate the schema
     await Tortoise.generate_schemas()
-
-    # FIXME: remove it later
-    from core.resources.models import init_fake_data
-
-    # await init_fake_data()

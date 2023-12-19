@@ -15,14 +15,14 @@ define("debug", default=True, help="run in debug mode")
 define("db_provider", default="sqlite", help="database provider")
 define("db_host", default="127.0.0.1", help="database host")
 define("db_port", default=5432, help="database port")
-define("db_database", default="", help="database name")
+define("db_database", default="bg_server_db", help="database name")
 define("db_user", default="", help="database user")
 define("db_password", default="", help="database password")
 define("JWT_SECRET", default="some-jwt-secret", help="JWT secret token")
 define("JWT_ALGORITHM", default="HS256", help="JWT algorythm")
 define("JWT_EXP_DELTA_SECONDS", default=3000, help="JWT expiration time in seconds")
 
-CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), ".env")
 
 
 class Application(tornado.web.Application):
