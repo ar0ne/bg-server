@@ -5,9 +5,9 @@ services:
     image: postgres:latest
     restart: always
     environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: 'bg_server_db'
-      POSTGRES_USER: 'user'
-      POSTGRES_PASSWORD: 'password'
     ports:
       - "5432:5432"
     volumes:
@@ -18,6 +18,23 @@ services:
       timeout: 5s
       retries: 5
 
+  bg_server:
+    build:
+      context: server/
+    depends_on:
+      bg_server_db:
+        condition: service_healthy
+      # - redis
+    ports:
+      - '8888:8888'
+    command: --db_host=bg_server_db
+
+  bg_client:
+    build:
+      context: client/
+    ports:
+      - '3000:80'
+
   # redis:
   #   container_name: redis
   #   image: redis
@@ -27,24 +44,6 @@ services:
   #     interval: 1s
   #     timeout: 3s
   #     retries: 30
-
-  # bg_server:
-  #   build:
-  #     context: server/
-  #   depends_on:
-  #     bg_server_db:
-  #       condition: service_healthy
-  #     # - redis
-  #   environment:
-  #     foo: "bar"
-  #   ports:
-  #     - '8888:8888'
-
-  bg_client:
-    build:
-      context: client/
-    ports:
-      - '3000:80'
 
 volumes:
   bg_server_db:

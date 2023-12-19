@@ -43,8 +43,8 @@ class Application(tornado.web.Application):
 
 async def main() -> None:
     """Main loop function"""
-    parse_command_line()
     parse_config_file(CONFIG_FILE_PATH)
+    parse_command_line()
 
     await init_database()
 
