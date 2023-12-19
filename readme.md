@@ -1,17 +1,25 @@
-# Game server for games
+# What is it?
+
+This is web server for turn based games (e.g. board games). Idea was to make something similar to [boardgamearena](https://boardgamearena.com/) and "maybe" write some games that not exist there yet.
+
 
 ### List of available games:
 
-1. [Regicide](https://boardgamegeek.com/boardgame/307002/regicide)
+- [Regicide](https://boardgamegeek.com/boardgame/307002/regicide)
 
-Regicide is a cooperative, fantasy card game for 1 to 4 players, played using a standard deck of cards.
+    Regicide is a cooperative, fantasy card game for 1 to 4 players, played using a standard deck of cards.
 
-2. TicTacToe
+- TicTacToe
+
+- ...
 
 
 
+## How to use
 
-## Docker
+The simplest way to run it is to use Docker. But, before you need to add environment files to "client" and "server" (see readme).
+
+### Docker
 
 `docker-compose build`
 

@@ -1,4 +1,8 @@
-# How to run
+# Game server
+
+This is web server for turn based games, build on top of [Tornado](https://github.com/tornadoweb/tornado) + [Tortoise-ORM](https://github.com/tortoise/tortoise-orm).
+
+## Run locally
 
 ```
 cd server
@@ -9,10 +13,7 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 
-./start.sh
+python main.py
 ```
 
-
-## Docker
-
-`docker build --tag bg_server .`
+*Note*: You need to `.env.example` as `.env` and update variables accordingly.
