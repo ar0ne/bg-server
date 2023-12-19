@@ -4,6 +4,7 @@ services:
   bg_server_db:
     image: postgres:latest
     restart: always
+    user: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password

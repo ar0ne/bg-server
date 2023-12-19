@@ -40,7 +40,7 @@ class RoomTable extends Component {
                     () => this.props.router.navigate(`/rooms/${room_id}/setup`, { replace: true }),
                     1
                 );
-            } else {
+            } else if (!RoomService.isCanceled(room) || !RoomService.isAbandoned(room)) {
                 this.fetchRoomData();
             }
         });
