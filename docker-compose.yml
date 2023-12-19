@@ -1,0 +1,43 @@
+version: '3.7'
+
+
+services:
+  bg_server_db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: 'bg_server_db'
+      POSTGRES_USER: 'bg_user'
+      POSTGRES_PASSWORD: 'bg_password'
+    ports:
+      - "5432:5432"
+    volumes:
+      - bg_server_db:/var/lib/postgresql
+
+  # redis:
+  #   container_name: redis
+  #   image: redis
+  #   command: redis-server
+
+  bg_server:
+    build:
+      context: server/
+    depends_on:
+      - bg_server_db
+      # - redis
+    environment:
+      FOO: 'BAR'
+    ports:
+      - '${BG_SERVER_PORT:-8888}:${BG_SERVER_PORT:-8888}'
+    command: --db_host=postgres
+
+  # bg_client:
+  #   build:
+  #     context: ../client/
+  #   ports:
+  #     - '${BG_CLIENT_PORT:-3000}:${BG_CLIENT_PORT:-3000}'
+  #   command:
+
+
+volumes:
+  bg_server_db:
