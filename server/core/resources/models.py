@@ -71,26 +71,6 @@ class GameTurn(Model):
     turn: int = fields.SmallIntField(default=0)
 
 
-async def init_fake_data():
-    """Init fake data"""
-    game = await Game.create(name=REGICIDE, min_size=1, max_size=4)
-    game = await Game.create(name=TICTACTOE, min_size=2, max_size=2)
-    foo = await Player.create(
-        email="foo@f.oo",
-        name="Foo",
-        nickname="foo",
-        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
-    )
-    await Player.create(
-        email="bar@b.ar",
-        name="Bar",
-        nickname="bar",
-        password="$2b$12$T6pXtYX5yvmw2bS4LQq5legpRNVAAox51uN8pCN50OKaF91s83s92",  # 123
-    )
-    room = await Room.create(admin=foo, game=game, status=GameRoomStatus.CREATED.value, size=2)
-    await room.participants.add(foo)
-
-
 Tortoise.init_models(["core.resources.models"], "models")
 
 PlayerSerializer = pydantic_model_creator(Player)
@@ -99,3 +79,9 @@ RoomSerializer = pydantic_model_creator(Room)
 RoomListSerializer = pydantic_queryset_creator(Room)
 GameSerializer = pydantic_model_creator(Game)
 GameListSerializer = pydantic_queryset_creator(Game)
+
+
+async def initial_data():
+    """Initial data"""
+    await Game.get_or_create(name=REGICIDE, min_size=1, max_size=4)
+    await Game.get_or_create(name=TICTACTOE, min_size=2, max_size=2)

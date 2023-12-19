@@ -1,6 +1,5 @@
 version: '3.7'
 
-
 services:
   bg_server_db:
     image: postgres:latest
@@ -29,25 +28,23 @@ services:
   #     timeout: 3s
   #     retries: 30
 
-  bg_server:
-    build:
-      context: server/
-    depends_on:
-      bg_server_db:
-        condition: service_healthy
-      # - redis
-    environment:
-      foo: "bar"
-    ports:
-      - '8888:8888'
-
+  # bg_server:
+  #   build:
+  #     context: server/
+  #   depends_on:
+  #     bg_server_db:
+  #       condition: service_healthy
+  #     # - redis
+  #   environment:
+  #     foo: "bar"
+  #   ports:
+  #     - '8888:8888'
 
   bg_client:
     build:
       context: client/
     ports:
       - '3000:80'
-
 
 volumes:
   bg_server_db:

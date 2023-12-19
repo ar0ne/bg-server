@@ -1,4 +1,5 @@
 """Setup database"""
+from core.resources.models import initial_data
 from tornado.options import options
 from tortoise import Tortoise
 
@@ -44,3 +45,5 @@ async def init_database() -> None:
 
     # Generate the schema
     await Tortoise.generate_schemas()
+
+    await initial_data()
