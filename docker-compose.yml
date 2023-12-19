@@ -7,36 +7,46 @@ services:
     restart: always
     environment:
       POSTGRES_DB: 'bg_server_db'
-      POSTGRES_USER: 'bg_user'
-      POSTGRES_PASSWORD: 'bg_password'
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'password'
     ports:
       - "5432:5432"
     volumes:
       - bg_server_db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # redis:
   #   container_name: redis
   #   image: redis
   #   command: redis-server
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 1s
+  #     timeout: 3s
+  #     retries: 30
 
   bg_server:
     build:
       context: server/
     depends_on:
-      - bg_server_db
+      bg_server_db:
+        condition: service_healthy
       # - redis
     environment:
-      FOO: 'BAR'
+      foo: "bar"
     ports:
-      - '${BG_SERVER_PORT:-8888}:${BG_SERVER_PORT:-8888}'
-    command: --db_host=postgres
+      - '8888:8888'
 
-  # bg_client:
-  #   build:
-  #     context: ../client/
-  #   ports:
-  #     - '${BG_CLIENT_PORT:-3000}:${BG_CLIENT_PORT:-3000}'
-  #   command:
+
+  bg_client:
+    build:
+      context: client/
+    ports:
+      - '3000:80'
 
 
 volumes:

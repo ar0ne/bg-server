@@ -3,6 +3,7 @@ venv/
 .env
 .env*.local
 .env*.production
+.env*.staging
 .mypy_cache/
 node_modules/
 __pycache__/

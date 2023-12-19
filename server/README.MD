@@ -11,3 +11,8 @@ pip install -r requirements.txt
 
 ./start.sh
 ```
+
+
+## Docker
+
+`docker build --tag bg_server .`

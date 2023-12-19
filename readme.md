@@ -7,3 +7,12 @@
 Regicide is a cooperative, fantasy card game for 1 to 4 players, played using a standard deck of cards.
 
 2. TicTacToe
+
+
+
+
+## Docker
+
+`docker-compose build`
+
+`docker-compose up -d`

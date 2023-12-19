@@ -22,6 +22,7 @@ const AuthVerify = (props) => {
         props.logOut();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   return <div></div>;
