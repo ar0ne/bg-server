@@ -19,16 +19,16 @@ services:
       timeout: 5s
       retries: 5
 
-  bg_server:
-    build:
-      context: server/
-    depends_on:
-      bg_server_db:
-        condition: service_healthy
-      # - redis
-    ports:
-      - '8888:8888'
-    command: --db_host=bg_server_db
+  # bg_server:
+  #   build:
+  #     context: server/
+  #   depends_on:
+  #     bg_server_db:
+  #       condition: service_healthy
+  #     # - redis
+  #   ports:
+  #     - '8888:8888'
+  #   command: --db_host=bg_server_db
 
   bg_client:
     build:

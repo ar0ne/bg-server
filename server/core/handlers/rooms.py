@@ -147,7 +147,7 @@ class RoomPlayersHandler(BaseRequestHandler):
         if str(current_user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         room = await Room.get(id=room_id).prefetch_related("participants")
-        player_already_joined = await room.participants.filter(id__in=player_id).exists()
+        player_already_joined = await room.participants.filter(id=player_id).exists()
         if not room or player_already_joined:
             raise APIError(400, "User already joined the room.")
         await room.participants.add(current_user)
