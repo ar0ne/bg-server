@@ -34,8 +34,8 @@ class RegicideGameEngine(BaseGameEngine):
     async def update(self, player_id: str, turn_data: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
         # transform from flat cards to Card objects
-        last_game_data = GameStateDto(**await self.get_game_data())
-        game = self.state_serializer.load(last_game_data)
+        game_data_dto = await self.get_game_data_dto()
+        game = self.state_serializer.load(game_data_dto)
         # update game state
         game = self.game_cls.make_turn(game, str(player_id), turn_data)
         # save changes
@@ -47,13 +47,17 @@ class RegicideGameEngine(BaseGameEngine):
 
     async def poll(self, player_id: str | None = None) -> GameData:
         """Poll the last turn data"""
-        last_game_data = GameStateDto(**await self.get_game_data())
-        game = self.state_serializer.load(last_game_data)
+        game_data_dto = await self.get_game_data_dto()
+        game = self.state_serializer.load(game_data_dto)
         # we can't just return latest game state here, because players don't see the same
         # so, we init game instance and dump it to hide other players hands
         player_id = str(player_id) if player_id else None
         turn_data = self.turn_serializer.dump(game, player_id=player_id)
         return turn_data
+
+    async def get_game_data_dto(self) -> GameStateDto:
+        """Get game data and prepare it for load"""
+        return GameStateDto(**await self.get_game_data())
 
 
 def create_engine(room_id: str) -> GameEngine:

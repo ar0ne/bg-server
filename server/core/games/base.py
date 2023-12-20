@@ -50,14 +50,14 @@ class BaseGameEngine(GameEngine):
 
     async def save(self, state: GameState) -> None:
         """persist game state into db"""
-        await GameTurn.create(room_id=self.room_id, turn=game.turn, data=state)
+        await GameTurn.create(room_id=self.room_id, turn=state["turn"], data=state)
 
     async def setup(self, players: List[str]) -> None:
         """Setup new game"""
         game = self.game_cls.init_new_game(players)
         # transform to json-serializable object to persist into db
         game_state = self.state_serializer.dump(game)
-        await self.save(game)
+        await self.save(game_state)
 
     async def get_game_data(self) -> GameData:
         """Get the latest game state from db"""

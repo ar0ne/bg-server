@@ -1,5 +1,4 @@
 """Tic Tac Toe game engine"""
-from dataclasses import asdict
 from typing import List, Self, Tuple, Type
 
 from core.constants import GameRoomStatus
@@ -20,8 +19,8 @@ class TicTacToeGameEngine(BaseGameEngine):
 
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
-        game_data = GameStateDto(**await self.get_game_data())
-        game = self.state_serializer.load(game_data)
+        game_data_dto = await self.get_game_data_dto()
+        game = self.state_serializer.load(game_data_dto)
         # update state
         game = self.game_cls.make_turn(game, player_id, turn)
         # save changes
@@ -32,10 +31,14 @@ class TicTacToeGameEngine(BaseGameEngine):
 
     async def poll(self, player_id: str | None = None) -> GameData:
         """Poll the last game state"""
-        last_state = GameStateDto(**await self.get_game_data())
+        game_data_gto = await self.get_game_data_dto()
         player_id = str(player_id) if player_id else None
         # we don't need to hide anything from other users, just serialize state
-        return dict(player_id=player_id, **asdict(last_state))
+        return dict(player_id=player_id, **game_data_gto.asdict())
+
+    async def get_game_data_dto(self) -> GameStateDto:
+        """Get game data and prepare it for load"""
+        return GameStateDto(**await self.get_game_data())
 
 
 def create_engine(room_id: str) -> GameEngine:

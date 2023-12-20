@@ -35,14 +35,14 @@ class TestRegicideGameStateDataSerializers(TestCase):
 
         dump = self.serializer.dump(game)
 
-        self.assertEqual([("J", "♠")], dump.enemy_deck)
-        self.assertEqual([("2", "♣")], dump.tavern_deck)
-        self.assertEqual(dump.active_player_id, user_id)
-        self.assertEqual([(user_id, [("4", "♥")])], dump.players)
-        self.assertEqual([[("5", "♣"), ("A", "♥")], [("3", "♠")]], dump.played_combos)
-        self.assertEqual([("9", "♦")], dump.discard_deck)
-        self.assertEqual(dump.turn, 5)
-        self.assertEqual(dump.status, Status.DISCARDING_CARDS.value)
+        self.assertEqual([("J", "♠")], dump["enemy_deck"])
+        self.assertEqual([("2", "♣")], dump["tavern_deck"])
+        self.assertEqual(user_id, dump["active_player_id"])
+        self.assertEqual([(user_id, [("4", "♥")])], dump["players"])
+        self.assertEqual([[("5", "♣"), ("A", "♥")], [("3", "♠")]], dump["played_combos"])
+        self.assertEqual([("9", "♦")], dump["discard_deck"])
+        self.assertEqual(5, dump["turn"])
+        self.assertEqual(Status.DISCARDING_CARDS.value, dump["status"])
 
     def test_load_data(self) -> None:
         """Tests loading game data"""

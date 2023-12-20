@@ -36,6 +36,10 @@ class ValidationError(Error, APIError):
             self.reason = self.error_message
 
 
+class LoaderNotFound(Error):
+    """Loader function not found"""
+
+
 class ErrorHandler(tornado.web.RequestHandler):
     """
     Default handler gonna to be used in case of 404 error

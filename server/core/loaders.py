@@ -5,6 +5,7 @@ from typing import Callable
 
 from core.caches import CACHE, cached
 from core.games.base import GameEngine
+from core.resources.errors import LoaderNotFound
 from core.resources.models import Room
 from core.resources.utils import lazy_import
 
@@ -31,5 +32,5 @@ def get_engine(room: Room) -> GameEngine:
     name = room.game.name.lower()
     builder = load_game_engine_builder(name)
     if not builder:
-        raise Exception  # FIXME
+        raise LoaderNotFound
     return builder(room_id=room.id)

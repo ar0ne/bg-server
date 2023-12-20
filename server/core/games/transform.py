@@ -15,8 +15,8 @@ class GameTurnDataSerializer(ABC):
 
     @staticmethod
     @abstractmethod
-    def dump(game: Game, **kwargs) -> Any:
-        """Transfor game state to turn data dto object"""
+    def dump(game: Game, **kwargs) -> GameState:
+        """Transform game object into state"""
 
 
 class GameStateDataSerializer(ABC):
