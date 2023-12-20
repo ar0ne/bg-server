@@ -14,11 +14,11 @@ from core.games.regicide.serializers import (
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.resources.models import GameTurn, Player
 
-STATUSES_IN_PROGRESS = (Status.CREATED, Status.PLAYING_CARDS, Status.DISCARDING_CARDS)
-
 
 class GameEngine(AbstractGame):
     """Regicide game engine"""
+
+    STATUSES_IN_PROGRESS = (Status.CREATED, Status.PLAYING_CARDS, Status.DISCARDING_CARDS)
 
     def __init__(
         self,
@@ -75,7 +75,7 @@ class GameEngine(AbstractGame):
 
     def is_in_progress(self, game_status: str) -> bool:
         """True if game is in progress"""
-        return game_status in STATUSES_IN_PROGRESS
+        return game_status in self.STATUSES_IN_PROGRESS
 
     @classmethod
     def create_engine(cls, room_id: str) -> Self:

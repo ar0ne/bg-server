@@ -6,24 +6,27 @@ from core.constants import GameRoomStatus
 from core.games.base import AbstractGame, GameData, GameDataTurn
 from core.games.exceptions import GameDataNotFound
 from core.games.tictactoe.dto import GameStateDto
-from core.games.tictactoe.game import Game, validate_game_turn
+from core.games.tictactoe.game import Game
 from core.games.tictactoe.models import Status
 from core.games.tictactoe.serializers import TicTacToeGameStateDataSerializer
 from core.games.transform import GameStateDataSerializer
 from core.resources.models import GameTurn
 
-STATUSES_IN_PROGRESS = (Status.CREATED, Status.IN_PROGRESS)
-
 
 class GameEngine(AbstractGame):
     """TicTacToe game engine"""
 
-    game_cls = Game
+    STATUSES_IN_PROGRESS = (Status.CREATED, Status.IN_PROGRESS)
 
     def __init__(self, room_id: str, state_serializer: GameStateDataSerializer) -> None:
         """init game engine"""
         self.room_id = room_id
         self.state_serializer = state_serializer
+
+    async def setup(self, player_ids: List[str]) -> None:
+        """Setup game"""
+        game = Game.start_new_game(player_ids)
+        await self._save_game_state(game)
 
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
@@ -58,12 +61,11 @@ class GameEngine(AbstractGame):
 
     def is_in_progress(self, game_status: str) -> bool:
         """True if game is in progress"""
-        return game_status in STATUSES_IN_PROGRESS
+        return game_status in self.STATUSES_IN_PROGRESS
 
     @classmethod
     def create_engine(cls, room_id: str) -> Self:
         return cls(
-            game=Game,
             room_id=room_id,
             state_serializer=TicTacToeGameStateDataSerializer,
         )
