@@ -32,3 +32,12 @@ class AbstractGame(ABC):
     @abstractclassmethod
     def create_engine(cls, room_id: str) -> "AbstractGame":
         """factory for game engines"""
+
+
+class BaseGame(AbstractGame, ABC):
+    """Base game template"""
+
+    async def setup(self, player_ids: List[str]) -> None:
+        """Setup game"""
+        game = self.game_cls.start_new_game(player_ids)
+        await self._save_game_state(game)

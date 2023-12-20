@@ -1,6 +1,6 @@
 """Tic Tac Toe game engine"""
 from dataclasses import asdict
-from typing import List, Self, Tuple
+from typing import List, Self, Tuple, Type
 
 from core.constants import GameRoomStatus
 from core.games.base import AbstractGame, GameData, GameDataTurn
@@ -18,22 +18,18 @@ STATUSES_IN_PROGRESS = (Status.CREATED, Status.IN_PROGRESS)
 class GameEngine(AbstractGame):
     """TicTacToe game engine"""
 
+    game_cls = Game
+
     def __init__(self, room_id: str, state_serializer: GameStateDataSerializer) -> None:
         """init game engine"""
         self.room_id = room_id
         self.state_serializer = state_serializer
 
-    async def setup(self, player_ids: List[str]) -> None:
-        """Setup game"""
-        game = Game.start_new_game(player_ids)
-        await self._save_game_state(game)
-
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
         game_data = await self._get_latest_game_state()
         game = self.state_serializer.load(game_data)
-        # always run validation before apply a turn
-        validate_game_turn(game, player_id, turn)
+        # update state
         game = Game.make_turn(game, player_id, turn)
         # save changes
         await self._save_game_state(game)
@@ -67,6 +63,7 @@ class GameEngine(AbstractGame):
     @classmethod
     def create_engine(cls, room_id: str) -> Self:
         return cls(
+            game=Game,
             room_id=room_id,
             state_serializer=TicTacToeGameStateDataSerializer,
         )

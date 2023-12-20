@@ -77,6 +77,8 @@ class Game:
     @staticmethod
     def make_turn(game: "Game", player_id: str, turn: dict) -> "Game":
         """Player makes a turn"""
+        # always run validation before apply a turn
+        validate_game_turn(game, player_id, turn)
         index = turn["index"]
         player = game.active_player
         game.board[index] = player.id
