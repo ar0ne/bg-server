@@ -1,6 +1,6 @@
 """Base game interface"""
 import uuid
-from abc import ABC, abstractclassmethod, abstractmethod
+from abc import ABC, abstractclassmethod, abstractmethod, abstractstaticmethod
 from typing import Any, Dict, List, Tuple, Type
 
 from core.games.transform import GameStateDataSerializer

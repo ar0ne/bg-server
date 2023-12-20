@@ -3,7 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ..types import Game, GameState
+from core.games.game import Game
+from core.types import GameState
 
 # FIXME: protocol instead?
 

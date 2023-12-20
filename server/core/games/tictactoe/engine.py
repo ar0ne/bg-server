@@ -2,10 +2,10 @@
 from typing import List, Self, Tuple, Type
 
 from core.constants import GameRoomStatus
-from core.games.base import BaseGameEngine
+from core.games.engine import BaseGameEngine
 from core.games.exceptions import GameDataNotFound
 from core.games.tictactoe.dto import GameStateDto
-from core.games.tictactoe.game import Game
+from core.games.tictactoe.game import TicTacToe
 from core.games.tictactoe.models import Status
 from core.games.tictactoe.serializers import TicTacToeGameStateDataSerializer
 from core.games.transform import GameStateDataSerializer
@@ -45,7 +45,7 @@ class TicTacToeGameEngine(BaseGameEngine):
 def create_engine(room_id: str) -> TicTacToeGameEngine:
     """Game engine builder"""
     return TicTacToeGameEngine(
-        game_cls=Game,
+        game_cls=TicTacToe,
         room_id=room_id,
         state_serializer=TicTacToeGameStateDataSerializer,
     )

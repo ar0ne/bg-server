@@ -4,7 +4,7 @@ import os
 from typing import Callable
 
 from core.caches import CACHE, cached
-from core.games.base import GameEngine
+from core.games.engine import GameEngine
 from core.resources.errors import LoaderNotFound
 from core.resources.models import Room
 from core.resources.utils import lazy_import

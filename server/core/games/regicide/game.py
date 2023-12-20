@@ -4,7 +4,9 @@ import random
 from itertools import product
 from typing import Any, Iterable, List, Optional
 
-from ..base import GameDataTurn
+from core.games.game import Game
+from core.types import GameDataTurn
+
 from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..regicide.exceptions import (
     CardDoesNotBelongsToPlayerError,
@@ -62,7 +64,7 @@ def has_hearts(combo: CardCombo) -> bool:
     return any(Suit.HEARTS == card.suit for card in combo)
 
 
-class Game:
+class Regicide(Game):
     """Regicide game class"""
 
     def __init__(self, players_ids: List[str]) -> None:
@@ -103,10 +105,10 @@ class Game:
         """Gets current enemy"""
         return self.enemy_deck.peek()
 
-    @staticmethod
-    def init_new_game(players_ids: List[str]) -> "Game":
+    @classmethod
+    def init_new_game(cls, players_ids: List[str]) -> "Regicide":
         """Create new game"""
-        game = Game(players_ids)
+        game = Regicide(players_ids)
         # create tavern and enemy decks
         game._create_tavern_deck()
         game._create_enemy_deck()
@@ -126,7 +128,7 @@ class Game:
         return game
 
     @staticmethod
-    def make_turn(game: "Game", player_id: str, turn: GameDataTurn) -> "Game":
+    def make_turn(game: "Regicide", player_id: str, turn: GameDataTurn) -> "Regicide":
         """Player could make a turn"""
         validate_game_turn(game, player_id, turn)
         player = game.find_player(player_id)
@@ -138,7 +140,7 @@ class Game:
         game.turn += 1
         return game
 
-    def _play_cards(self: "Game", player: Player, combo: CardCombo) -> None:
+    def _play_cards(self, player: Player, combo: CardCombo) -> None:
         """Play cards"""
         enemy = self.current_enemy
         # remove cards from player's hand
@@ -170,7 +172,7 @@ class Game:
                 # game lost
                 self.status = Status.LOST
 
-    def _discard_cards(self: "Game", player: Player, combo: CardCombo) -> None:
+    def _discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
@@ -262,7 +264,7 @@ class Game:
         self.enemy_deck = Deck([*jacks, *queens, *kings])
 
 
-def validate_can_play_cards(game: Game, player: Player, combo: CardCombo) -> None:
+def validate_can_play_cards(game: Regicide, player: Player, combo: CardCombo) -> None:
     """Assert player can play cards"""
     if not cards_belong_to_player(player, combo):
         raise CardDoesNotBelongsToPlayerError
@@ -281,7 +283,7 @@ def validate_can_play_cards(game: Game, player: Player, combo: CardCombo) -> Non
             raise InvalidPairComboError
 
 
-def validate_can_discard_cards(game: Game, player: Player, combo: CardCombo) -> None:
+def validate_can_discard_cards(game: Regicide, player: Player, combo: CardCombo) -> None:
     """Assert can player discard these cards"""
     if not cards_belong_to_player(player, combo):
         raise CardDoesNotBelongsToPlayerError
@@ -301,7 +303,7 @@ def is_valid_card(card: Any) -> bool:
     return True
 
 
-def validate_game_turn(game: Game, player_id: str, turn: dict) -> None:
+def validate_game_turn(game: Regicide, player_id: str, turn: dict) -> None:
     """Verify it's a valid turn"""
     if not game.is_game_in_progress:
         raise InvalidGameStateError

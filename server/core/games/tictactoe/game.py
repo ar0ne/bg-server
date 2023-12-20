@@ -3,7 +3,8 @@
 import random
 from typing import Any, List
 
-from core.types import GameDataTurn, Id
+from core.games.game import Game
+from core.types import GameDataTurn
 
 from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..tictactoe.models import Player, Status
@@ -22,7 +23,7 @@ WIN_COMBOS = [
 ]
 
 
-def get_winner_id(squares) -> Id | None:
+def get_winner_id(squares) -> str | None:
     """Return player's ID if game is finished"""
     for a, b, c in WIN_COMBOS:
         if squares[a] == squares[b] == squares[c]:
@@ -30,7 +31,7 @@ def get_winner_id(squares) -> Id | None:
     return None
 
 
-def validate_game_turn(game: "Game", player_id: str, turn: dict) -> None:
+def validate_game_turn(game: "TicTacToe", player_id: str, turn: dict) -> None:
     """Assert player can make turn"""
     if not game.is_game_in_progress:
         raise InvalidGameStateError
@@ -44,10 +45,10 @@ def validate_game_turn(game: "Game", player_id: str, turn: dict) -> None:
         raise CellAlreadyUsedError
 
 
-class Game:
+class TicTacToe(Game):
     """TicTacToe Game class"""
 
-    def __init__(self, player_ids: List[Id]) -> None:
+    def __init__(self, player_ids: List[str]) -> None:
         """Init game class"""
         assert len(player_ids), "No players found."
         self.players = [Player(p_id) for p_id in player_ids]
@@ -58,10 +59,10 @@ class Game:
         self.active_player = None
         self.winner = None
 
-    @staticmethod
-    def init_new_game(player_ids: List[Id]) -> "Game":
+    @classmethod
+    def init_new_game(cls, player_ids: List[str]) -> "TicTacToe":
         """Start new game"""
-        game = Game(player_ids)
+        game = cls(player_ids)
         game.status = Status.IN_PROGRESS
         game.turn = 1
         # randomly peek first player
@@ -76,7 +77,7 @@ class Game:
         return self.active_player
 
     @staticmethod
-    def make_turn(game: "Game", player_id: str, turn: GameDataTurn) -> "Game":
+    def make_turn(game: "TicTacToe", player_id: str, turn: GameDataTurn) -> "TicTacToe":
         """Player makes a turn"""
         # always run validation before apply a turn
         validate_game_turn(game, player_id, turn)

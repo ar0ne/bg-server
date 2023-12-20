@@ -2,8 +2,9 @@
 
 import json
 
+from core.games.game import Game
 from core.games.tictactoe.dto import GameStateDto
-from core.games.tictactoe.game import Game
+from core.games.tictactoe.game import TicTacToe
 from core.games.tictactoe.models import Status
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.games.utils import infinite_cycle
@@ -16,7 +17,7 @@ class TicTacToeGameStateDataSerializer(GameStateDataSerializer):
     @staticmethod
     def load(data: GameStateDto, **kwargs) -> Game:
         """Deserialize game state DTO to game object"""
-        game = Game(data.players)
+        game = TicTacToe(data.players)
 
         # shift players' loop until first player from data
         # since players is a list we save ordering

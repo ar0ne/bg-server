@@ -2,7 +2,7 @@
 from unittest import TestCase
 
 from core.games.regicide.dto import GameStateDto
-from core.games.regicide.game import Game
+from core.games.regicide.game import Regicide as Game
 from core.games.regicide.models import Card, CardRank, Deck, Player, Status, Suit
 from core.games.regicide.serializers import RegicideGameStateDataSerializer
 

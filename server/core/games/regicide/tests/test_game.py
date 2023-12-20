@@ -9,7 +9,7 @@ from core.games.regicide.exceptions import (
     InvalidTurnDataError,
     MaxComboSizeExceededError,
 )
-from core.games.regicide.game import Game
+from core.games.regicide.game import Regicide as Game
 from core.games.regicide.models import Status, Suit
 from core.games.regicide.serializers import RegicideGameStateDataSerializer
 from core.games.regicide.utils import to_flat_hand

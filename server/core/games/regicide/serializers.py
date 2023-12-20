@@ -1,10 +1,10 @@
 """Game data serializer"""
 from abc import ABC, abstractmethod
 
-from core.games.base import GameData, GameState
+from core.games.game import Game
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto, PlayerHand
 from core.games.regicide.game import (
-    Game,
+    Regicide,
     get_enemy_attack_damage,
     get_remaining_enemy_health,
     infinite_cycle,
@@ -12,7 +12,7 @@ from core.games.regicide.game import (
 from core.games.regicide.models import Card, CardHand, Deck, Player, Status, Suit
 from core.games.regicide.utils import to_flat_hand
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
-from core.types import Id
+from core.types import GameData, GameState, Id
 
 
 class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
@@ -60,7 +60,7 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
     def load(data: GameStateDto, **kwargs) -> Game:  # type: ignore[override]
         """Deserialize game state DTO to game object"""
         # fmt: off
-        game = Game(list(map(lambda p: p[0], data.players)))
+        game = Regicide(list(map(lambda p: p[0], data.players)))
         game.players = [
             Player(player_id, [
                 Card(card[0], Suit(card[1]))

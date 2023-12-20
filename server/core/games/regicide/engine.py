@@ -1,10 +1,10 @@
 """Regicide game engine"""
 from typing import Any, List, Self, Tuple
 
-from core.games.base import BaseGameEngine
+from core.games.engine import BaseGameEngine
 from core.games.exceptions import GameDataNotFound
 from core.games.regicide.dto import GameStateDto
-from core.games.regicide.game import Game
+from core.games.regicide.game import Regicide
 from core.games.regicide.models import Card, Status
 from core.games.regicide.serializers import (
     RegicideGameStateDataSerializer,
@@ -12,7 +12,7 @@ from core.games.regicide.serializers import (
 )
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.resources.models import GameTurn, Player
-from core.types import GameData, GameDataTurn
+from core.types import GameData, GameDataTurn, GameState
 
 
 class RegicideGameEngine(BaseGameEngine):
@@ -62,7 +62,7 @@ class RegicideGameEngine(BaseGameEngine):
 def create_engine(room_id: str) -> RegicideGameEngine:
     """Game engine builder"""
     return RegicideGameEngine(
-        game_cls=Game,
+        game_cls=Regicide,
         room_id=room_id,
         state_serializer=RegicideGameStateDataSerializer,
         turn_data_serializer=RegicideGameTurnDataSerializer,
