@@ -6,5 +6,5 @@ Id = Union[str, uuid.UUID]
 
 GameData = Dict[str, Any]
 GameDataTurn = Dict[str, Any]
-GameState = Any  # FIXME
+GameState = Dict[str, Any]
 Game = Any  # FIXME

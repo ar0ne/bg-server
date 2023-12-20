@@ -19,6 +19,7 @@ class TicTacToeGameStateDataSerializer(GameStateDataSerializer):
         game = Game(data.players)
 
         # shift players' loop until first player from data
+        # since players is a list we save ordering
         game.next_player_loop = infinite_cycle(game.players)
         while game.toggle_next_player_turn().id != data.active_player_id:
             pass
@@ -38,4 +39,4 @@ class TicTacToeGameStateDataSerializer(GameStateDataSerializer):
             status=game.status.value,
             turn=game.turn,
             winner_id=str(game.winner.id) if game.winner else None,
-        )
+        ).asdict()

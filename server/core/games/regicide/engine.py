@@ -1,6 +1,5 @@
 """Regicide game engine"""
-from dataclasses import asdict
-from typing import List, Self, Tuple
+from typing import Any, List, Self, Tuple
 
 from core.games.base import BaseGameEngine, GameEngine
 from core.games.exceptions import GameDataNotFound
@@ -13,7 +12,7 @@ from core.games.regicide.serializers import (
 )
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.resources.models import GameTurn, Player
-from core.types import GameData, GameState
+from core.types import GameData, GameDataTurn, GameState
 
 
 class RegicideGameEngine(BaseGameEngine):
@@ -44,7 +43,7 @@ class RegicideGameEngine(BaseGameEngine):
         await self.save(game_state)
         # return updated game state to player
         turn_data = self.turn_serializer.dump(game, player_id=player_id)
-        return asdict(turn_data), game.status
+        return turn_data, game.status
 
     async def poll(self, player_id: str | None = None) -> GameData:
         """Poll the last turn data"""
@@ -54,7 +53,7 @@ class RegicideGameEngine(BaseGameEngine):
         # so, we init game instance and dump it to hide other players hands
         player_id = str(player_id) if player_id else None
         turn_data = self.turn_serializer.dump(game, player_id=player_id)
-        return asdict(turn_data)
+        return turn_data
 
 
 def create_engine(room_id: str) -> GameEngine:

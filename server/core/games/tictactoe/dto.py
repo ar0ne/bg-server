@@ -3,9 +3,11 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 
+from core.utils import Serializable
+
 
 @dataclass(frozen=True)
-class GameStateDto:
+class GameStateDto(Serializable):
     """Represents internal game state data"""
 
     active_player_id: str

@@ -3,7 +3,8 @@
 import random
 from typing import Any, List
 
-from ..base import GameDataTurn, Id
+from core.types import GameDataTurn, Id
+
 from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..tictactoe.models import Player, Status
 from ..utils import infinite_cycle

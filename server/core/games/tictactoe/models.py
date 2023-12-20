@@ -3,7 +3,7 @@
 import enum
 from typing import List
 
-from core.games.base import Id
+from core.types import Id
 
 
 class Player:

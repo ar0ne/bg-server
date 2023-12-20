@@ -1,7 +1,7 @@
 """Game data serializer"""
 from abc import ABC, abstractmethod
 
-from core.games.base import GameData, GameDataTurn
+from core.games.base import GameData, GameDataTurn, GameState
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto, PlayerHand
 from core.games.regicide.game import (
     Game,
@@ -19,7 +19,7 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
     """Regicide game data serilizer"""
 
     @staticmethod
-    def dump(game: Game, **kwargs) -> GameTurnDataDto:  # type: ignore[override]
+    def dump(game: Game, **kwargs) -> GameDataTurn:  # type: ignore[override]
         """Serialize game object to game turn DTO for a player"""
         player_id: Id | None = kwargs.get("player_id")
         player = None
@@ -50,7 +50,7 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
             tavern_size=len(game.tavern_deck),
             turn=game.turn,
             hands=hands,
-        )
+        ).asdict()
 
 
 class RegicideGameStateDataSerializer(GameStateDataSerializer):
@@ -100,7 +100,7 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
         return game
 
     @staticmethod
-    def dump(game: Game, **kwargs) -> GameStateDto:
+    def dump(game: Game, **kwargs) -> GameState:
         """Serialize game object into game state DTO"""
 
         return GameStateDto(
@@ -112,4 +112,4 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
             status=game.status.value,  # type: ignore
             tavern_deck=to_flat_hand(game.tavern_deck.cards),
             turn=game.turn,
-        )
+        ).asdict()

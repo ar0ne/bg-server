@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from core.utils import Serializable
+
 FlatCard = Tuple[str, str]
 
 
@@ -13,7 +15,7 @@ class PlayerHand:
 
 
 @dataclass(frozen=True)
-class GameStateDto:
+class GameStateDto(Serializable):
     """Represents internal game state data"""
 
     enemy_deck: List[FlatCard]
@@ -27,7 +29,7 @@ class GameStateDto:
 
 
 @dataclass(frozen=True)
-class GameTurnDataDto:
+class GameTurnDataDto(Serializable):
     """Represents game turn data"""
 
     enemy_deck_size: int

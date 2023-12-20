@@ -4,7 +4,7 @@ import os
 from typing import Callable
 
 from core.caches import CACHE, cached
-from core.games.base import AbstractGame
+from core.games.base import GameEngine
 from core.resources.models import Room
 from core.resources.utils import lazy_import
 
@@ -26,7 +26,7 @@ def load_game_engine_builder(game_name: str) -> Callable:
         log.error("Game module (%s) not found.", game_name)
 
 
-def get_engine(room: Room) -> AbstractGame:
+def get_engine(room: Room) -> GameEngine:
     """Get game engine instance"""
     name = room.game.name.lower()
     builder = load_game_engine_builder(name)
