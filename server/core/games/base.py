@@ -16,11 +16,11 @@ class GameEngine(ABC):
         """game setup"""
 
     @abstractmethod
-    async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameData, str]:
+    async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameState, str]:
         """update game state"""
 
     @abstractmethod
-    async def poll(self, player_id: str | None = None) -> GameData:
+    async def poll(self, player_id: str | None = None) -> GameState:
         """poll game state"""
 
     @abstractmethod

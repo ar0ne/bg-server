@@ -1,7 +1,7 @@
 """Game data serializer"""
 from abc import ABC, abstractmethod
 
-from core.games.base import GameData, GameDataTurn, GameState
+from core.games.base import GameData, GameState
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto, PlayerHand
 from core.games.regicide.game import (
     Game,
@@ -19,7 +19,7 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
     """Regicide game data serilizer"""
 
     @staticmethod
-    def dump(game: Game, **kwargs) -> GameDataTurn:  # type: ignore[override]
+    def dump(game: Game, **kwargs) -> GameState:  # type: ignore[override]
         """Serialize game object to game turn DTO for a player"""
         player_id: Id | None = kwargs.get("player_id")
         player = None

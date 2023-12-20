@@ -3,7 +3,7 @@ import json
 
 from core.constants import REGICIDE, TICTACTOE, GameRoomStatus
 from core.resources.utils import CustomJSONEncoder
-from core.types import Id
+from core.types import GameData, Id
 from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 
@@ -64,9 +64,8 @@ class Room(Model):
 class GameTurn(Model):
     """Temporary model to store game state"""
 
-    # FIXME: get rid of it
-    data = fields.JSONField(encoder=JSON_ENCODER)
     id: Id = fields.UUIDField(pk=True)
+    data: GameData = fields.JSONField(encoder=JSON_ENCODER)
     room: Room = fields.ForeignKeyField("models.Room")
     turn: int = fields.SmallIntField(default=0)
 
