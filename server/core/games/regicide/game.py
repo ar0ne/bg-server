@@ -4,7 +4,7 @@ import random
 from itertools import product
 from typing import Any, Iterable, List, Optional
 
-from ..base import Id
+from ..base import GameDataTurn
 from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..regicide.exceptions import (
     CardDoesNotBelongsToPlayerError,
@@ -104,7 +104,7 @@ class Game:
         return self.enemy_deck.peek()
 
     @staticmethod
-    def start_new_game(players_ids: List[Id]) -> "Game":
+    def start_new_game(players_ids: List[str]) -> "Game":
         """Create new game"""
         game = Game(players_ids)
         # create tavern and enemy decks
@@ -126,7 +126,7 @@ class Game:
         return game
 
     @staticmethod
-    def make_turn(game: "Game", player_id: str, turn: dict) -> "Game":
+    def make_turn(game: "Game", player_id: str, turn: GameDataTurn) -> "Game":
         """Player could make a turn"""
         validate_game_turn(game, player_id, turn)
         player = game.find_player(player_id)

@@ -2,8 +2,8 @@
 import json
 
 from core.constants import REGICIDE, TICTACTOE, GameRoomStatus
-from core.games.base import Id
 from core.resources.utils import CustomJSONEncoder
+from core.types import Id
 from tortoise import Model, Tortoise, fields
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 

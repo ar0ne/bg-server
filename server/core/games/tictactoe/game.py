@@ -3,7 +3,7 @@
 import random
 from typing import Any, List
 
-from ..base import Id
+from ..base import GameDataTurn, Id
 from ..exceptions import InvalidGameStateError, TurnOrderViolationError
 from ..tictactoe.models import Player, Status
 from ..utils import infinite_cycle
@@ -75,7 +75,7 @@ class Game:
         return self.active_player
 
     @staticmethod
-    def make_turn(game: "Game", player_id: str, turn: dict) -> "Game":
+    def make_turn(game: "Game", player_id: str, turn: GameDataTurn) -> "Game":
         """Player makes a turn"""
         # always run validation before apply a turn
         validate_game_turn(game, player_id, turn)

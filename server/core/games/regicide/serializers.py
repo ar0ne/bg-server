@@ -1,7 +1,7 @@
 """Game data serializer"""
 from abc import ABC, abstractmethod
 
-from core.games.base import GameData, GameDataTurn, Id
+from core.games.base import GameData, GameDataTurn
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto, PlayerHand
 from core.games.regicide.game import (
     Game,
@@ -12,6 +12,7 @@ from core.games.regicide.game import (
 from core.games.regicide.models import Card, CardHand, Deck, Player, Status, Suit
 from core.games.regicide.utils import to_flat_hand
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
+from core.types import Id
 
 
 class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
