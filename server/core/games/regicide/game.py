@@ -104,7 +104,7 @@ class Game:
         return self.enemy_deck.peek()
 
     @staticmethod
-    def start_new_game(players_ids: List[str]) -> "Game":
+    def init_new_game(players_ids: List[str]) -> "Game":
         """Create new game"""
         game = Game(players_ids)
         # create tavern and enemy decks

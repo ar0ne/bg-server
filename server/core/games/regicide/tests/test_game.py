@@ -13,6 +13,7 @@ from core.games.regicide.game import Game
 from core.games.regicide.models import Status, Suit
 from core.games.regicide.serializers import RegicideGameStateDataSerializer
 from core.games.regicide.utils import to_flat_hand
+from core.types import GameData
 
 CLUBS = Suit.CLUBS.value
 HEARTS = Suit.HEARTS.value
@@ -47,12 +48,12 @@ class TestGame(TestCase):
         self.assertEqual(0, len(game.played_combos))
         self.assertEqual(Status.CREATED, game.status)
 
-    def test_start_new_game(self) -> None:
-        """Tests starting new game"""
+    def test_init_new_game(self) -> None:
+        """Tests initializing new game"""
 
         hand_size = 7
 
-        game = Game.start_new_game([self.user1_id, self.user2_id])
+        game = Game.init_new_game([self.user1_id, self.user2_id])
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(1, game.turn)

@@ -58,7 +58,7 @@ class Game:
         self.winner = None
 
     @staticmethod
-    def start_new_game(player_ids: List[Id]) -> "Game":
+    def init_new_game(player_ids: List[Id]) -> "Game":
         """Start new game"""
         game = Game(player_ids)
         game.status = Status.IN_PROGRESS

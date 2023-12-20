@@ -16,29 +16,23 @@ from core.resources.models import GameTurn
 class TicTacToeGameEngine(BaseGameEngine):
     """TicTacToe game engine"""
 
-    GAME_CLS = Game
     STATUSES_IN_PROGRESS = (Status.CREATED, Status.IN_PROGRESS)
-
-    def __init__(self, room_id: str, state_serializer: GameStateDataSerializer) -> None:
-        """init game engine"""
-        self.room_id = room_id
-        self.state_serializer = state_serializer
 
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameData, str]:
         """Update game state"""
-        game_data = GameStateDto(**await self.get_latest_game_data())
+        game_data = GameStateDto(**await self.get_game_data())
         game = self.state_serializer.load(game_data)
         # update state
-        game = self.GAME_CLS.make_turn(game, player_id, turn)
+        game = self.game_cls.make_turn(game, player_id, turn)
         # save changes
-        await self.save_game_state(game)
+        game_state = self.state_serializer.dump(game)
+        await self.save(game_state)
         # serialize updated game state
-        game_turn = self.state_serializer.dump(game)
-        return asdict(game_turn), game.status
+        return asdict(game_state), game.status
 
     async def poll(self, player_id: str | None = None) -> GameData:
         """Poll the last game state"""
-        last_state = GameStateDto(await self.get_latest_game_data())
+        last_state = GameStateDto(await self.get_game_data())
         player_id = str(player_id) if player_id else None
         # we don't need to hide anything from other users, just serialize state
         return dict(player_id=player_id, **asdict(last_state))
@@ -47,6 +41,7 @@ class TicTacToeGameEngine(BaseGameEngine):
 def create_engine(room_id: str) -> AbstractGame:
     """Game engine builder"""
     return TicTacToeGameEngine(
+        game_cls=Game,
         room_id=room_id,
         state_serializer=TicTacToeGameStateDataSerializer,
     )

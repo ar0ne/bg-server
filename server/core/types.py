@@ -1,5 +1,10 @@
 """Custom types"""
 import uuid
-from typing import Union
+from typing import Any, Dict, Union
 
 Id = Union[str, uuid.UUID]
+
+GameData = Dict[str, Any]
+GameDataTurn = Dict[str, Any]
+GameState = Any  # FIXME
+Game = Any  # FIXME

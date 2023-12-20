@@ -7,8 +7,7 @@ from core.games.tictactoe.game import Game
 from core.games.tictactoe.models import Status
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.games.utils import infinite_cycle
-
-from ..base import GameState
+from core.types import Game, GameState
 
 
 class TicTacToeGameStateDataSerializer(GameStateDataSerializer):
