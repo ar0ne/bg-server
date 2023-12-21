@@ -34,8 +34,8 @@ class GameTurnDataDto(Serializable):
 
     enemy_deck_size: int
     discard_size: int
-    enemy: FlatCard
-    enemy_state: Tuple[int, int]
+    enemy: FlatCard | None
+    enemy_state: Tuple[int | None, int | None]
     active_player_id: str
     player_id: str
     played_combos: List[List[FlatCard]]

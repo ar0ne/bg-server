@@ -76,25 +76,24 @@ class TicTacToe(Game):
         self.active_player = next(self.next_player_loop)
         return self.active_player
 
-    @staticmethod
-    def make_turn(game: "TicTacToe", player_id: str, turn: GameDataTurn) -> "TicTacToe":
+    def make_turn(self, player_id: str, turn: GameDataTurn) -> Self:
         """Player makes a turn"""
         # always run validation before apply a turn
-        validate_game_turn(game, player_id, turn)
+        validate_game_turn(self, player_id, turn)
         index = turn["index"]
-        player = game.active_player
-        game.board[index] = player.id
+        player = self.active_player
+        self.board[index] = player.id
 
         winner_id = get_winner_id(game.board)
         if winner_id:
-            game.status = Status.FINISHED
-            game.winner = player
-        elif all(cell for cell in game.board):
-            game.status = Status.DRAW
+            self.status = Status.FINISHED
+            self.winner = player
+        elif all(cell for cell in self.board):
+            self.status = Status.DRAW
 
-        game.toggle_next_player_turn()
-        game.turn += 1
-        return game
+        self.toggle_next_player_turn()
+        self.turn += 1
+        return self
 
     @property
     def is_game_in_progress(self) -> bool:

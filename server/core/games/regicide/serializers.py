@@ -12,16 +12,16 @@ from core.games.regicide.game import (
 from core.games.regicide.models import Card, CardHand, Deck, Player, Status, Suit
 from core.games.regicide.utils import to_flat_hand
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
-from core.types import GameData, GameState, Id
+from core.types import GameData, GameState
 
 
 class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
     """Regicide game data serilizer"""
 
     @staticmethod
-    def dump(game: Game, **kwargs) -> GameState:  # type: ignore[override]
+    def dump(game: Regicide, **kwargs) -> GameState:  # type: ignore[override]
         """Serialize game object to game turn DTO for a player"""
-        player_id: Id | None = kwargs.get("player_id")
+        player_id: str | None = kwargs.get("player_id")
         player = None
         if player_id:
             player = game.find_player(player_id)
@@ -57,7 +57,7 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
     """Regicide game state serializer"""
 
     @staticmethod
-    def load(data: GameStateDto, **kwargs) -> Game:  # type: ignore[override]
+    def load(data: GameStateDto, **kwargs) -> Regicide:  # type: ignore[override]
         """Deserialize game state DTO to game object"""
         # fmt: off
         game = Regicide(list(map(lambda p: p[0], data.players)))
@@ -87,7 +87,8 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
             Card(rank, Suit(suit))
             for rank, suit in data.enemy_deck
         ])
-        game.active_player = game.find_player(data.active_player_id)
+        # FIXME: raise exception if player not found?
+        game.active_player = game.find_player(data.active_player_id)  # type: ignore
         # fmt: on
 
         # shift players' loop until first player from data
@@ -100,7 +101,7 @@ class RegicideGameStateDataSerializer(GameStateDataSerializer):
         return game
 
     @staticmethod
-    def dump(game: Game, **kwargs) -> GameState:
+    def dump(game: Regicide, **kwargs) -> GameState:
         """Serialize game object into game state DTO"""
 
         return GameStateDto(

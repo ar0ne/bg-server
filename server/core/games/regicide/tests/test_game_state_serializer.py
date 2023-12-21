@@ -10,6 +10,8 @@ from core.games.regicide.serializers import RegicideGameStateDataSerializer
 class TestRegicideGameStateDataSerializers(TestCase):
     """unit tests for game state data serializers"""
 
+    serializer: RegicideGameStateDataSerializer
+
     @classmethod
     def setUpClass(cls) -> None:
         """Setup test class"""
@@ -19,7 +21,7 @@ class TestRegicideGameStateDataSerializers(TestCase):
         """Tests dumping (upload) game state"""
 
         user_id = "user_id"
-        game = Game(user_id)
+        game = Game([user_id])
         card = Card(suit=Suit.HEARTS, rank=CardRank.FOUR)
         game.active_player = Player(user_id, [card])
         game.players = [game.active_player]

@@ -1,7 +1,9 @@
-from abc import ABC, abstractclassmethod
-from typing import List
+from abc import ABC, abstractclassmethod, abstractmethod
+from typing import List, Self, Type, TypeVar
 
 from core.types import GameDataTurn
+
+T = TypeVar("T", bound="Game")
 
 
 # mypy: disable-error-code=empty-body
@@ -9,9 +11,9 @@ class Game(ABC):
     """Game interface"""
 
     @abstractclassmethod
-    def init_new_game(cls, player_ids: List[str]) -> "Game":
+    def init_new_game(cls: Type[T], player_ids: List[str]) -> Type[T]:
         """Init new game session"""
 
-    @abstractclassmethod
-    def make_turn(game: "Game", player_id: str, turn: GameDataTurn) -> "Game":
+    @abstractmethod
+    def make_turn(self: T, player_id: str, turn: GameDataTurn) -> T:
         """Make a turn"""

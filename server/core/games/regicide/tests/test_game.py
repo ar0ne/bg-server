@@ -1,3 +1,4 @@
+# mypy: disable-error-code=attr-defined
 """Unit tests for game"""
 from unittest import TestCase
 
@@ -9,11 +10,10 @@ from core.games.regicide.exceptions import (
     InvalidTurnDataError,
     MaxComboSizeExceededError,
 )
-from core.games.regicide.game import Regicide as Game
+from core.games.regicide.game import Regicide
 from core.games.regicide.models import Status, Suit
 from core.games.regicide.serializers import RegicideGameStateDataSerializer
 from core.games.regicide.utils import to_flat_hand
-from core.games.transform import GameStateDataSerializer
 from core.types import GameData
 
 CLUBS = Suit.CLUBS.value
@@ -22,12 +22,12 @@ SPADES = Suit.SPADES.value
 DIAMONDS = Suit.DIAMONDS.value
 
 
-class TestGame(TestCase):
+class TestRegicideGame(TestCase):
     """Test cases for game"""
 
     user1_id = ""
     user2_id = ""
-    game_state_serializer: GameStateDataSerializer = None
+    game_state_serializer: RegicideGameStateDataSerializer
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -40,9 +40,9 @@ class TestGame(TestCase):
         """Tests creating new game object"""
 
         with self.assertRaises(AssertionError):
-            Game([])
+            Regicide([])
 
-        game = Game([self.user1_id])
+        game = Regicide([self.user1_id])
 
         self.assertIsNone(game.active_player)
         self.assertEqual(1, len(game.players))
@@ -58,7 +58,7 @@ class TestGame(TestCase):
 
         hand_size = 7
 
-        game = Game.init_new_game([self.user1_id, self.user2_id])
+        game = Regicide.init_new_game([self.user1_id, self.user2_id])
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(1, game.turn)
@@ -92,7 +92,7 @@ class TestGame(TestCase):
         # Player kills enemy and draws 1 card from discard to tavern and should defeat next enemy
         # And enemy doesn't have immune
         turn = {"cards": [("4", HEARTS)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(5, game.turn)
@@ -136,7 +136,7 @@ class TestGame(TestCase):
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
         turn = {"cards": [("5", DIAMONDS)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(5, game.turn)
@@ -174,7 +174,7 @@ class TestGame(TestCase):
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
         turn = {"cards": [("2", CLUBS)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.LOST, game.status)
         self.assertEqual(5, game.turn)
@@ -205,7 +205,7 @@ class TestGame(TestCase):
 
         # player plays card with damage enough to defeat the enemy and won the game
         turn = {"cards": [("Q", CLUBS)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(game.status, Status.WON)
         self.assertEqual(7, game.turn)
@@ -236,7 +236,7 @@ class TestGame(TestCase):
 
         # player plays combo from 2x4, enemy has immune to hearts
         turn = {"cards": [("2", CLUBS), ("2", HEARTS), ("2", DIAMONDS), ("2", SPADES)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(7, game.turn)
@@ -266,8 +266,8 @@ class TestGame(TestCase):
         game = self.game_state_serializer.load(dump)
 
         # empty cards means player skipped playing cards and want to discard if needed
-        turn = {"cards": []}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        turn: dict = {"cards": []}
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(7, game.turn)
@@ -298,7 +298,7 @@ class TestGame(TestCase):
 
         # player plays combo from ace and 5, game moves to discard cards state
         turn = {"cards": [("5", CLUBS), ("A", DIAMONDS)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(7, game.turn)
@@ -339,7 +339,7 @@ class TestGame(TestCase):
 
         # player plays combo from ace and 4 (power - 5), game moves to discard cards state
         turn = {"cards": [("4", HEARTS), ("A", DIAMONDS)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.DISCARDING_CARDS, game.status)
         self.assertEqual(7, game.turn)
@@ -387,11 +387,11 @@ class TestGame(TestCase):
         game = self.game_state_serializer.load(dump)
 
         with self.assertRaises(InvalidTurnDataError):
-            Game.make_turn(game, game.active_player.id, None)
+            game.make_turn(game.active_player.id, None)  # type: ignore
         with self.assertRaises(InvalidTurnDataError):
-            Game.make_turn(game, game.active_player.id, {})
+            game.make_turn(game.active_player.id, {})
         with self.assertRaises(InvalidTurnDataError):
-            Game.make_turn(game, game.active_player.id, [(CLUBS, "5")])
+            game.make_turn(game.active_player.id, [(CLUBS, "5")])  # type: ignore
 
         invalid_combos = [
             ([("A", CLUBS)], CardDoesNotBelongsToPlayerError),
@@ -405,7 +405,7 @@ class TestGame(TestCase):
         for combo, exc in invalid_combos:
             with self.subTest(combo=combo, exc=exc):
                 with self.assertRaises(exc):
-                    Game.make_turn(game, game.active_player.id, {"cards": combo})
+                    game.make_turn(game.active_player.id, {"cards": combo})
 
     def test_discard_cards(self) -> None:
         """Tests discarding cards"""
@@ -424,7 +424,7 @@ class TestGame(TestCase):
         )
         game = self.game_state_serializer.load(dump)
         turn = {"cards": [("K", DIAMONDS)]}
-        game = Game.make_turn(game, game.active_player.id, turn)
+        game = game.make_turn(game.active_player.id, turn)
 
         self.assertEqual(Status.PLAYING_CARDS, game.status)
         self.assertEqual(game.active_player.id, self.user2_id)

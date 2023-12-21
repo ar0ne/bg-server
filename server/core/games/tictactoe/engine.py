@@ -22,12 +22,12 @@ class TicTacToeGameEngine(BaseGameEngine):
         game_data_dto = await self.get_game_data_dto()
         game = self.state_serializer.load(game_data_dto)
         # update state
-        game = self.game_cls.make_turn(game, player_id, turn)
+        game = game.make_turn(player_id, turn)
         # save changes
         game_state = self.state_serializer.dump(game)
         await self.save(game_state)
         # serialize updated game state
-        return game_state, game.status
+        return game_state, game.status.value
 
     async def poll(self, player_id: str | None = None) -> GameState:
         """Poll the last game state"""

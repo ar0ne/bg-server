@@ -2,12 +2,12 @@
 import itertools
 import random
 from itertools import product
-from typing import Any, Iterable, List, Optional
+from typing import Any, Iterable, List, Optional, Self, Tuple, Union
 
 from core.games.game import Game
 from core.types import GameDataTurn
 
-from ..exceptions import InvalidGameStateError, TurnOrderViolationError
+from ..exceptions import GameLogicError, InvalidGameStateError, TurnOrderViolationError
 from ..regicide.exceptions import (
     CardDoesNotBelongsToPlayerError,
     InvalidCardDataError,
@@ -83,7 +83,7 @@ class Regicide(Game):
         # setup game state
         self.status = Status.CREATED
         self.next_player_loop = infinite_cycle(self.players)
-        self.active_player = None
+        self.active_player: Player
 
     @property
     def is_playing_cards_state(self) -> bool:
@@ -101,7 +101,7 @@ class Regicide(Game):
         return self.status in (Status.PLAYING_CARDS, Status.DISCARDING_CARDS)
 
     @property
-    def current_enemy(self) -> Optional[Card]:
+    def current_enemy(self) -> Card | None:
         """Gets current enemy"""
         return self.enemy_deck.peek()
 
@@ -127,22 +127,26 @@ class Regicide(Game):
         game.turn = 1
         return game
 
-    @staticmethod
-    def make_turn(game: "Regicide", player_id: str, turn: GameDataTurn) -> "Regicide":
+    def make_turn(self, player_id: str, turn: GameDataTurn) -> Self:
         """Player could make a turn"""
-        validate_game_turn(game, player_id, turn)
-        player = game.find_player(player_id)
+        validate_game_turn(self, player_id, turn)
+        player = self.find_player(player_id)
+        if not player:
+            raise GameLogicError
         cards = list(map(lambda c: Card(c[0], c[1]), turn["cards"]))
-        if game.is_playing_cards_state:
-            game._play_cards(player, cards)
-        elif game.is_discarding_cards_state:
-            game._discard_cards(player, cards)
-        game.turn += 1
-        return game
+        if self.is_playing_cards_state:
+            self._play_cards(player, cards)
+        elif self.is_discarding_cards_state:
+            self._discard_cards(player, cards)
+        self.turn += 1
+        return self
 
     def _play_cards(self, player: Player, combo: CardCombo) -> None:
         """Play cards"""
         enemy = self.current_enemy
+        if not enemy:
+            self.status = Status.WON
+            return
         # remove cards from player's hand
         player.remove_cards_from_hand(combo)
         # activate suits powers if possible
@@ -187,7 +191,7 @@ class Regicide(Game):
         self.active_player = next(self.next_player_loop)
         return self.active_player
 
-    def find_player(self, player_id: str) -> Optional[Player]:
+    def find_player(self, player_id: str) -> Player | None:
         """Find player by id"""
         for player in self.players:
             if player.id == player_id:
@@ -208,9 +212,11 @@ class Regicide(Game):
         # clean up played cards
         self.played_combos = []
 
-    def _process_played_combo(self, player: Player, enemy: Enemy, combo: CardCombo) -> None:
+    def _process_played_combo(
+        self, player: Player, enemy: Enemy | None, combo: CardCombo | None
+    ) -> None:
         """Process played combo"""
-        if not combo:
+        if not combo or not enemy:
             # user could skip playing cards and defeat enemy attack
             return
         combo_damage = Card.get_attack_power(combo, enemy)
@@ -249,8 +255,8 @@ class Regicide(Game):
 
     def _create_tavern_deck(self) -> None:
         """Create tavern cards deck"""
-        ranks = (*map(str, range(2, 11)), CardRank.ACE)
-        combinations = product(ranks, Suit.values())
+        ranks: Tuple[Union[str, CardRank], ...] = (*map(str, range(2, 11)), CardRank.ACE)
+        combinations = list(product(ranks, Suit.values()))
         players_deck = list(map(lambda c: Card(suit=Suit(c[1]), rank=c[0]), combinations))
         random.shuffle(players_deck)
         self.tavern_deck = Deck(players_deck)
@@ -290,7 +296,7 @@ def validate_can_discard_cards(game: Regicide, player: Player, combo: CardCombo)
     enemy = game.current_enemy
     # damage from combo without suits power should be enough to deal with enemies attack damage
     combo_damage = Card.get_combo_damage(combo)
-    if get_enemy_attack_damage(enemy, game.played_combos) > combo_damage:
+    if enemy and get_enemy_attack_damage(enemy, game.played_combos) > combo_damage:
         raise NotEnoughPowerToDiscard
 
 
@@ -314,9 +320,11 @@ def validate_game_turn(game: Regicide, player_id: str, turn: dict) -> None:
         raise TurnOrderViolationError
 
     cards = turn.get("cards")
-    if not cards and game.is_playing_cards_state:
-        # user could skip turn and immediately move to discard state
-        return
+    if not cards:
+        if game.is_playing_cards_state:
+            # user could skip turn and immediately move to discard state
+            return
+        raise InvalidTurnDataError
     if not all(is_valid_card(card) for card in cards):
         raise InvalidCardDataError
 
