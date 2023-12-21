@@ -2,20 +2,18 @@
 
 import json
 
-from core.games.game import Game
 from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import TicTacToe
 from core.games.tictactoe.models import Status
-from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.games.utils import infinite_cycle
 from core.types import GameState
 
 
-class TicTacToeGameStateDataSerializer(GameStateDataSerializer):
+class TicTacToeGameStateDataSerializer:
     """TicTacToe game state serializer"""
 
     @staticmethod
-    def load(data: GameStateDto, **kwargs) -> Game:
+    def load(data: GameStateDto, **kwargs) -> TicTacToe:
         """Deserialize game state DTO to game object"""
         game = TicTacToe(data.players)
 
@@ -31,7 +29,7 @@ class TicTacToeGameStateDataSerializer(GameStateDataSerializer):
         return game
 
     @staticmethod
-    def dump(game: Game, **kwargs) -> GameState:
+    def dump(game: TicTacToe, **kwargs) -> GameState:
         """Serializer game object to game state DTO"""
         return GameStateDto(
             active_player_id=game.active_player.id,

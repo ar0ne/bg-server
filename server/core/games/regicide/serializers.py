@@ -1,7 +1,6 @@
 """Game data serializer"""
 from abc import ABC, abstractmethod
 
-from core.games.game import Game
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto, PlayerHand
 from core.games.regicide.game import (
     Regicide,
@@ -56,7 +55,7 @@ class RegicideGameStateDataSerializer:
     """Regicide game state serializer"""
 
     @staticmethod
-    def load(data: GameStateDto, **kwargs) -> Regicide:  # type: ignore[override]
+    def load(data: GameStateDto, **kwargs) -> Regicide:
         """Deserialize game state DTO to game object"""
         # fmt: off
         game = Regicide(list(map(lambda p: p[0], data.players)))

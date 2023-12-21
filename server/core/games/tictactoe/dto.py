@@ -10,7 +10,7 @@ from core.utils import Serializable
 class GameStateDto(Serializable):
     """Represents internal game state data"""
 
-    active_player_id: str
+    active_player_id: str | None
     players: List[str]
     board: List[str | None]
     status: str

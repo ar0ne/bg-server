@@ -1,5 +1,5 @@
 """Tic Tac Toe game engine"""
-from typing import List, Self, Tuple, Type
+from typing import List, Self, Tuple, Type, cast
 
 from core.games.engine import BaseGameEngine
 from core.games.exceptions import GameDataNotFound
@@ -20,7 +20,7 @@ class TicTacToeGameEngine(BaseGameEngine):
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameState, str]:
         """Update game state"""
         game_data_dto = await self.get_game_data_dto()
-        game = self.state_serializer.load(game_data_dto)
+        game: TicTacToe = self.state_serializer.load(game_data_dto)  # type: ignore
         # update state
         game = game.make_turn(player_id, turn)
         # save changes
@@ -46,5 +46,5 @@ def create_engine(room_id: str) -> TicTacToeGameEngine:
     return TicTacToeGameEngine(
         game_cls=TicTacToe,
         room_id=room_id,
-        state_serializer=TicTacToeGameStateDataSerializer,
+        state_serializer=cast(GameStateDataSerializer, TicTacToeGameStateDataSerializer),
     )

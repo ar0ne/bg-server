@@ -1,7 +1,7 @@
 """TicTacToe game"""
 
 import random
-from typing import Any, List
+from typing import Any, List, Self
 
 from core.games.game import Game
 from core.types import GameDataTurn
@@ -23,7 +23,7 @@ WIN_COMBOS = [
 ]
 
 
-def get_winner_id(squares) -> str | None:
+def get_winner_id(squares: List[Any]) -> str | None:
     """Return player's ID if game is finished"""
     for a, b, c in WIN_COMBOS:
         if squares[a] == squares[b] == squares[c]:
@@ -36,7 +36,7 @@ def validate_game_turn(game: "TicTacToe", player_id: str, turn: dict) -> None:
     if not game.is_game_in_progress:
         raise InvalidGameStateError
     player = game.active_player
-    if player.id != player_id:
+    if not player or player.id != player_id:
         raise TurnOrderViolationError
     index = turn.get("index")
     if index is None or 0 < index > len(game.board):
@@ -48,16 +48,16 @@ def validate_game_turn(game: "TicTacToe", player_id: str, turn: dict) -> None:
 class TicTacToe(Game):
     """TicTacToe Game class"""
 
-    def __init__(self, player_ids: List[str]) -> None:
+    def __init__(self: Self, player_ids: List[str]) -> None:
         """Init game class"""
         assert len(player_ids), "No players found."
         self.players = [Player(p_id) for p_id in player_ids]
         self.turn = 0
         self.status = Status.CREATED
         self.next_player_loop = infinite_cycle(self.players)
-        self.board = None
-        self.active_player = None
-        self.winner = None
+        self.board: list = []
+        self.active_player: Player
+        self.winner: Player | None = None
 
     @classmethod
     def init_new_game(cls, player_ids: List[str]) -> "TicTacToe":
@@ -76,7 +76,7 @@ class TicTacToe(Game):
         self.active_player = next(self.next_player_loop)
         return self.active_player
 
-    def make_turn(self, player_id: str, turn: GameDataTurn) -> Self:
+    def make_turn(self: Self, player_id: str, turn: GameDataTurn) -> Self:
         """Player makes a turn"""
         # always run validation before apply a turn
         validate_game_turn(self, player_id, turn)
@@ -84,7 +84,7 @@ class TicTacToe(Game):
         player = self.active_player
         self.board[index] = player.id
 
-        winner_id = get_winner_id(game.board)
+        winner_id = get_winner_id(self.board)
         if winner_id:
             self.status = Status.FINISHED
             self.winner = player
@@ -96,6 +96,6 @@ class TicTacToe(Game):
         return self
 
     @property
-    def is_game_in_progress(self) -> bool:
+    def is_game_in_progress(self: Self) -> bool:
         """True if game is in progress"""
         return self.status == Status.IN_PROGRESS
