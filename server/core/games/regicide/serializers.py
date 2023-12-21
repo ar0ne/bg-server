@@ -11,11 +11,10 @@ from core.games.regicide.game import (
 )
 from core.games.regicide.models import Card, CardHand, Deck, Player, Status, Suit
 from core.games.regicide.utils import to_flat_hand
-from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
 from core.types import GameData, GameState
 
 
-class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
+class RegicideGameTurnDataSerializer:
     """Regicide game data serilizer"""
 
     @staticmethod
@@ -53,7 +52,7 @@ class RegicideGameTurnDataSerializer(GameTurnDataSerializer):
         ).asdict()
 
 
-class RegicideGameStateDataSerializer(GameStateDataSerializer):
+class RegicideGameStateDataSerializer:
     """Regicide game state serializer"""
 
     @staticmethod

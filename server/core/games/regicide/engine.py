@@ -1,5 +1,5 @@
 """Regicide game engine"""
-from typing import Any, List, Self, Tuple
+from typing import Any, List, Self, Tuple, cast
 
 from core.games.engine import BaseGameEngine
 from core.games.exceptions import GameDataNotFound
@@ -64,6 +64,6 @@ def create_engine(room_id: str) -> RegicideGameEngine:
     return RegicideGameEngine(
         game_cls=Regicide,
         room_id=room_id,
-        state_serializer=RegicideGameStateDataSerializer,
-        turn_data_serializer=RegicideGameTurnDataSerializer,
+        state_serializer=cast(GameStateDataSerializer, RegicideGameStateDataSerializer),
+        turn_data_serializer=cast(GameTurnDataSerializer, RegicideGameTurnDataSerializer),
     )
