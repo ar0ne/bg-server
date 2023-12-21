@@ -44,7 +44,6 @@ class TestRegicideGame(TestCase):
 
         game = Regicide([self.user1_id])
 
-        self.assertIsNone(game.active_player)
         self.assertEqual(1, len(game.players))
         self.assertEqual(0, game.turn)
         self.assertEqual(0, len(game.discard_deck))

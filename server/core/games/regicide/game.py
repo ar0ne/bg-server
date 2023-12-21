@@ -70,7 +70,6 @@ class Regicide(Game):
     def __init__(self, players_ids: List[str]) -> None:
         """Init game"""
         assert len(players_ids), "No players found."
-        # FIXME: OrderredDict?
         self.players = list(Player(p_id) for p_id in players_ids)
         # display number of current turn
         self.turn = 0
@@ -83,7 +82,6 @@ class Regicide(Game):
         # setup game state
         self.status = Status.CREATED
         self.next_player_loop = infinite_cycle(self.players)
-        self.active_player: Player
 
     @property
     def is_playing_cards_state(self) -> bool:
@@ -127,7 +125,7 @@ class Regicide(Game):
         game.turn = 1
         return game
 
-    def make_turn(self, player_id: str, turn: GameDataTurn) -> Self:
+    def make_turn(self: Self, player_id: str, turn: GameDataTurn) -> Self:
         """Player could make a turn"""
         validate_game_turn(self, player_id, turn)
         player = self.find_player(player_id)
