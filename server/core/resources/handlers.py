@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import tornado
 from core.resources.auth import JWTAuthMiddleware
 from core.resources.errors import ErrorHandler
@@ -28,7 +30,7 @@ class BaseRequestHandler(JWTAuthMiddleware, ErrorHandler, tornado.web.RequestHan
                 self.send_error(400, message=message)  # Bad Request
 
         # Set up response dictionary.
-        self.response = dict()
+        self.response: Dict[str, Any] = dict()
 
     async def options(self, *args, **kwargs) -> None:
         """Handle OPTIONS method"""

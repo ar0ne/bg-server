@@ -4,7 +4,7 @@ import jwt
 from core.resources.errors import APIError
 from core.resources.models import Player
 from tornado.options import options
-from tornado_middleware import MiddlewareHandler
+from tornado_middleware import MiddlewareHandler  # type: ignore
 
 
 async def get_jwt_token(user_id: str) -> str:
