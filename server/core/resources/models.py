@@ -65,7 +65,7 @@ class GameTurn(Model):
 
     id: Id = fields.UUIDField(pk=True)
     data: GameData = fields.JSONField(encoder=JSON_ENCODER)
-    room: Room = fields.ForeignKeyField("models.Room")  # type: ignore
+    room: fields.ForeignKeyRelation[Room] = fields.ForeignKeyField("models.Room")
     turn: int = fields.SmallIntField(default=0)
 
 

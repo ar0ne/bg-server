@@ -6,4 +6,4 @@ class MainHandler(tornado.web.RequestHandler):  # type: ignore
 
     async def get(self) -> None:
         """Render index page"""
-        self.render("index.html", games=games)
+        self.render("index.html")

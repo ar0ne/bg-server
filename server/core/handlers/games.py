@@ -13,8 +13,8 @@ class GameHandler(BaseRequestHandler):
     async def get(self, game_name: str = "") -> None:
         """Get game or all games endpoint"""
         if not game_name:
-            serializer = await GameListSerializer.from_queryset(Game.all())
-            data = dict(results=serializer.model_dump(mode="json"))
+            list_serializer = await GameListSerializer.from_queryset(Game.all())
+            data = dict(results=list_serializer.model_dump(mode="json"))
         else:
             game = await Game.get(name=game_name)
             serializer = await GameSerializer.from_tortoise_orm(game)

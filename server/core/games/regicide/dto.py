@@ -7,8 +7,8 @@ from core.utils import Serializable
 FlatCard = Tuple[str, str]
 
 
-@dataclass
-class PlayerHand:
+@dataclass(frozen=True)
+class PlayerHand(Serializable):
     id: str
     size: int
     hand: List[FlatCard] | None = None

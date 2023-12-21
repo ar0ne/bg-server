@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 class RoomWebSocketHandler(WebSocketHandler):
     """Room websocket handler"""
 
-    live_web_sockets = {}
+    live_web_sockets: dict = {}
 
     def check_origin(self, origin):
         return True

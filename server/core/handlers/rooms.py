@@ -9,6 +9,8 @@ from core.resources.auth import login_required
 from core.resources.errors import APIError
 from core.resources.handlers import BaseRequestHandler
 from core.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
+from core.types import Id
+from tortoise.contrib.pydantic.base import PydanticListModel, PydanticModel
 
 
 class GameRoomHandler(BaseRequestHandler):
@@ -43,12 +45,12 @@ class RoomHandler(BaseRequestHandler):
         if not room_id:
             # FIXME: add limit
             # FIXME: filter open to join pages only
-            serializer = await RoomListSerializer.from_queryset(Room.all())
-            rooms = serializer.model_dump(mode="json")
+            list_serializer: PydanticListModel = await RoomListSerializer.from_queryset(Room.all())
+            rooms = list_serializer.model_dump(mode="json")
             self.write(dict(results=rooms))
         else:
             room = await Room.get(id=room_id).select_related("game")
-            serializer = await RoomSerializer.from_tortoise_orm(room)
+            serializer: PydanticModel = await RoomSerializer.from_tortoise_orm(room)
             data = serializer.model_dump(mode="json")
             self.write(dict(data=data))
 
@@ -57,7 +59,7 @@ class RoomHandler(BaseRequestHandler):
         """Player could setup game settings"""
         current_user = self.request.user
         room = await Room.get(id=room_id).select_related("game")
-        if current_user.id != room.admin_id:
+        if current_user.id != room.admin_id:  # type: ignore
             raise APIError(401, "Can't perform this action.")
 
         # FIXME: add validation
@@ -66,8 +68,9 @@ class RoomHandler(BaseRequestHandler):
             status = data["status"]
             room.status = GameRoomStatus(status).value
             if status == GameRoomStatus.STARTED.value:
-                # FIXME: is it uuid?
-                players_ids = await room.participants.all().values_list("id", flat=True)
+                players_ids = list(
+                    map(str, await room.participants.all().values_list("id", flat=True))
+                )
                 # new game event triggered
                 engine = get_engine(room)
                 await engine.setup(players_ids)
@@ -105,7 +108,7 @@ class RoomGameTurnHandler(BaseRequestHandler):
     Allows to make a game turn.
     """
 
-    async def _close_room(self, room_id: str) -> None:
+    async def _close_room(self, room_id: Id) -> None:
         """Update room status to closed"""
         room = await Room.get(id=room_id)
         room.status = GameRoomStatus.FINISHED.value
@@ -163,7 +166,7 @@ class RoomPlayersHandler(BaseRequestHandler):
         if str(current_user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         room = await Room.get(id=room_id).select_related("admin").prefetch_related("participants")
-        player_participate = any(filter(lambda p: p.id == current_user.id, room.participants))
+        player_participate = any(filter(lambda p: p.id == current_user.id, room.participants))  # type: ignore
         if not (room and player_participate):
             raise APIError(400, "User aren't participant of the room.")
         await room.participants.remove(current_user)
