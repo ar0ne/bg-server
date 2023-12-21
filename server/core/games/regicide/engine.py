@@ -1,18 +1,16 @@
 """Regicide game engine"""
-from typing import Any, List, Self, Tuple, cast
+from typing import Any, Tuple, cast
 
 from core.games.engine import BaseGameEngine
-from core.games.exceptions import GameDataNotFound
 from core.games.regicide.dto import GameStateDto
 from core.games.regicide.game import Regicide
-from core.games.regicide.models import Card, Status
+from core.games.regicide.models import Status
 from core.games.regicide.serializers import (
     RegicideGameStateDataSerializer,
     RegicideGameTurnDataSerializer,
 )
 from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
-from core.resources.models import GameTurn, Player
-from core.types import GameData, GameDataTurn, GameState
+from core.types import GameDataTurn, GameState
 
 
 class RegicideGameEngine(BaseGameEngine):

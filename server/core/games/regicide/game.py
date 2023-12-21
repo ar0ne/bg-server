@@ -3,13 +3,11 @@ import itertools
 import random
 
 from itertools import product
-from typing import Any, Iterable, List, Optional, Self, Tuple, Union
+from typing import Any, List, Self, Tuple, Union
 
+from core.games.exceptions import GameLogicError, InvalidGameStateError, TurnOrderViolationError
 from core.games.game import Game
-from core.types import GameDataTurn
-
-from ..exceptions import GameLogicError, InvalidGameStateError, TurnOrderViolationError
-from ..regicide.exceptions import (
+from core.games.regicide.exceptions import (
     CardDoesNotBelongsToPlayerError,
     InvalidCardDataError,
     InvalidPairComboError,
@@ -17,8 +15,9 @@ from ..regicide.exceptions import (
     MaxComboSizeExceededError,
     NotEnoughPowerToDiscard,
 )
-from ..regicide.models import Card, CardCombo, CardRank, Deck, Enemy, Player, Status, Suit
-from ..utils import infinite_cycle
+from core.games.regicide.models import Card, CardCombo, CardRank, Deck, Enemy, Player, Status, Suit
+from core.games.utils import infinite_cycle
+from core.types import GameDataTurn
 
 DUPLICATED_COMBO_RANKS = (CardRank.TWO, CardRank.THREE, CardRank.FOUR, CardRank.FIVE)
 ENEMY_RANKS = (CardRank.JACK, CardRank.QUEEN, CardRank.KING)

@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass, fields
 from typing import Tuple
 
 
+@dataclass(kw_only=True, frozen=True)
 class Serializable:
     not_serializing: Tuple = tuple()
 

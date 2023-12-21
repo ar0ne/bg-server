@@ -4,13 +4,12 @@ import random
 
 from typing import Any, List, Self
 
+from core.games.exceptions import InvalidGameStateError, TurnOrderViolationError
 from core.games.game import Game
+from core.games.tictactoe.exceptions import CellAlreadyUsedError, InvalidTurnData
+from core.games.tictactoe.models import Player, Status
+from core.games.utils import infinite_cycle
 from core.types import GameDataTurn
-
-from ..exceptions import InvalidGameStateError, TurnOrderViolationError
-from ..tictactoe.models import Player, Status
-from ..utils import infinite_cycle
-from .exceptions import CellAlreadyUsedError, InvalidTurnData
 
 WIN_COMBOS = [
     [0, 1, 2],

@@ -1,3 +1,4 @@
+"""Index page handler"""
 import tornado
 
 
@@ -6,4 +7,4 @@ class MainHandler(tornado.web.RequestHandler):  # type: ignore
 
     async def get(self) -> None:
         """Render index page"""
-        self.render("index.html")
+        await self.render("index.html")

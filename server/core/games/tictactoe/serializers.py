@@ -1,7 +1,5 @@
 """TicTacToe converters"""
 
-import json
-
 from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import TicTacToe
 from core.games.tictactoe.models import Status

@@ -1,14 +1,12 @@
 """Tic Tac Toe game engine"""
-from typing import List, Self, Tuple, Type, cast
+from typing import Tuple, cast
 
 from core.games.engine import BaseGameEngine
-from core.games.exceptions import GameDataNotFound
 from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import TicTacToe
 from core.games.tictactoe.models import Status
 from core.games.tictactoe.serializers import TicTacToeGameStateDataSerializer
 from core.games.transform import GameStateDataSerializer
-from core.resources.models import GameTurn
 from core.types import GameDataTurn, GameState
 
 

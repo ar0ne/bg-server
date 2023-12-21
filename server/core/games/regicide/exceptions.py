@@ -1,5 +1,4 @@
 """Regicide errors"""
-from core.games.exceptions import GameLogicError
 from core.resources.errors import ValidationError
 
 

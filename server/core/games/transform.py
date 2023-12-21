@@ -1,6 +1,6 @@
 """Transform"""
 
-from typing import Any, Protocol
+from typing import Protocol
 
 from core.games.game import Game
 from core.types import GameState

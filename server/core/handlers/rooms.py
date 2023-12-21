@@ -11,7 +11,7 @@ from core.loaders import get_engine
 from core.resources.auth import login_required
 from core.resources.errors import APIError
 from core.resources.handlers import BaseRequestHandler
-from core.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
+from core.resources.models import Game, Room, RoomListSerializer, RoomSerializer
 from core.types import Id
 
 

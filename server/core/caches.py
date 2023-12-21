@@ -1,14 +1,9 @@
 """
 Caches
 """
-import functools
-import logging
-import time
-
 from time import monotonic
-from typing import Any, Callable, Dict, List, Optional, Protocol, TypeVar, cast
+from typing import Any, Callable, Dict, List, Protocol, TypeVar, cast
 
-from tornado import gen
 from tornado.concurrent import Future
 
 FuncType = Callable[..., Any]
