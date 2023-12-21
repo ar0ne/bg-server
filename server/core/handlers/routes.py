@@ -2,6 +2,7 @@
 from typing import List, Tuple
 
 import tornado
+
 from core.handlers.auth import AuthLoginHandler, AuthSignUpHandler
 from core.handlers.games import GameHandler
 from core.handlers.index import MainHandler

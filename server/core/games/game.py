@@ -6,7 +6,6 @@ from core.types import GameDataTurn
 G = TypeVar("G", bound="Game")
 
 
-# mypy: disable-error-code=empty-body
 class Game(ABC):
     """Game interface"""
 

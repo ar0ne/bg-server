@@ -1,5 +1,6 @@
 """Base game interface"""
 import uuid
+
 from abc import ABC, abstractclassmethod, abstractmethod, abstractstaticmethod
 from typing import Any, Dict, List, Tuple, Type
 
@@ -46,7 +47,7 @@ class BaseGameEngine(GameEngine):
         """init game engine"""
         self.game_cls = game_cls
         self.room_id = room_id
-        # cant serialize state data to game object and back
+        # could serialize state data to game object and back
         self.state_serializer = state_serializer
 
     async def save(self, state: GameState) -> None:

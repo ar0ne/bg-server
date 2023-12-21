@@ -1,10 +1,11 @@
 """DB models"""
 import json
 
-from core.resources.utils import CustomJSONEncoder
-from core.types import GameData, Id
 from tortoise import Model, Tortoise, fields  # mypy: disable-error-code="attr-defined"
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
+
+from core.resources.utils import CustomJSONEncoder
+from core.types import GameData, Id
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
 

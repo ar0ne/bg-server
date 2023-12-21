@@ -2,6 +2,16 @@
 line-length = 100
 target-version = ["py311"]
 
+[tool.isort]
+profile = "black"
+lines_between_types = 1
+combine_as_imports = true
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+warn_unused_ignores = true
+
 # https://github.com/pypa/setuptools/issues/1694
 [build-system]
 requires = [

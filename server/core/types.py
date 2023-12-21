@@ -1,5 +1,6 @@
 """Custom types"""
 import uuid
+
 from typing import Any, Dict, Union
 
 Id = Union[str, uuid.UUID]

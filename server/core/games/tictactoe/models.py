@@ -1,6 +1,7 @@
 """TicTacToe models"""
 
 import enum
+
 from typing import List
 
 from core.types import Id

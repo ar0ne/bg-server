@@ -1,5 +1,6 @@
 """Utilities"""
 import json
+
 from dataclasses import asdict, dataclass, fields
 from typing import Tuple
 

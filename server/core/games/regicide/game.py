@@ -1,6 +1,7 @@
 """Regicide main game file"""
 import itertools
 import random
+
 from itertools import product
 from typing import Any, Iterable, List, Optional, Self, Tuple, Union
 
@@ -126,7 +127,7 @@ class Regicide(Game):
         return game
 
     def make_turn(self: Self, player_id: str, turn: GameDataTurn) -> Self:
-        """Player could make a turn"""
+        """Play or discard cards"""
         validate_game_turn(self, player_id, turn)
         player = self.find_player(player_id)
         if not player:

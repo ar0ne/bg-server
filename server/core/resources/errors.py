@@ -1,6 +1,7 @@
 """Error handlers"""
 import json
 import traceback
+
 from typing import Any, Optional
 
 import tornado

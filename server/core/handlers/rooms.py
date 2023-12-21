@@ -3,6 +3,9 @@ from datetime import datetime
 from typing import Optional
 
 import tornado
+
+from tortoise.contrib.pydantic.base import PydanticListModel, PydanticModel
+
 from core.constants import GameRoomStatus
 from core.loaders import get_engine
 from core.resources.auth import login_required
@@ -10,7 +13,6 @@ from core.resources.errors import APIError
 from core.resources.handlers import BaseRequestHandler
 from core.resources.models import Game, Player, Room, RoomListSerializer, RoomSerializer
 from core.types import Id
-from tortoise.contrib.pydantic.base import PydanticListModel, PydanticModel
 
 
 class GameRoomHandler(BaseRequestHandler):

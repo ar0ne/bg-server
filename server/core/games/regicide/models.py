@@ -2,6 +2,7 @@
 import enum
 import json
 import random
+
 from typing import List, Optional, TypeVar
 
 Enemy = TypeVar("Enemy", bound="Card")

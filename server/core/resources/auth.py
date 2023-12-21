@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
 
 import jwt
-from core.resources.errors import APIError
-from core.resources.models import Player
+
 from tornado.options import options
 from tornado_middleware import MiddlewareHandler  # type: ignore
+
+from core.resources.errors import APIError
+from core.resources.models import Player
 
 
 async def get_jwt_token(user_id: str) -> str:

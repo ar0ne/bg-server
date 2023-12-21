@@ -18,4 +18,4 @@ repos:
     hooks:
       - id: black
         exclude: ^(client/|setup.py)|migrations
-        args: [--config=./pyproject.toml]
+        args: [--config=./server/pyproject.toml]

@@ -1,6 +1,7 @@
 """TicTacToe game"""
 
 import random
+
 from typing import Any, List, Self
 
 from core.games.game import Game

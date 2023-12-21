@@ -49,8 +49,8 @@ class RegicideGameEngine(BaseGameEngine):
         """Poll the last turn data"""
         game_data_dto = await self.get_game_data_dto()
         game: Regicide = self.state_serializer.load(game_data_dto)  # type: ignore
-        # we can't just return latest game state here, because players don't see the same data
-        # so, we need serialize game state with only data player could know
+        # we can't just return latest game state, because players don't know full game state and
+        # don't see the same data. We partially serialize game state (turn) with data player could see
         turn_game_state = self.turn_serializer.dump(game, player_id=player_id)
         return turn_game_state
 

@@ -1,7 +1,8 @@
 """Setup database"""
-from core.resources.models import initial_data
 from tornado.options import options
 from tortoise import Tortoise
+
+from core.resources.models import initial_data
 
 
 async def init_database() -> None:

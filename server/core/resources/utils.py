@@ -1,6 +1,7 @@
 """Utility functions"""
 import importlib.util
 import json
+
 from dataclasses import asdict, is_dataclass
 from uuid import UUID
 
