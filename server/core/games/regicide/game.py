@@ -108,7 +108,7 @@ class Regicide(Game):
     @classmethod
     def init_new_game(cls, players_ids: List[str]) -> "Regicide":
         """Create new game"""
-        game = Regicide(players_ids)
+        game = cls(players_ids)
         # create tavern and enemy decks
         game._create_tavern_deck()
         game._create_enemy_deck()

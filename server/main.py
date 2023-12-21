@@ -22,7 +22,8 @@ define("JWT_SECRET", default="some-jwt-secret", help="JWT secret token")
 define("JWT_ALGORITHM", default="HS256", help="JWT algorythm")
 define("JWT_EXP_DELTA_SECONDS", default=3000, help="JWT expiration time in seconds")
 
-CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), ".env")
+ROOT_PATH = os.path.dirname(__file__)
+CONFIG_FILE_PATH = os.path.join(ROOT_PATH, ".env")
 
 
 class Application(tornado.web.Application):
@@ -33,7 +34,8 @@ class Application(tornado.web.Application):
         self.db = db
         settings = dict(
             debug=options.debug,
-            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            static_path=os.path.join(ROOT_PATH, "static"),
+            template_path=os.path.join(ROOT_PATH, "templates"),
             default_handler_class=ErrorHandler,
             default_handler_args=dict(status_code=404),
         )

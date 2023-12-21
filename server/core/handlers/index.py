@@ -1,15 +1,9 @@
-from core.constants import REGICIDE
-from core.resources.handlers import BaseRequestHandler
-from core.resources.models import Game, Room
+import tornado
 
 
-class MainHandler(BaseRequestHandler):
+class MainHandler(tornado.web.RequestHandler):
     """Main request handler"""
 
     async def get(self) -> None:
-        game = await Game.get(name=REGICIDE)
-        rooms = await Room.filter(game=game)
-        game_id = game.id if game else None
-        # FIXME: we have only single game atm
-        data = dict(rooms=rooms, game_id=game_id)
-        await self.render("index.html", **data)
+        """Render index page"""
+        self.render("index.html", games=games)
