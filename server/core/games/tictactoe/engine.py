@@ -13,7 +13,10 @@ from core.types import GameDataTurn, GameState
 class TicTacToeGameEngine(BaseGameEngine):
     """TicTacToe game engine"""
 
-    STATUSES_IN_PROGRESS = (Status.CREATED, Status.IN_PROGRESS)
+    STATUSES_IN_PROGRESS = (
+        Status.CREATED.value,
+        Status.IN_PROGRESS.value,
+    )
 
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameState, str]:
         """Update game state"""
@@ -37,6 +40,10 @@ class TicTacToeGameEngine(BaseGameEngine):
     async def get_game_data_dto(self) -> GameStateDto:
         """Get game data and prepare it for load"""
         return GameStateDto(**await self.get_game_data())
+
+    def is_in_progress(self, game_status: str) -> bool:
+        """True if game is in progress"""
+        return game_status in self.STATUSES_IN_PROGRESS
 
 
 def create_engine(room_id: str) -> TicTacToeGameEngine:

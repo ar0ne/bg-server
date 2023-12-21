@@ -16,7 +16,11 @@ from core.types import GameDataTurn, GameState
 class RegicideGameEngine(BaseGameEngine):
     """Regicide game engine"""
 
-    STATUSES_IN_PROGRESS = (Status.CREATED, Status.PLAYING_CARDS, Status.DISCARDING_CARDS)
+    STATUSES_IN_PROGRESS = (
+        Status.CREATED.value,
+        Status.PLAYING_CARDS.value,
+        Status.DISCARDING_CARDS.value,
+    )
 
     def __init__(
         self,
@@ -48,13 +52,17 @@ class RegicideGameEngine(BaseGameEngine):
         game_data_dto = await self.get_game_data_dto()
         game: Regicide = self.state_serializer.load(game_data_dto)  # type: ignore
         # we can't just return latest game state, because players don't know full game state and
-        # don't see the same data. We partially serialize game state (turn) with data player could see
+        # don't see same data. We partially serialize game state (turn) with data player could see
         turn_game_state = self.turn_serializer.dump(game, player_id=player_id)
         return turn_game_state
 
     async def get_game_data_dto(self) -> GameStateDto:
         """Get game data and prepare it for load"""
         return GameStateDto(**await self.get_game_data())
+
+    def is_in_progress(self, game_status: str) -> bool:
+        """True if game is in progress"""
+        return game_status in self.STATUSES_IN_PROGRESS
 
 
 def create_engine(room_id: str) -> RegicideGameEngine:
