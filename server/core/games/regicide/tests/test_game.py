@@ -13,6 +13,7 @@ from core.games.regicide.game import Regicide as Game
 from core.games.regicide.models import Status, Suit
 from core.games.regicide.serializers import RegicideGameStateDataSerializer
 from core.games.regicide.utils import to_flat_hand
+from core.games.transform import GameStateDataSerializer
 from core.types import GameData
 
 CLUBS = Suit.CLUBS.value
@@ -23,6 +24,10 @@ DIAMONDS = Suit.DIAMONDS.value
 
 class TestGame(TestCase):
     """Test cases for game"""
+
+    user1_id = ""
+    user2_id = ""
+    game_state_serializer: GameStateDataSerializer = None
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -196,7 +201,7 @@ class TestGame(TestCase):
             tavern_deck=[("2", CLUBS)],
             turn=6,
         )
-        game = self.game_state_serializer.load(dump)
+        game: Regicide = self.game_state_serializer.load(dump)
 
         # player plays card with damage enough to defeat the enemy and won the game
         turn = {"cards": [("Q", CLUBS)]}

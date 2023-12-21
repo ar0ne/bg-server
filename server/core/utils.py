@@ -1,11 +1,12 @@
 """Utilities"""
 import json
 from dataclasses import asdict, dataclass, fields
+from typing import Tuple
 
 
 @dataclass(frozen=True)
 class Serializable:
-    not_serializing = tuple()
+    not_serializing: Tuple = tuple()
 
     @classmethod
     def fromdict(cls, d):

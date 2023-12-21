@@ -5,7 +5,7 @@ import functools
 import logging
 import time
 from time import monotonic
-from typing import Any, Callable, Optional, Protocol, TypeVar, cast
+from typing import Any, Callable, Dict, List, Optional, Protocol, TypeVar, cast
 
 from tornado import gen
 from tornado.concurrent import Future
@@ -34,8 +34,8 @@ class SimpleCache:
     """Simple cache. Just stores things in a dict of fixed size."""
 
     def __init__(self, limit: int = 10) -> None:
-        self._cache = {}
-        self._cache_order = []
+        self._cache: Dict[str, Any] = {}
+        self._cache_order: List[str] = []
         self.limit = limit
 
     def get(self, key: str) -> Any:
@@ -92,7 +92,7 @@ class DummyAsyncCache:
         self.limit = limit
 
     def get(self, key: str):
-        f = Future()
+        f: Future = Future()
         value, deadline = self._cache.get(key, (None, None))
         if deadline and deadline < monotonic():
             self._cache.pop(key)

@@ -1,10 +1,9 @@
 """DB models"""
 import json
 
-from core.constants import REGICIDE, TICTACTOE, GameRoomStatus
 from core.resources.utils import CustomJSONEncoder
 from core.types import GameData, Id
-from tortoise import Model, Tortoise, fields
+from tortoise import Model, Tortoise, fields  # mypy: disable-error-code="attr-defined"
 from tortoise.contrib.pydantic import pydantic_model_creator, pydantic_queryset_creator
 
 JSON_ENCODER = lambda x: json.dumps(x, cls=CustomJSONEncoder)
@@ -66,7 +65,7 @@ class GameTurn(Model):
 
     id: Id = fields.UUIDField(pk=True)
     data: GameData = fields.JSONField(encoder=JSON_ENCODER)
-    room: Room = fields.ForeignKeyField("models.Room")
+    room: Room = fields.ForeignKeyField("models.Room")  # type: ignore
     turn: int = fields.SmallIntField(default=0)
 
 
@@ -80,7 +79,7 @@ GameSerializer = pydantic_model_creator(Game)
 GameListSerializer = pydantic_queryset_creator(Game)
 
 
-async def initial_data():
+async def initial_data() -> None:
     """Initial data"""
-    await Game.get_or_create(name=REGICIDE, min_size=1, max_size=4)
-    await Game.get_or_create(name=TICTACTOE, min_size=2, max_size=2)
+    await Game.get_or_create(name="Regicide", min_size=1, max_size=4)
+    await Game.get_or_create(name="TicTacToe", min_size=2, max_size=2)

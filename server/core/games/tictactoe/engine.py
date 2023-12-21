@@ -1,7 +1,6 @@
 """Tic Tac Toe game engine"""
 from typing import List, Self, Tuple, Type
 
-from core.constants import GameRoomStatus
 from core.games.engine import BaseGameEngine
 from core.games.exceptions import GameDataNotFound
 from core.games.tictactoe.dto import GameStateDto

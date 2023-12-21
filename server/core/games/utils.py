@@ -1,9 +1,9 @@
 """Utilities"""
 
-from typing import Iterable
+from typing import Any, Iterable, Iterator
 
 
-def infinite_cycle(iters: Iterable):
+def infinite_cycle(iters: Iterable) -> Iterator[Any]:
     """Infinite loop generator"""
     while True:
         for it in iters:

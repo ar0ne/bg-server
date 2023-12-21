@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 import tornado
-from core.constants import IN_PROGRESS, GameRoomStatus
+from core.constants import GameRoomStatus
 from core.loaders import get_engine
 from core.resources.auth import login_required
 from core.resources.errors import APIError

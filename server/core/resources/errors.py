@@ -32,12 +32,12 @@ class ValidationError(Error, APIError):
         **kwargs: Any,
     ) -> None:
         super().__init__(status_code, log_message, *args, **kwargs)
-        if not self.reason:
+        if not self.reason:  # type: ignore
             self.reason = self.error_message
 
 
-class LoaderNotFound(Error):
-    """Loader function not found"""
+class GameModuleNotFound(Error):
+    """Game module not found"""
 
 
 class ErrorHandler(tornado.web.RequestHandler):

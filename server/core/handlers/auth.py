@@ -41,7 +41,7 @@ class AuthSignUpHandler(BaseRequestHandler):
 class AuthLoginHandler(BaseRequestHandler):
     """Login handler"""
 
-    async def post(self):
+    async def post(self) -> None:
         username, password = self.request.arguments["name"], self.request.arguments["password"]
         player = await Player.filter(name=username).first()
         if not player:

@@ -3,6 +3,7 @@ import uuid
 from abc import ABC, abstractclassmethod, abstractmethod, abstractstaticmethod
 from typing import Any, Dict, List, Tuple, Type
 
+from core.games.exceptions import GameDataNotFound
 from core.games.transform import GameStateDataSerializer
 from core.resources.models import GameTurn
 from core.types import GameData, GameDataTurn, GameState

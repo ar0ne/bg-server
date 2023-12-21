@@ -4,6 +4,7 @@ from typing import List
 from core.types import GameDataTurn
 
 
+# mypy: disable-error-code=empty-body
 class Game(ABC):
     """Game interface"""
 
