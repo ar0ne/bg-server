@@ -27,11 +27,11 @@ class RegicideGameEngine(BaseGameEngine):
         game_cls: Any,
         room_id: str,
         state_serializer: GameStateDataSerializer,
-        turn_data_serializer: GameTurnDataSerializer,
+        turn_serializer: GameTurnDataSerializer,
     ) -> None:
         """Init game engine"""
         super().__init__(game_cls, room_id, state_serializer)
-        self.turn_serializer = turn_data_serializer
+        self.turn_serializer = turn_serializer
 
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameState, str]:
         """Update game state"""
@@ -71,5 +71,5 @@ def create_engine(room_id: str) -> RegicideGameEngine:
         game_cls=Regicide,
         room_id=room_id,
         state_serializer=cast(GameStateDataSerializer, RegicideGameStateDataSerializer),
-        turn_data_serializer=cast(GameTurnDataSerializer, RegicideGameTurnDataSerializer),
+        turn_serializer=cast(GameTurnDataSerializer, RegicideGameTurnDataSerializer),
     )

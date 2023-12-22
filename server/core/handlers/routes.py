@@ -1,7 +1,7 @@
 """App routing"""
-from typing import List, Tuple
+from typing import List, Tuple, Type, TypeVar
 
-import tornado
+from tornado.web import RequestHandler
 
 from core.handlers.auth import AuthLoginHandler, AuthSignUpHandler
 from core.handlers.games import GameHandler
@@ -17,9 +17,10 @@ from core.handlers.rooms import (
 from core.handlers.websocket import RoomWebSocketHandler
 
 API_URL_PREFIX = "/api/v1"
+HttpRequestHandler = TypeVar("HttpRequestHandler", bound=RequestHandler)
 
 
-def get_routes() -> List[Tuple[str, tornado.web.RequestHandler]]:
+def get_routes() -> List[Tuple[str, Type[HttpRequestHandler]]]:
     """Create app route mapping"""
     routes = [
         (r"/auth/sign-up/?", AuthSignUpHandler),

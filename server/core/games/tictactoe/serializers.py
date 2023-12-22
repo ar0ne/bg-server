@@ -11,7 +11,7 @@ class TicTacToeGameStateDataSerializer:
     """TicTacToe game state serializer"""
 
     @staticmethod
-    def loads(data: GameStateDto, **kwargs) -> TicTacToe:
+    def loads(data: GameStateDto) -> TicTacToe:
         """Deserialize game state DTO to game object"""
         game = TicTacToe(data.players)
 
@@ -27,7 +27,7 @@ class TicTacToeGameStateDataSerializer:
         return game
 
     @staticmethod
-    def dumps(game: TicTacToe, **kwargs) -> GameState:
+    def dumps(game: TicTacToe) -> GameState:
         """Serializer game object to game state DTO"""
         return GameStateDto(
             active_player_id=game.active_player.id,

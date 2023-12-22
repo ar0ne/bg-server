@@ -1,9 +1,12 @@
 """Utility functions"""
 import importlib
 import json
+import logging
 
 from dataclasses import asdict, is_dataclass
 from uuid import UUID
+
+log = logging.getLogger(__name__)
 
 
 class CustomJSONEncoder(json.JSONEncoder):
