@@ -66,7 +66,7 @@ class RegicideGameEngine(BaseGameEngine):
 
 
 def create_engine(room_id: str) -> RegicideGameEngine:
-    """Game engine builder"""
+    """Create instance of game engine"""
     return RegicideGameEngine(
         game_cls=Regicide,
         room_id=room_id,

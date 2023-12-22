@@ -18,9 +18,9 @@ log = logging.getLogger(__name__)
 FACTORY_FUNC_NAME = "create_engine"
 
 
-def load_game_engine_builder(game_name: str) -> Callable | None:
+def load_game_engine_factory(game_name: str) -> Callable | None:
     """
-    Load game engine class.
+    Load game engine factory function.
     """
     # lazily load module of the game and cache it in sys.modules
     module = load_module(f"core.games.{game_name}.engine")
@@ -28,7 +28,7 @@ def load_game_engine_builder(game_name: str) -> Callable | None:
         return None
     try:
         return getattr(module, FACTORY_FUNC_NAME)
-    except FileNotFoundError:
+    except AttributeError:
         log.error("Can't load game engine builder (%s)", game_name)
     return None
 
@@ -36,7 +36,7 @@ def load_game_engine_builder(game_name: str) -> Callable | None:
 async def get_engine(room: Room) -> GameEngine:
     """Get game engine instance"""
     name = room.game.name.lower()
-    factory = load_game_engine_builder(name)
+    factory = load_game_engine_factory(name)
     if not factory:
         raise GameModuleNotFound
     return factory(room_id=room.id)

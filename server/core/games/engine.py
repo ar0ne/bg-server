@@ -39,7 +39,20 @@ class GameEngine(ABC):
 
 
 class BaseGameEngine(GameEngine):
-    """Base game engine"""
+    """
+    This class is base game engine which combines :class:`core.games.game.Game`
+    implementations and Tornado application.
+
+    To make it works, you need to add factory method in `core/games/mygame/engine.py`
+    file with following signature:
+
+    class MyGameEngine(BaseGameEngine):
+        ...
+
+    def create_engine(room_id: str) -> MyGameEngine:
+        return MyGameEngine(room_id=room_id)
+
+    """
 
     def __init__(
         self, game_cls: Any, room_id: str, state_serializer: GameStateDataSerializer

@@ -47,7 +47,7 @@ class TicTacToeGameEngine(BaseGameEngine):
 
 
 def create_engine(room_id: str) -> TicTacToeGameEngine:
-    """Game engine builder"""
+    """Create instance of game engine"""
     return TicTacToeGameEngine(
         game_cls=TicTacToe,
         room_id=room_id,
