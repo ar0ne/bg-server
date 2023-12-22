@@ -9,7 +9,7 @@ from core.games.regicide.serializers import (
     RegicideGameStateDataSerializer,
     RegicideGameTurnDataSerializer,
 )
-from core.games.transform import GameStateDataSerializer, GameTurnDataSerializer
+from core.games.serializers import GameStateDataSerializer, GameTurnDataSerializer
 from core.types import GameDataTurn, GameState
 
 
@@ -37,23 +37,23 @@ class RegicideGameEngine(BaseGameEngine):
         """Update game state"""
         # transform from flat cards to Card objects
         game_data_dto = await self.get_game_data_dto()
-        game: Regicide = self.state_serializer.load(game_data_dto)  # type: ignore
+        game: Regicide = self.state_serializer.loads(game_data_dto)  # type: ignore
         # update game state
         game = game.make_turn(player_id, turn)
         # save changes
-        game_state = self.state_serializer.dump(game)
+        game_state = self.state_serializer.dumps(game)
         await self.save(game_state)
         # return turn game state for the player
-        turn_game_state = self.turn_serializer.dump(game, player_id=player_id)
+        turn_game_state = self.turn_serializer.dumps(game, player_id=player_id)
         return turn_game_state, game.status.value
 
     async def poll(self, player_id: str | None = None) -> GameState:
         """Poll the last turn data"""
         game_data_dto = await self.get_game_data_dto()
-        game: Regicide = self.state_serializer.load(game_data_dto)  # type: ignore
+        game: Regicide = self.state_serializer.loads(game_data_dto)  # type: ignore
         # we can't just return latest game state, because players don't know full game state and
         # don't see same data. We partially serialize game state (turn) with data player could see
-        turn_game_state = self.turn_serializer.dump(game, player_id=player_id)
+        turn_game_state = self.turn_serializer.dumps(game, player_id=player_id)
         return turn_game_state
 
     async def get_game_data_dto(self) -> GameStateDto:

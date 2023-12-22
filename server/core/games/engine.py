@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Tuple
 
 from core.games.exceptions import GameDataNotFound
-from core.games.transform import GameStateDataSerializer
+from core.games.serializers import GameStateDataSerializer
 from core.resources.models import GameTurn
 from core.types import GameData, GameDataTurn, GameState
 
@@ -58,7 +58,7 @@ class BaseGameEngine(GameEngine):
         """Setup new game"""
         game = self.game_cls.init_new_game(players)
         # transform to json-serializable object to persist into db
-        game_state = self.state_serializer.dump(game)
+        game_state = self.state_serializer.dumps(game)
         await self.save(game_state)
 
     async def get_game_data(self) -> GameData:

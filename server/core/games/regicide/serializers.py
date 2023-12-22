@@ -1,6 +1,4 @@
 """Game data serializer"""
-from abc import ABC, abstractmethod
-
 from core.games.regicide.dto import GameStateDto, GameTurnDataDto, PlayerHand
 from core.games.regicide.game import (
     Regicide,
@@ -17,7 +15,7 @@ class RegicideGameTurnDataSerializer:
     """Regicide game data serilizer"""
 
     @staticmethod
-    def dump(game: Regicide, **kwargs) -> GameState:  # type: ignore[override]
+    def dumps(game: Regicide, **kwargs) -> GameState:  # type: ignore[override]
         """Serialize game object to game turn DTO for a player"""
         player_id: str | None = kwargs.get("player_id")
         player = None
@@ -55,7 +53,7 @@ class RegicideGameStateDataSerializer:
     """Regicide game state serializer"""
 
     @staticmethod
-    def load(data: GameStateDto, **kwargs) -> Regicide:
+    def loads(data: GameStateDto, **kwargs) -> Regicide:
         """Deserialize game state DTO to game object"""
         # fmt: off
         game = Regicide(list(map(lambda p: p[0], data.players)))
@@ -99,7 +97,7 @@ class RegicideGameStateDataSerializer:
         return game
 
     @staticmethod
-    def dump(game: Regicide, **kwargs) -> GameState:
+    def dumps(game: Regicide, **kwargs) -> GameState:
         """Serialize game object into game state DTO"""
 
         return GameStateDto(

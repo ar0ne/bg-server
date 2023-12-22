@@ -17,7 +17,7 @@ class TestRegicideGameStateDataSerializers(TestCase):
         """Setup test class"""
         cls.serializer = RegicideGameStateDataSerializer()
 
-    def test_dump_game_state(self) -> None:
+    def test_dumps_game_state(self) -> None:
         """Tests dumping (upload) game state"""
 
         user_id = "user_id"
@@ -35,7 +35,7 @@ class TestRegicideGameStateDataSerializers(TestCase):
         game.status = Status.DISCARDING_CARDS
         game.turn = 5
 
-        dump = self.serializer.dump(game)
+        dump = self.serializer.dumps(game)
 
         self.assertEqual([("J", "♠")], dump["enemy_deck"])
         self.assertEqual([("2", "♣")], dump["tavern_deck"])
@@ -63,7 +63,7 @@ class TestRegicideGameStateDataSerializers(TestCase):
             tavern_deck=[("2", "♣")],
             turn=20,
         )
-        game = self.serializer.load(dump)
+        game = self.serializer.loads(dump)
 
         self.assertEqual(20, game.turn)
         self.assertEqual(Status.DISCARDING_CARDS, game.status)

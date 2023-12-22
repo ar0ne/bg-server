@@ -84,7 +84,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("2", CLUBS)],
             turn=4,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         enemy = game.enemy_deck.peek()
 
@@ -130,7 +130,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("8", CLUBS), ("8", HEARTS), ("9", HEARTS), ("9", DIAMONDS)],
             turn=4,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
@@ -168,7 +168,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("2", CLUBS)],
             turn=4,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         # player plays combo from diamond card and draws new card. Then game moves to discard
         # cards state
@@ -200,7 +200,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("2", CLUBS)],
             turn=6,
         )
-        game: Regicide = self.game_state_serializer.load(dump)
+        game: Regicide = self.game_state_serializer.loads(dump)
 
         # player plays card with damage enough to defeat the enemy and won the game
         turn = {"cards": [("Q", CLUBS)]}
@@ -231,7 +231,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("3", CLUBS), ("4", CLUBS)],
             turn=6,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         # player plays combo from 2x4, enemy has immune to hearts
         turn = {"cards": [("2", CLUBS), ("2", HEARTS), ("2", DIAMONDS), ("2", SPADES)]}
@@ -262,7 +262,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("3", CLUBS), ("4", CLUBS)],
             turn=6,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         # empty cards means player skipped playing cards and want to discard if needed
         turn: dict = {"cards": []}
@@ -293,7 +293,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("4", CLUBS)],
             turn=6,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         # player plays combo from ace and 5, game moves to discard cards state
         turn = {"cards": [("5", CLUBS), ("A", DIAMONDS)]}
@@ -334,7 +334,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[],
             turn=6,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         # player plays combo from ace and 4 (power - 5), game moves to discard cards state
         turn = {"cards": [("4", HEARTS), ("A", DIAMONDS)]}
@@ -383,7 +383,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[],
             turn=2,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
 
         with self.assertRaises(InvalidTurnDataError):
             game.make_turn(game.active_player.id, None)  # type: ignore
@@ -421,7 +421,7 @@ class TestRegicideGame(TestCase):
             tavern_deck=[("4", CLUBS)],
             turn=6,
         )
-        game = self.game_state_serializer.load(dump)
+        game = self.game_state_serializer.loads(dump)
         turn = {"cards": [("K", DIAMONDS)]}
         game = game.make_turn(game.active_player.id, turn)
 

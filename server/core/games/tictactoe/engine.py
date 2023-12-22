@@ -2,11 +2,11 @@
 from typing import Tuple, cast
 
 from core.games.engine import BaseGameEngine
+from core.games.serializers import GameStateDataSerializer
 from core.games.tictactoe.dto import GameStateDto
 from core.games.tictactoe.game import TicTacToe
 from core.games.tictactoe.models import Status
 from core.games.tictactoe.serializers import TicTacToeGameStateDataSerializer
-from core.games.transform import GameStateDataSerializer
 from core.types import GameDataTurn, GameState
 
 
@@ -21,11 +21,11 @@ class TicTacToeGameEngine(BaseGameEngine):
     async def update(self, player_id: str, turn: GameDataTurn) -> Tuple[GameState, str]:
         """Update game state"""
         game_data_dto = await self.get_game_data_dto()
-        game: TicTacToe = self.state_serializer.load(game_data_dto)  # type: ignore
+        game: TicTacToe = self.state_serializer.loads(game_data_dto)  # type: ignore
         # update state
         game = game.make_turn(player_id, turn)
         # save changes
-        game_state = self.state_serializer.dump(game)
+        game_state = self.state_serializer.dumps(game)
         await self.save(game_state)
         # serialize updated game state
         return game_state, game.status.value

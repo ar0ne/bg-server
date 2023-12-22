@@ -4,7 +4,6 @@ import os
 
 from typing import Callable
 
-from core.caches import CACHE, cached
 from core.games.engine import GameEngine
 from core.resources.errors import GameModuleNotFound
 from core.resources.models import Room
@@ -19,7 +18,6 @@ log = logging.getLogger(__name__)
 FACTORY_FUNC_NAME = "create_engine"
 
 
-@cached(cache=CACHE, key_func=lambda n: n, ttl=3600)
 def load_game_engine_builder(game_name: str) -> Callable | None:
     """
     Load game engine class.
@@ -34,7 +32,7 @@ def load_game_engine_builder(game_name: str) -> Callable | None:
     return factory_func
 
 
-def get_engine(room: Room) -> GameEngine:
+async def get_engine(room: Room) -> GameEngine:
     """Get game engine instance"""
     name = room.game.name.lower()
     factory = load_game_engine_builder(name)

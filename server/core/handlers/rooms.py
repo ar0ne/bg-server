@@ -74,7 +74,7 @@ class RoomHandler(BaseRequestHandler):
                     map(str, await room.participants.all().values_list("id", flat=True))
                 )
                 # new game event triggered
-                engine = get_engine(room)
+                engine = await get_engine(room)
                 await engine.setup(players_ids)
 
         if "size" in data:
@@ -96,7 +96,7 @@ class RoomDataHandler(BaseRequestHandler):
     async def get(self, room_id: str) -> None:
         """Get the latest game room state"""
         room = await Room.get(id=room_id).select_related("game")
-        engine = get_engine(room)
+        engine = await get_engine(room)
         # this is public endpoint, user could be missed
         user_id = str(self.request.user.id) if self.request.user else None
         data = await engine.poll(user_id)
@@ -130,7 +130,7 @@ class RoomGameTurnHandler(BaseRequestHandler):
         if not turn:
             raise APIError(400, "Validation error")
         room = await Room.get(id=room_id).select_related("game")
-        engine = get_engine(room)
+        engine = await get_engine(room)
         # update game state
         data, status = await engine.update(user_id, turn)
         if not engine.is_in_progress(status):
