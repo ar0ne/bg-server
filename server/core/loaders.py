@@ -7,7 +7,7 @@ from typing import Callable
 from core.games.engine import GameEngine
 from core.resources.errors import GameModuleNotFound
 from core.resources.models import Room
-from core.resources.utils import lazy_import
+from core.resources.utils import load_module
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,14 +22,15 @@ def load_game_engine_builder(game_name: str) -> Callable | None:
     """
     Load game engine class.
     """
-    path = f"{BASE_DIR}/core/games/{game_name}/engine.py"
-    module = lazy_import("engine", path)
-    factory_func = None
+    # lazily load module of the game and cache it in sys.modules
+    module = load_module(f"core.games.{game_name}.engine")
+    if not module:
+        return None
     try:
-        factory_func = getattr(module, FACTORY_FUNC_NAME)
+        return getattr(module, FACTORY_FUNC_NAME)
     except FileNotFoundError:
-        log.error("Game module (%s) not found.", game_name)
-    return factory_func
+        log.error("Can't load game engine builder (%s)", game_name)
+    return None
 
 
 async def get_engine(room: Room) -> GameEngine:

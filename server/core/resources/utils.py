@@ -1,5 +1,5 @@
 """Utility functions"""
-import importlib.util
+import importlib
 import json
 
 from dataclasses import asdict, is_dataclass
@@ -15,11 +15,9 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def lazy_import(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    # creates a new module based on spec
-    module = importlib.util.module_from_spec(spec)
-    # executes the module in its own namespace
-    # when a module is imported or reloaded.
-    spec.loader.exec_module(module)
-    return module
+def load_module(module_name: str):
+    try:
+        return importlib.import_module(module_name)
+    except ImportError:
+        log.warning("Can't import module (%s)", module_name)
+    return None
