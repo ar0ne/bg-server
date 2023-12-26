@@ -13,7 +13,7 @@ warn_unused_configs = true
 warn_unused_ignores = true
 
 [tool.aerich]
-tortoise_orm = "core.database.TORTOISE_ORM"
+tortoise_orm = "core.config.TORTOISE_ORM"
 location = "./migrations"
 src_folder = "./."
 

@@ -7,7 +7,7 @@ import os
 from tornado import web
 from tornado.options import options
 
-from core.config import ROOT_PATH, init_options, load_env_variables
+from core.config import ROOT_PATH, STATIC_PATH, TEMPLATE_PATH
 from core.database import init_database
 from core.handlers.routes import get_routes
 from core.resources.errors import ErrorHandler
@@ -21,8 +21,8 @@ class Application(web.Application):
         self.db = db
         settings = dict(
             debug=options.debug,
-            static_path=os.path.join(ROOT_PATH, "static"),
-            template_path=os.path.join(ROOT_PATH, "templates"),
+            static_path=STATIC_PATH,
+            template_path=TEMPLATE_PATH,
             default_handler_class=ErrorHandler,
             default_handler_args=dict(status_code=404),
         )
@@ -32,9 +32,6 @@ class Application(web.Application):
 
 async def main() -> None:
     """Main loop function"""
-    init_options()
-    load_env_variables()
-
     await init_database()
 
     app = Application(None)

@@ -1,17 +1,8 @@
 """Setup database"""
-from tornado.options import options, parse_config_file
+from tornado.options import options
 from tortoise import Tortoise
 
-if "port" not in options:
-    from core.config import load_env_variables
-
-    load_env_variables()
-
-
-SQLITE_CONFIG = {
-    "connections": {
-        "default": {"engine": "tortoise.backends.sqlite", "credentials": {"file_path": "db.sqlite"}}
-    },
+DEFAULT_CONFIG = {
     "apps": {
         "models": {
             "models": ["core.resources.models", "aerich.models"],
@@ -20,8 +11,19 @@ SQLITE_CONFIG = {
     },
 }
 
+SQLITE_CONFIG = {
+    **DEFAULT_CONFIG,
+    "connections": {
+        "default": {
+            "engine": "tortoise.backends.sqlite",
+            "credentials": {"file_path": "db.sqlite"},
+        }
+    },
+}
+
 
 POSTGRESQL_CONFIG = {
+    **DEFAULT_CONFIG,
     "connections": {
         "default": {
             "engine": "tortoise.backends.asyncpg",
@@ -34,24 +36,13 @@ POSTGRESQL_CONFIG = {
             },
         }
     },
-    "apps": {
-        "models": {
-            "models": ["core.resources.models", "aerich.models"],
-            "default_connection": "default",
-        }
-    },
 }
-
-
-TORTOISE_ORM = SQLITE_CONFIG
-if options.db_provider == "postgres":
-    TORTOISE_ORM = POSTGRESQL_CONFIG
 
 
 async def init_database() -> None:
     """Initialize database"""
+    from core.config import TORTOISE_ORM
 
     await Tortoise.init(config=TORTOISE_ORM)
 
-    # Generate the schema
     await Tortoise.generate_schemas()
