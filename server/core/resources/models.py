@@ -78,9 +78,3 @@ RoomSerializer = pydantic_model_creator(Room)
 RoomListSerializer = pydantic_queryset_creator(Room)
 GameSerializer = pydantic_model_creator(Game)
 GameListSerializer = pydantic_queryset_creator(Game)
-
-
-async def initial_data() -> None:
-    """Initial data"""
-    await Game.get_or_create(name="Regicide", min_size=1, max_size=4)
-    await Game.get_or_create(name="TicTacToe", min_size=2, max_size=2)

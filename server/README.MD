@@ -13,6 +13,8 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 
+aerich upgrade
+
 python main.py
 ```
 
