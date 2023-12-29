@@ -3,19 +3,19 @@ repos:
     rev: v4.4.0
     hooks:
       - id: end-of-file-fixer
-        exclude: ^client/
+        exclude: ^frontend/
       - id: trailing-whitespace
-        exclude: ^client/
+        exclude: ^frontend/
       - id: requirements-txt-fixer
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
-        exclude: ^(client/|setup.py)
+        exclude: ^(frontend/|setup.py)
         args: ["-m3", "-w100", "--tc"]
   - repo: https://github.com/psf/black
     rev: 23.9.1
     hooks:
       - id: black
-        exclude: ^(client/|setup.py)|migrations
-        args: [--config=./server/pyproject.toml]
+        exclude: ^(frontend/|setup.py)|migrations
+        args: [--config=./backend/pyproject.toml]
