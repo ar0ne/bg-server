@@ -24,3 +24,5 @@ The simplest way to run it is to use Docker. But, before you need to add environ
 `docker-compose build`
 
 `docker-compose up -d`
+
+`docker-compose up scale backend=3`

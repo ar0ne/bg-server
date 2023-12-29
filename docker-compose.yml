@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  bg_server_db:
+  db:
     image: postgres:latest
     restart: always
     user: postgres
@@ -19,29 +19,31 @@ services:
       timeout: 5s
       retries: 5
 
-  bg_server:
+  backend:
     build:
-      context: server/
+      context: backend/
     depends_on:
-      bg_server_db:
+      db:
         condition: service_healthy
       # - redis
-    ports:
-      - '8888:8888'
-    command: --db_host=bg_server_db
+    # ports:
+    #   - '8888:8888'
+    expose:
+      - "8888"
+    command: --db_host=db --db_provider=postgres
 
-  bg_client:
+  frontend:
     build:
-      context: client/
+      context: frontend/
     ports:
       - '3000:80'
 
   nginx:
     image: nginx:latest
     volumes:
-      - ./componse/nging/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./compose/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - bg_server
+      - backend
     ports:
       - "4000:4000"
 
@@ -58,3 +60,9 @@ services:
 
 volumes:
   bg_server_db:
+
+
+networks:
+  default:
+    driver: bridge
+    name: gameserver
