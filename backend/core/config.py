@@ -27,6 +27,11 @@ TEMPLATE_PATH = os.path.join(ROOT_PATH, "templates")
 parse_config_file(CONFIG_FILE_PATH)
 parse_command_line()
 
+if "DB_HOST" in os.environ:
+    options.db_host = os.getenv("DB_HOST")
+
+if "DB_PROVIDER" in os.environ:
+    options.db_provider = os.getenv("DB_PROVIDER")
 
 from core.database import POSTGRESQL_CONFIG, SQLITE_CONFIG
 

@@ -17,4 +17,6 @@ COPY --chown=bguser:bguser . .
 
 EXPOSE 8888
 
-ENTRYPOINT ["python", "main.py"]
+# ENTRYPOINT ["python", "main.py"]
+
+ENTRYPOINT ["sh", "start.sh"]

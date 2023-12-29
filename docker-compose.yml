@@ -28,9 +28,11 @@ services:
       # - redis
     # ports:
     #   - '8888:8888'
+    environment:
+      DB_HOST: db
+      DB_PROVIDER: "postgres"
     expose:
       - "8888"
-    command: --db_host=db --db_provider=postgres
 
   frontend:
     build:
