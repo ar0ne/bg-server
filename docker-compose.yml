@@ -34,11 +34,16 @@ services:
   #   expose:
   #     - "8888"
 
-  frontend:
-    build:
-      context: frontend/
-    ports:
-      - "3000:80"
+  # frontend:
+  #   build:
+  #     context: frontend/
+  #   ports:
+  #     - "3000:80"
+  #   environment:
+  #     SERVER_ROOT: "http://nginx"
+  #     SERVER_PORT: 4000
+  #     WS_SERVER_ROOT: "ws://nginx"
+  #     WS_SERVER_PORT: 4000
 
   # nginx:
   #   image: nginx:latest
@@ -58,6 +63,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    ports:
+      - "6379:6379"
 
 volumes:
   bg_server_db:
