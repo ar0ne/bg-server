@@ -33,7 +33,6 @@ class Application(web.Application):
 async def main() -> None:
     """Main loop function"""
     await init_database()
-
     app = Application(None)
     app.listen(options.port)
     await asyncio.Event().wait()
