@@ -4,6 +4,7 @@ Main
 import asyncio
 import os
 
+from aiocache import caches
 from tornado import web
 from tornado.options import options
 
@@ -16,9 +17,10 @@ from core.resources.errors import ErrorHandler
 class Application(web.Application):
     """Application"""
 
-    def __init__(self, db):
+    def __init__(self, db, cache):
         """Init application"""
         self.db = db
+        self.cache = cache
         settings = dict(
             debug=options.debug,
             static_path=STATIC_PATH,
@@ -33,7 +35,8 @@ class Application(web.Application):
 async def main() -> None:
     """Main loop function"""
     await init_database()
-    app = Application(None)
+    cache = caches.get("default")
+    app = Application(None, cache)
     app.listen(options.port)
     await asyncio.Event().wait()
 

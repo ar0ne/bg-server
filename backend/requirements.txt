@@ -1,7 +1,9 @@
 aerich~=0.7.0
+aiocache~=0.12.2
 asyncpg~=0.29.0
 bcrypt~=4.0.0
 PyJWT~=2.6.0
+redis~=5.0.1
 tornado~=6.3.3
 tornado-middleware~=1.2.3
 tortoise-orm~=0.20.0
