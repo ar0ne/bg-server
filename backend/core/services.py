@@ -1,19 +1,32 @@
 """App services"""
 from aiocache import cached
 
-from core.resources.models import Game, GameListSerializer, GameSerializer
+from core.resources.models import Game, GameListSerializer, GameSerializer, Player, PlayerSerializer
 
 
 class GameService:
     """Game service"""
 
-    @cached(key="all_games", alias="default", noself=True)
+    @cached(key="all_games", alias="default")
     async def get_all_games(self):
+        """Get all games"""
         list_serializer = await GameListSerializer.from_queryset(Game.all())
         return list_serializer.model_dump(mode="json")
 
-    @cached(key_builder=lambda _, __, n: f"get_game_{n}".lower(), alias="default", noself=True)
+    @cached(key_builder=lambda _, __, n: f"get_game_{n}".lower(), alias="default")
     async def get_game_by_name(self, name):
+        """Get game details by name"""
         game = await Game.get(name=name)
         serializer = await GameSerializer.from_tortoise_orm(game)
+        return serializer.model_dump(mode="json")
+
+
+class PlayerService:
+    """Player service"""
+
+    @cached(key_builder=lambda _, __, i: f"get_player_id_{i}", alias="default")
+    async def get_player_by_id(self, player_id: str):
+        """Get player data by id"""
+        player = await Player.get(id=player_id)
+        serializer = await PlayerSerializer.from_tortoise_orm(player)
         return serializer.model_dump(mode="json")
