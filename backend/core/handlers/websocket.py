@@ -25,3 +25,9 @@ class RoomWebSocketHandler(WebSocketHandler):
                 await self.application.socket_manager.broadcast_to_room(room_id, message)
             return
         self.write_message(message)
+
+    def on_close(self) -> None:
+        if not self.open_args:
+            return
+        # FIXME: on_close is not awaitable
+        #  but we still want to call 'remove_user_from_room'
