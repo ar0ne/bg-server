@@ -76,10 +76,9 @@ class RoomService:
     async def join_room(self, room_id: str, user) -> dict:
         """Join a room"""
         room = await Room.get(id=room_id).prefetch_related("participants")
-        player_already_joined = await room.participants.filter(id=player_id).exists()
-        if player_already_joined:
+        if await room.participants.filter(id=user.id).exists():
             raise APIError(400, "User already joined the room.")
-        await room.participants.add(current_user)
+        await room.participants.add(user)
         serializer = await RoomSerializer.from_tortoise_orm(room)
         return serializer.model_dump(mode="json")
 

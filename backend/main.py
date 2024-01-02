@@ -11,16 +11,19 @@ from tornado.options import options
 from core.config import ROOT_PATH, STATIC_PATH, TEMPLATE_PATH
 from core.database import init_database
 from core.handlers.routes import get_routes
+from core.redis import RedisPubSubManager
 from core.resources.errors import ErrorHandler
+from core.websocket import WebSocketManager
 
 
 class Application(web.Application):
     """Application"""
 
-    def __init__(self, db, cache):
+    def __init__(self, db, cache, socket_manager):
         """Init application"""
         self.db = db
         self.cache = cache
+        self.socket_manager = socket_manager
         settings = dict(
             debug=options.debug,
             static_path=STATIC_PATH,
@@ -36,7 +39,9 @@ async def main() -> None:
     """Main loop function"""
     await init_database()
     cache = caches.get("default")
-    app = Application(None, cache)
+    pubsub = RedisPubSubManager(options.redis_host, options.redis_port)
+    socket_manager = WebSocketManager(pubsub)
+    app = Application(None, cache, socket_manager)
     app.listen(options.port)
     await asyncio.Event().wait()
 
