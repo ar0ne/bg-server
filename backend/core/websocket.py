@@ -4,6 +4,8 @@ import redis.asyncio as aioredis
 
 
 class WebSocketManager:
+    """Websocket manager"""
+
     def __init__(self, pubsub_client) -> None:
         """
         Initializes the WebSocketManager.
@@ -50,6 +52,8 @@ class WebSocketManager:
             room_id (str): Room ID or channel name.
             websocket (WebSocket): WebSocket connection object.
         """
+        if websocket not in self.rooms[room_id]:
+            return
         self.rooms[room_id].remove(websocket)
 
         if len(self.rooms[room_id]) == 0:
@@ -70,7 +74,7 @@ class WebSocketManager:
                 all_sockets = self.rooms[room_id]
                 for socket in all_sockets:
                     data = message["data"].decode("utf-8")
-                    if socket and socket.stream.socket:
+                    if socket and not socket.close_code:
                         await socket.write_message(data)
                     else:
                         await self.remove_user_from_room(room_id, socket)

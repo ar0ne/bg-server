@@ -14,7 +14,7 @@ from core.handlers.rooms import (
     RoomHandler,
     RoomPlayersHandler,
 )
-from core.handlers.websocket import RoomWebSocketHandler
+from core.handlers.rooms_ws import RoomWebSocketHandler
 
 API_URL_PREFIX = "/api/v1"
 HttpRequestHandler = TypeVar("HttpRequestHandler", bound=RequestHandler)
