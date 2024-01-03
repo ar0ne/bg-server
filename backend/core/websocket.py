@@ -1,6 +1,9 @@
 import asyncio
+import datetime
 
 import redis.asyncio as aioredis
+
+from tornado.websocket import WebSocketClosedError
 
 
 class WebSocketManager:
@@ -69,12 +72,17 @@ class WebSocketManager:
         """
         while True:
             message = await pubsub_subscriber.get_message(ignore_subscribe_messages=True)
-            if message is not None:
-                room_id = message["channel"].decode("utf-8")
-                all_sockets = self.rooms[room_id]
-                for socket in all_sockets:
-                    data = message["data"].decode("utf-8")
-                    if socket and not socket.close_code:
-                        await socket.write_message(data)
-                    else:
-                        await self.remove_user_from_room(room_id, socket)
+            if message is None:
+                continue
+            print(datetime.datetime.now())
+            room_id = message["channel"].decode("utf-8")
+            all_sockets = self.rooms[room_id]
+            data = message["data"].decode("utf-8")
+            removable = []
+            for socket in all_sockets:
+                try:
+                    await socket.write_message(data)
+                except WebSocketClosedError:
+                    removable.append(socket)
+            for socket in removable:
+                await self.remove_user_from_room(room_id, socket)
