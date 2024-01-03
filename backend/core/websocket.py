@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 
 import redis.asyncio as aioredis
 
@@ -124,9 +123,12 @@ class WebSocketManager:
             return
         self.rooms[room_id].remove(websocket)
 
-        if len(self.rooms[room_id]) == 0:
-            del self.rooms[room_id]
-            await self.pubsub_client.unsubscribe(room_id)
+    async def _cleanup_rooms(self) -> None:
+        """Check if all rooms have alive connections, otherwise unsubscribe them"""
+        for room_id in self.rooms:
+            if not len(self.rooms[room_id]):
+                del self.rooms[room_id]
+                await self.pubsub_client.unsubscribe(room_id)
 
     async def _pubsub_data_reader(self, pubsub_subscriber):
         """
@@ -139,7 +141,6 @@ class WebSocketManager:
             message = await pubsub_subscriber.get_message(ignore_subscribe_messages=True)
             if message is None:
                 continue
-            print(datetime.datetime.now())
             room_id = message["channel"].decode("utf-8")
             all_sockets = self.rooms[room_id]
             data = message["data"].decode("utf-8")
@@ -151,3 +152,4 @@ class WebSocketManager:
                     removable.append(socket)
             for socket in removable:
                 await self.remove_user_from_room(room_id, socket)
+            await self._cleanup_rooms()
