@@ -82,6 +82,7 @@ class WebSocketManager:
             pubsub_client (RedisPubSubManager): An instance of the RedisPubSubManager class for pub-sub functionality.
         """
         self.rooms: dict = {}
+        self.lock = asyncio.Lock()
         self.pubsub_client = pubsub_client
 
     async def add_user_to_room(self, room_id: str, websocket) -> None:
@@ -99,7 +100,7 @@ class WebSocketManager:
 
             await self.pubsub_client.connect()
             pubsub_subscriber = await self.pubsub_client.subscribe(room_id)
-            asyncio.create_task(self._pubsub_data_reader(pubsub_subscriber))
+            asyncio.create_task(self._pubsub_data_reader(pubsub_subscriber, room_id))
 
     async def broadcast_to_room(self, room_id: str, message: str) -> None:
         """
@@ -119,37 +120,41 @@ class WebSocketManager:
             room_id (str): Room ID or channel name.
             websocket (WebSocket): WebSocket connection object.
         """
-        if websocket not in self.rooms[room_id]:
-            return
         self.rooms[room_id].remove(websocket)
 
     async def _cleanup_rooms(self) -> None:
-        """Check if all rooms have alive connections, otherwise unsubscribe them"""
-        for room_id in self.rooms:
-            if not len(self.rooms[room_id]):
+        """
+        Check if all rooms have alive connections, otherwise unsubscribe them
+        """
+        async with self.lock:
+            empty_rooms = [room_id for room_id in self.rooms if not len(self.rooms[room_id])]
+            for room_id in empty_rooms:
                 del self.rooms[room_id]
                 await self.pubsub_client.unsubscribe(room_id)
 
-    async def _pubsub_data_reader(self, pubsub_subscriber):
+    async def _pubsub_data_reader(self, pubsub_subscriber, orig_room_id: str) -> None:
         """
         Reads and broadcasts messages received from Redis PubSub.
 
         Args:
             pubsub_subscriber (aioredis.ChannelSubscribe): PubSub object for the subscribed channel.
         """
-        while True:
+        while orig_room_id in self.rooms:
             message = await pubsub_subscriber.get_message(ignore_subscribe_messages=True)
             if message is None:
                 continue
             room_id = message["channel"].decode("utf-8")
-            all_sockets = self.rooms[room_id]
+            # filter only messages for this channel
+            if room_id != orig_room_id:
+                continue
             data = message["data"].decode("utf-8")
             removable = []
-            for socket in all_sockets:
+            for socket in self.rooms[room_id]:
                 try:
                     await socket.write_message(data)
                 except WebSocketClosedError:
                     removable.append(socket)
             for socket in removable:
                 await self.remove_user_from_room(room_id, socket)
+            # from time to time cleanup rooms
             await self._cleanup_rooms()
