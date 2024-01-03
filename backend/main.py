@@ -11,9 +11,8 @@ from tornado.options import options
 from core.config import ROOT_PATH, STATIC_PATH, TEMPLATE_PATH
 from core.database import init_database
 from core.handlers.routes import get_routes
-from core.redis import RedisPubSubManager
 from core.resources.errors import ErrorHandler
-from core.websocket import WebSocketManager
+from core.websocket import RedisPubSubManager, WebSocketManager
 
 
 class Application(web.Application):
