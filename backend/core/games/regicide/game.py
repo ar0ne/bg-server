@@ -173,6 +173,9 @@ class Regicide(Game):
                 # player must have cards on hand enough to deal with enemies attack, otherwise
                 # game lost
                 self.status = Status.LOST
+            # if not card left on hands, game could stuck
+            if all(not len(player.hand) for player in self.players):
+                self.status = Status.LOST
 
     def _discard_cards(self, player: Player, combo: CardCombo) -> None:
         """Discard cards to defeat from enemy attack"""
