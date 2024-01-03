@@ -111,7 +111,6 @@ class RoomSetup extends Component {
             console.log("room updated");
             this.setRoom(room);
             this.setState({isLoading: false});
-            this.notifyAllAboutUpdate();
         });
     }
 
@@ -122,7 +121,6 @@ class RoomSetup extends Component {
             .then(room => {
                 this.setRoom(room);
                 this.setState({isLoading: false});
-                this.notifyAllAboutUpdate();
                 this.redirectToRoomTable();
             });
     }
@@ -134,7 +132,6 @@ class RoomSetup extends Component {
             .then(response => {
                 // empty body
                 this.setState({isLoading: false});
-                this.notifyAllAboutUpdate();
             });
     }
 
@@ -145,7 +142,6 @@ class RoomSetup extends Component {
             .then(room => {
                 this.setRoom(room);
                 this.setState({isLoading: false});
-                this.notifyAllAboutUpdate();
             });
     }
     redirectToRoomTable() {
@@ -181,11 +177,6 @@ class RoomSetup extends Component {
     fetchRoom() {
         const { room_id } = this.props.router.params;
         RoomService.getRoom(room_id).then(room => this.setRoom(room));
-    }
-
-    notifyAllAboutUpdate() {
-        // send a message via ws to make page refresh
-        this.props.wsSend("refresh");
     }
 
     componentDidUpdate(prevProps) {

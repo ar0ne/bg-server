@@ -170,7 +170,6 @@ class Game extends Component {
             this.props.room_id, {index: idx}
         ).then(room => {
             this.setState({isLoading: false, room: room});
-            this.props.notifyAllAboutUpdate();
         }, error => {
             let message = error.response.status === 400 ? error.response?.statusText : "Something went wrong. Try again later.";
             this.showErrorMessage(message);

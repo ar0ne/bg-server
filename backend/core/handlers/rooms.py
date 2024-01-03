@@ -44,6 +44,8 @@ class RoomHandler(BaseRequestHandler):
         """Player could setup game settings"""
         user = self.request.user
         data = await room_service.update_room(room_id, user, self.request.arguments)
+        # notify all users to fetch updated data
+        await self.application.socket_manager.broadcast_to_room(room_id, "refresh")
         self.write(dict(data=data))
 
 
@@ -75,6 +77,8 @@ class RoomGameTurnHandler(BaseRequestHandler):
         if not turn:
             raise APIError(400, "Validation error")
         data = await game_room_service.make_turn(room_id, user, turn)
+        # notify all users to fetch updated data
+        await self.application.socket_manager.broadcast_to_room(room_id, "refresh")
         self.write(dict(data=data))
 
 
@@ -92,6 +96,8 @@ class RoomPlayersHandler(BaseRequestHandler):
         if str(current_user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         data = await room_service.join_room(room_id, current_user)
+        # notify all users to fetch updated data
+        await self.application.socket_manager.broadcast_to_room(room_id, "refresh")
         self.set_status(201)
         self.write(dict(data=data))
 
@@ -102,4 +108,6 @@ class RoomPlayersHandler(BaseRequestHandler):
         if str(user.id) != player_id:
             raise APIError(401, "Can't perform this action.")
         await room_service.leave_room(room_id, user)
+        # notify all users to fetch updated data
+        await self.application.socket_manager.broadcast_to_room(room_id, "refresh")
         self.set_status(204)

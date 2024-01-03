@@ -280,7 +280,6 @@ class Game extends Component {
             this.props.room_id, {cards: selectedCards}
         ).then(room => {
             this.setState({isLoading: false, room: room, selectedCards: [], isErrorMessageVisible: false});
-            this.props.notifyAllAboutUpdate();
         }, error => {
             let message = error.response.status === 400 ? error.response?.statusText : "Something went wrong. Try again later.";
             this.showErrorMessage(message);
@@ -293,7 +292,6 @@ class Game extends Component {
             this.props.room_id, {cards: []}
         ).then(room => {
             this.setState({isLoading: false, room: room, selectedCards: [], isErrorMessageVisible: false});
-            this.props.notifyAllAboutUpdate();
         }, error => {
             let message = error.response.status === 400 ? error.response?.statusText : "Something went wrong. Try again later.";
             this.showErrorMessage(message);

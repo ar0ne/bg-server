@@ -18,6 +18,7 @@ class RedisPubSubManager:
         self.redis_host = host
         self.redis_port = port
         self.pubsub = None
+        self.redis_connection = None
 
     async def _get_redis_connection(self) -> aioredis.Redis:
         """
@@ -45,6 +46,8 @@ class RedisPubSubManager:
             room_id (str): Channel or room ID.
             message (str): Message to be published.
         """
+        if not self.redis_connection:
+            self.connect()
         await self.redis_connection.publish(room_id, message)
 
     async def subscribe(self, room_id: str) -> aioredis.Redis:
