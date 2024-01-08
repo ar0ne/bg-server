@@ -1,6 +1,6 @@
 # What is it?
 
-This is web server for turn based games (e.g. board games). Idea was to make something similar to [boardgamearena](https://boardgamearena.com/) and "maybe" write some games that not exist there yet.
+This is a web server for turn-based games (e.g. board games). The idea was to make something similar to [boardgamearena](https://boardgamearena.com/) and "maybe" write some games that do not exist there yet.
 
 
 ### List of available games:
